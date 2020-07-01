@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="language" content="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Access your messages anywhere in real-time">
+  <meta name="keywords" content="Messages, android, anywhere, real-time">
+  <meta name="author" content="Eduardo Mota">
+  <meta name="robots" content="none" />
+
+  <title>Messages</title>
+
+  <link rel="stylesheet" href="./css/bulma.min.css">
+  <link rel="stylesheet" href="./css/app/login.css">
+
+  <link rel="prefetch" href="./messages" />
+  <link rel="prerender" href="./messages" />
+</head>
+
+<body>
+  <!-- Animated fade overlay -->
+  <div id="overlay"></div>
+
+  <!-- Access form -->
+  <section class="hero is-dark is-fullheight">
+    <div class="hero-body">
+      <div class="container">
+        <div class="py-5">
+          <h2 class="is-size-2">Messages</h1>
+        </div>
+        <div class="field has-addons centered">
+          <!-- Token validity notifications -->
+          <div id="token-check" class="notification is-light">Please wait...</div>
+          <div id="token-saved" class="notification is-success is-light is-hidden">There's a valid saved session, wait a moment...</div>
+          <div id="token-valid" class="notification is-success is-light is-hidden">The access code is valid, wait a moment...</div>
+          <div id="token-invalid" class="notification is-danger is-light is-hidden">The access code is invalid, try again. <small>Please wait 3 seconds</small></div>
+          <div id="token-error" class="notification is-danger is-light is-hidden">An error has ocurred, check your connection and try again...</div>
+          <!-- Access code form -->
+          <div class="control">
+            <input id="password" class="input has-background-grey-darker has-text-white-bis is-hidden" type="password" placeholder="Access Code">
+          </div>
+          <div class="control">
+            <a id="login" class="button has-background-grey-lighter is-hidden">
+              Login
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="../socket.io/socket.io.js"></script>
+  <script src="js/jquery-3.4.1.min.js"></script>
+  <script src="js/app/config.js"></script>
+  <script src="js/app/token.js"></script>
+  <script src="js/app/login.js"></script>
+</body>
+
+</html>
