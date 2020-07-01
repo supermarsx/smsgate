@@ -26,7 +26,7 @@ smsgate is divided in two parts: `smsgate` the socket.io/express server and `sms
 
 2. Android application screenshot
 
-![smsrelay2](https://github.com/eduardomota/smsgate/raw/master/media/smsrelay2.png)
+<img src="https://github.com/eduardomota/smsgate/raw/master/media/smsrelay2.png" width=300px>
 
 ## Main specification/features
 
