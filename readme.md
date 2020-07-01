@@ -6,21 +6,8 @@ smsgate is divided in two parts: `smsgate` the socket.io/express server and `sms
 
 ## Visual Demo
 
-1. Base scenario
+1. Base scenario (failed login, valid login, message reception, close session, login with messages, saved session, invalid token redirect)
 
-   1. Failed login
-
-   2. Valid login
-
-   3. Message receptions
-
-   4. Close session
-
-   5. New login, old messages   
-
-   6. Saved session login
-
-   7. Invalid token, direct message access redirect
 
 ![smsgate](https://github.com/eduardomota/smsgate/raw/master/media/smsgate.gif)
 
