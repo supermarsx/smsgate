@@ -4,40 +4,79 @@
   Login handling
  */
 
+/*
+  jQuery object selectors, classes
+ */
+var jq = {
+  overlay: $('#overlay'),
+  container: $('.container'),
+  login: $('#login'),
+  password: $('#password'),
+  tokenError: $('#token-error'),
+  tokenCheck: $('#token-check'),
+  tokenValid: $('#token-valid'),
+  tokenSaved: $('#token-saved'),
+  tokenInvalid: $('#token-invalid'),
+  classes: {
+    hidden: 'is-hidden'
+  }
+};
+
+// On document ready
 $(document).ready(function() {
+
+  if (config.authorization.useInsecure) injectSHA512fn();
+
   // Animate overlay
-  $('#overlay').delay(500).animate({
+  jq.overlay.delay(500).animate({
     opacity: 0
   }, 1000);
 
-  $('.container').delay(1500).animate({
+  jq.container.delay(1500).animate({
     opacity: 1
   }, 1000);
 
   // Send token check
-  if (config.sendLogin) setTimeout(() => {
-    sendLogin(localStorage.getItem(config.storageName));
+  if (config.authorization.sendLogin) setTimeout(() => {
+    sendLogin(localStorage.getItem(config.authorization.storageName));
   }, 2500);
 });
 
 /*
   On login button click
  */
-$('#login').on('click', async function() {
-  var passwordHash = await sha512($('#password').val());
-  setToken(config.storageName, passwordHash);
+jq.login.on('click', async function() {
+  var passwordHash = await sha512wrapped(jq.password.val());
+  setToken(config.authorization.storageName, passwordHash);
   sendLogin(passwordHash, true);
 });
 
 /*
   On password field focus
  */
-if (!config.nulled.keypress) $('#password').keypress(function(e) {
+if (!config.debug.nulled.keypress) jq.password.keypress(function(e) {
   // If password field is focused and key is [ENTER]
-  if (e.charCode == 13 && $('#password').is(":focus")) {
-    $('#login').click();
+  if (e.charCode == 13 && jq.password.is(":focus")) {
+    jq.login.click();
   }
 });
+
+/*
+  injectSHA512fn
+    Injects SHA512 alterntive hashing script onto the DOM, for HTTP
+ */
+function injectSHA512fn() {
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {
+      return;
+    }
+    js = d.createElement(s);
+    js.id = id;
+    js.src = config.management.paths.sha512;
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'sha512-useInsecure'));
+}
 
 /*
   sendLogin
@@ -47,65 +86,76 @@ if (!config.nulled.keypress) $('#password').keypress(function(e) {
     viaButton (boolean) - Whether this been triggered by a button
  */
 function sendLogin(token, viaButton = false) {
+  var {
+    management
+  } = config;
+  var {
+    paths
+  } = management;
+  var {
+    login
+  } = management.request;
+
   var xhr = new XMLHttpRequest();
 
-  xhr.open("POST", config.paths.tokenCheck, true);
-  xhr.setRequestHeader('authorization', 'Bearer ' + token);
-  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.open(login.method, paths.tokenCheck, true);
+  xhr.setRequestHeader(login.header1, login.header1Prefix + token);
+  xhr.setRequestHeader(login.header2, login.header2Value);
 
   // On connection error
   xhr.onerror = function(e) {
-    $('#password').addClass('is-hidden');
-    $('#login').addClass('is-hidden');
-    $('#token-error').removeClass('is-hidden');
-    $('#password').val('');
+    jq.password.addClass(jq.classes.hidden);
+    jq.login.addClass(jq.classes.hidden);
+    jq.tokenError.removeClass(jq.classes.hidden);
+    jq.password.val('');
     setTimeout(function() {
-      $('#password').toggleClass('is-hidden');
-      $('#login').toggleClass('is-hidden');
-      $('#token-error').toggleClass('is-hidden');
-      $('#password').focus();
+      jq.password.toggleClass(jq.classes.hidden);
+      jq.login.toggleClass(jq.classes.hidden);
+      jq.tokenError.toggleClass(jq.classes.hidden);
+      jq.password.focus();
     }, 3000);
   };
 
   xhr.onreadystatechange = function() {
 
     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-      $('#token-check').addClass('is-hidden');
+      jq.tokenCheck.addClass(jq.classes.hidden);
 
       // Valid token
-      if (xhr.response == 'Valid token') {
+      if (xhr.response == login.validToken) {
         if (viaButton) {
-          $('#password').addClass('is-hidden');
-          $('#login').addClass('is-hidden');
-          $('#token-valid').removeClass('is-hidden');
+          jq.password.addClass(jq.classes.hidden);
+          jq.login.addClass(jq.classes.hidden);
+          jq.tokenValid.removeClass(jq.classes.hidden);
         } else {
-          $('#token-saved').removeClass('is-hidden');
+          jq.tokenSaved.removeClass(jq.classes.hidden);
         }
-        $('#overlay').delay(2000).css('z-index', 1).animate({
+        jq.overlay.delay(2000).css('z-index', 1).animate({
           opacity: 1
         }, 500);
+
         setTimeout(function() {
-          window.location.replace(config.paths.messages);
-        }, config.timing.redirect);
+          window.location.replace(paths.messages);
+        }, paths.redirects.timing['1']);
       }
 
       // Invalid token
-      if (xhr.response == 'Invalid token') {
+      if (xhr.response == login.invalidToken) {
         if (viaButton) {
-          $('#password').addClass('is-hidden');
-          $('#login').addClass('is-hidden');
-          $('#token-invalid').removeClass('is-hidden');
-          $('#password').val('');
+          jq.password.addClass(jq.classes.hidden);
+          jq.login.addClass(jq.classes.hidden);
+          jq.tokenInvalid.removeClass(jq.classes.hidden);
+          jq.password.val('');
           setTimeout(function() {
-            $('#password').toggleClass('is-hidden');
-            $('#login').toggleClass('is-hidden');
-            $('#token-invalid').toggleClass('is-hidden');
-            $('#password').focus();
+            jq.password.toggleClass(jq.classes.hidden);
+            jq.login.toggleClass(jq.classes.hidden);
+            jq.tokenInvalid.toggleClass(jq.classes.hidden);
+            jq.password.focus();
           }, 3000);
 
         } else {
-          $('#password').removeClass('is-hidden');
-          $('#login').removeClass('is-hidden');
+          jq.password.removeClass(jq.classes.hidden);
+          jq.login.removeClass(jq.classes.hidden);
         }
       }
 

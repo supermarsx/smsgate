@@ -6,29 +6,17 @@ var express = require('express'),
   io = require('socket.io')(http),
   crypto = require('crypto');
 
-/*
-  Application configuration
- */
-var appVar = {
-  isPhoneOnline: false, // Is phone online
-  connectedClients: 0, // Connected clients
-  allowedCids: ['#XCLIENTID1'], // Allowed client IDs, phones that can push messages
-  allowedPins: ['#PIN1', '#PIN2'], // Allowed pin codes to login and see messages
-  hashedPins: [], // Hash array including pre hashed pins
-  serverPort: 3000, // Express server port
-  keepMessages: 10, // Maximum amount of messages to keep on the server
-  purgeOld: true, // Purge old messages on new message
-  messages: [], // Messages
-  salt: '#SALT', // Salt to hash tokens with
-  extensions: ['html'] // Express extensions, don't show extension on the window url
-};
+// App configuration
+var appVar = require('./config');
 
 // Pre hash pins at startup
-pushHashedPins();
+if (!appVar.authorization.token.useHashed) pushHashedPins();
 
 // Use JSON and public static folder
 app.use(express.json());
-app.use(express.static('public', {extensions: appVar.extensions}));
+app.use(express.static('public', {
+  extensions: appVar.server.extensions
+}));
 
 /*
   Check for token (bearer) authorization
@@ -36,7 +24,6 @@ app.use(express.static('public', {extensions: appVar.extensions}));
 io.use((socket, next) => {
   if (socket.handshake.headers.authorization !== undefined) {
     var token = socket.handshake.headers.authorization.split(' ')[1];
-    //console.log(token);
     if (isValidToken(token)) {
       console.log('Token: Valid, socket');
       return next();
@@ -49,17 +36,11 @@ io.use((socket, next) => {
   });
 });
 
-// Catch all request debug
-/*
-app.all('*', function(req, res) {
-  console.log(req);
-});*/
-
 /*
   Get Index page from 'public' folder
  */
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/login.html');
+  res.sendFile(__dirname + appVar.server.paths.entry);
 });
 
 /*
@@ -72,10 +53,19 @@ app.get('/api/ping', (req, res) => {
 */
 
 /*
+app.all('*', function(){
+  console.log('received');
+  http.getConnections(function(error, count) {
+    console.log(count);
+});
+});
+*/
+
+/*
   Push message API entry point
     Takes a valid token (bearer authorization header) and message object aswell as a valid client ID
  */
-app.post('/api/push/message', (req, res) => {
+app.post(appVar.server.paths.api.messagePush, (req, res) => {
   var clientId = req.headers['x-clientid'],
     token = req.headers.authorization.split(' ')[1];
   //console.log(req.headers);
@@ -94,13 +84,14 @@ app.post('/api/push/message', (req, res) => {
     );
     io.sockets.emit('message', message);
   }
+  res.end();
 });
 
 /*
   API token check
     Takes a token (bearer authorization header) and checks its validity
  */
-app.post('/api/token/check', (req, res) => {
+app.post(appVar.server.paths.api.tokenCheck, (req, res) => {
   //console.log(req.headers);
   var token = req.headers.authorization.split(' ')[1];
   //console.log(token);
@@ -120,16 +111,16 @@ io.on('connection', (socket) => {
   var clientId = socket.handshake.headers['x-clientid'];
 
   console.log('Client: online');
-  socket.emit('sourceStatus', appVar.isPhoneOnline);
-  socket.emit('baseMessages', appVar.messages);
-  socket.emit('keepMessages', appVar.keepMessages);
+  socket.emit('sourceStatus', appVar.buffer.isPhoneOnline);
+  socket.emit('baseMessages', appVar.buffer.messages);
+  socket.emit('keepMessages', appVar.management.messages.keep);
 
   /*
    If the given Client ID is valid, signal phone online temporarily
    */
   if (isValidCid(clientId)) {
-    appVar.isPhoneOnline = true;
-    socket.broadcast.emit('sourceStatus', appVar.isPhoneOnline);
+    appVar.buffer.isPhoneOnline = true;
+    socket.broadcast.emit('sourceStatus', appVar.buffer.isPhoneOnline);
     console.log('Phone: online');
   }
 
@@ -137,9 +128,9 @@ io.on('connection', (socket) => {
     On socket.io disconnection
    */
   socket.on('disconnect', (e, cid = clientId) => {
-    if (isValidCid(cid)) {  // If is valid client ID, phone
-      appVar.isPhoneOnline = false;
-      socket.broadcast.emit('sourceStatus', appVar.isPhoneOnline);
+    if (isValidCid(cid)) { // If is valid client ID, phone
+      appVar.buffer.isPhoneOnline = false;
+      socket.broadcast.emit('sourceStatus', appVar.buffer.isPhoneOnline);
       console.log('Phone: offline');
     }
     console.log('Client: offline');
@@ -150,8 +141,8 @@ io.on('connection', (socket) => {
 /*
   HTTP port listener, server startup
  */
-http.listen(appVar.serverPort, () => {
-  console.log('smsgate listening on *:' + appVar.serverPort);
+http.listen(appVar.server.port, () => {
+  console.log('smsgate listening on *:' + appVar.server.port);
 });
 
 /*
@@ -163,12 +154,13 @@ http.listen(appVar.serverPort, () => {
     message (string) - Plain message body
  */
 function pushMessage(number, date, message) {
-  appVar.messages.push({
+  appVar.buffer.messages.push({
     number: number,
     date: date,
     message: message
   });
-  if (appVar.purgeOld) purgeOld(); // Purges old messages
+  //console.log(appVar.buffer.messages);
+  if (appVar.management.messages.purgeOld) purgeOld(); // Purges old messages
 }
 
 /*
@@ -176,10 +168,11 @@ function pushMessage(number, date, message) {
     Purge a message on array
  */
 function purgeMessage(position = 0) {
+  console.log(`SMSGATE: Purging message ${position}`);
   if (position == 0) {
-    appVar.messages.shift();
+    appVar.buffer.messages.shift();
   } else {
-    appVar.messages.splice(position);
+    appVar.buffer.messages.splice(position);
   }
 }
 
@@ -188,8 +181,9 @@ function purgeMessage(position = 0) {
     Purge messages in excess to config
  */
 function purgeOld() {
-  if (appVar.keepMessages !== 0) {
-    while (appVar.messages.length > appVar.keepMessages) {
+  //console.log('SMSGATE: Purging old messages');
+  if (appVar.management.messages.keep !== 0) {
+    while (appVar.buffer.messages.length > appVar.management.messages.keep) {
       purgeMessage();
     }
   }
@@ -210,8 +204,8 @@ function testPushMessage() {
     clientId (string) - 'x-clientid' header
  */
 function isValidCid(clientId) {
-  for (var cid in appVar.allowedCids) {
-    if (clientId == appVar.allowedCids[cid]) return true;
+  for (var cid in appVar.authorization.token.clientId) {
+    if (clientId == appVar.authorization.token.clientId[cid]) return true;
   }
   return false;
 }
@@ -223,8 +217,8 @@ function isValidCid(clientId) {
     token (string) - Token used as (bearer) authorization header
  */
 function isValidToken(token) {
-  for (var pin in appVar.hashedPins) {
-    if (token == appVar.hashedPins[pin]) return true;
+  for (var pin in appVar.authorization.token.hashedCode) {
+    if (token == appVar.authorization.token.hashedCode[pin]) return true;
   }
   return false;
 }
@@ -250,7 +244,6 @@ function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
 /*
   hash
     Create sha512 hashed string with salt
@@ -258,7 +251,7 @@ function randomInteger(min, max) {
     string (string) - String to hash
  */
 function hash(string) {
-  return crypto.createHash('sha512').update(string + appVar.salt).digest('hex');
+  return crypto.createHash('sha512').update(string + appVar.authorization.salt).digest('hex');
 }
 
 /*
@@ -266,7 +259,7 @@ function hash(string) {
     Hash and push pins once
  */
 function pushHashedPins() {
-  for (var pin in appVar.allowedPins) {
-    appVar.hashedPins.push(hash(appVar.allowedPins[pin]));
+  for (var pin in appVar.authorization.token.accessCode) {
+    appVar.authorization.token.hashedCode.push(hash(appVar.authorization.token.accessCode[pin]));
   }
 }

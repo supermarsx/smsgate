@@ -5,6 +5,14 @@
  */
 
 /*
+  jQuery Objects selector
+ */
+
+var jq = {
+  messagesx: $('#messagesx')
+};
+
+/*
   showLatestMessage
     Scrolls to the latest message available
   parameters
@@ -12,7 +20,11 @@
  */
 function showLatestMessage(elementId = 'messagesx') {
   var objDiv = document.getElementById(elementId);
-  objDiv.scrollTop = objDiv.scrollHeight;
+  if (config.management.messages.invert) {
+    objDiv.scrollTop = 0;
+  } else {
+    objDiv.scrollTop = objDiv.scrollHeight;
+  }
 }
 
 /*
@@ -25,11 +37,19 @@ function showLatestMessage(elementId = 'messagesx') {
     element (string) - Element name
  */
 function messagePush(message, date, number, element = '.containerx') {
+  var {
+    messages
+  } = config.management;
+
   var originClass = 'fromThem',
     append = '<div class="messagex"><div class="' + originClass + '"><p class="origin noselect">' + number + '</br>' + date + '</p><p>' + message + '</p></div></div>';
-  $(element + ' .messagesx').append(append);
-  if (config.purgeOld) purgeOld();
-  if (config.showLatestMessage) showLatestMessage();
+  if (messages.invert) {
+    $(element + ' .messagesx').prepend(append);
+  } else {
+    $(element + ' .messagesx').append(append);
+  }
+  if (messages.purgeOld) purgeOld();
+  if (messages.showLatest) showLatestMessage();
 }
 
 /*
@@ -40,7 +60,11 @@ function messagePush(message, date, number, element = '.containerx') {
  */
 function purgeMessage(position = 0) {
   if (position == 0) {
-    $('#messagesx').children().first().remove();
+    if (config.management.messages.invert) {
+      $('#messagesx').children().last().remove();
+    } else {
+      $('#messagesx').children().first().remove();
+    }    
   } else {
     $('#messagesx :nth-child(' + position + ')').remove();
   }

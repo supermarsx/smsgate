@@ -10,8 +10,9 @@
   <meta name="author" content="Eduardo Mota">
   <meta name="robots" content="none" />
 
-  <title>Messages</title>
+  <title trl>s_window</title>
 
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
   <link rel="stylesheet" href="./css/bulma.min.css">
   <link rel="stylesheet" href="./css/app/login.css">
 
@@ -28,22 +29,22 @@
     <div class="hero-body">
       <div class="container">
         <div class="py-5">
-          <h2 class="is-size-2">Messages</h1>
+          <h2 class="is-size-2" trl>s_title</h1>
         </div>
         <div class="field has-addons centered">
           <!-- Token validity notifications -->
-          <div id="token-check" class="notification is-light">Please wait...</div>
-          <div id="token-saved" class="notification is-success is-light is-hidden">There's a valid saved session, wait a moment...</div>
-          <div id="token-valid" class="notification is-success is-light is-hidden">The access code is valid, wait a moment...</div>
-          <div id="token-invalid" class="notification is-danger is-light is-hidden">The access code is invalid, try again. <small>Please wait 3 seconds</small></div>
-          <div id="token-error" class="notification is-danger is-light is-hidden">An error has ocurred, check your connection and try again...</div>
+          <div id="token-check" class="notification is-light" trl>s_wait</div>
+          <div id="token-saved" class="notification is-success is-light is-hidden" trl>s_validsession</div>
+          <div id="token-valid" class="notification is-success is-light is-hidden" trl>s_validcode</div>
+          <div id="token-invalid" class="notification is-danger is-light is-hidden"><str trl>s_invalidcode1</str><small trl>s_invalidcode2</small></div>
+          <div id="token-error" class="notification is-danger is-light is-hidden" trl>s_errorcode</div>
           <!-- Access code form -->
           <div class="control">
-            <input id="password" class="input has-background-grey-darker has-text-white-bis is-hidden" type="password" placeholder="Access Code">
+            <input id="password" class="input has-background-grey-darker has-text-white-bis is-hidden" type="password" placeholder="s_accesscode">
           </div>
           <div class="control">
-            <a id="login" class="button has-background-grey-lighter is-hidden">
-              Login
+            <a id="login" class="button has-background-grey-lighter is-hidden" trl>
+              s_login
             </a>
           </div>
         </div>
@@ -53,7 +54,9 @@
 
   <script src="../socket.io/socket.io.js"></script>
   <script src="js/jquery-3.4.1.min.js"></script>
+
   <script src="js/app/config.js"></script>
+  <script src="js/app/lang.js"></script>
   <script src="js/app/token.js"></script>
   <script src="js/app/login.js"></script>
 </body>

@@ -1,8 +1,7 @@
 // jshint esversion: 8
 // not tested, early draft
 
-var socket,
-  salt = '#SALT';
+var socket;
 
 start();
 
@@ -56,7 +55,7 @@ function randomInteger(min, max) {
     hashes a string plus salt with SHA 512
  */
 function sha512(str) {
-  return crypto.subtle.digest("SHA-512", new TextEncoder("utf-8").encode(str + salt)).then(buf => {
+  return crypto.subtle.digest("SHA-512", new TextEncoder("utf-8").encode(str + config.authorization.salt)).then(buf => {
     return Array.prototype.map.call(new Uint8Array(buf), x => (('00' + x.toString(16)).slice(-2))).join('');
   });
 }

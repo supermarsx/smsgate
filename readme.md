@@ -20,10 +20,12 @@ smsgate is divided in two parts: `smsgate` the socket.io/express server and `sms
 - React-native android application
 - Foreground and background sms listener
 - Simple user interface
+- Notification sound
 - Socket.io/Express server
-- Real-time sms reception (< 1 second)
-- Token based authentication, SHA-512 hash with salt
-- Uni directional, message reception only application
+- Real-time sms reception (~ 1 second)
+- Token based authentication, SHA-512 hash with salt (local/session storage)
+- Pseudo uni-directional communications (reception only)
+- Translation ready through simple json file
 
 ## Getting started
 
@@ -42,31 +44,13 @@ $ cd ../smsrelay2/
 $ npm install
 ```
 
-Change the variables to suit your preferences,
-
-Change on these files:
+Change the variables to suit your preferences, on these files:
 
 ```
-# Android application
-./smsrelay2/App.js
-./smsrelay2/sms/RECEIVESMS.js
-# Socket.io/Express server
-./smsgate/index.js
-./smsgate/js/app/config.js
-./smsgate/js/test.js
-```
-
-... the following strings:
-
-```
-#SOCKETIOHOST - smsgate server IP (local network ip)
-#EXPRESSHOST - smsgate server IP (local network ip)
-#PORT - smsgate server port
-#XCLIENTID1 - client id, its the allowed client to push messages to the server, header 'x-clientid'
-#PIN1 - First authorized pin/access code to authenticate
-#PIN2 - Second authorized pin/access code to authenticate
-#SALT - Hash salt, should be a long random string and be the same everywhere
-1234567890abcdef_smstoken - Local storage name to store the token
+Android application: ./smsrelay2/config.js
+Express/socketio client: ./smsgate/js/app/config.js
+Express/socketio server: ./smsgate/config.js
+Express/socketio client/phone test: ./smsgate/js/test.js
 ```
 
 ### smsrelay2
@@ -91,7 +75,14 @@ $ node ./index.js
 
 ## Considerations
 
-This application authentication only makes sense if used under TLS, it uses a salt and strong hashing algorithm to harden against potential rainbow tables. Using this over plain HTTP nulls the objective of using the token as it can be easily obtained from raw network traffic.
+This application authentication only makes sense if used under TLS, it uses a salt and strong hashing algorithm to harden against potential rainbow tables against access codes. Using this over plain HTTP defeats the purpose of using a token as it can be easily obtained from raw network traffic.
+Tokens cannot be created using "crypto.subtle.digest" over HTTP, for that you'll need enable insecure inside on config.
+This application is made with modern browsers in mind, older browsers may encounter difficulties or may not function as expected. Chrome is the recommended browser as it implements all functionality in an ideal scenario but any other modern popular browser will probably work well.
+A way of avoiding white screen flash when changing pages is implemented using prefetch/prerender functionality, Safari isn't supported.
+
+... Compilation notes
+
+You may need to set react native sha512 library `compileSdk` directive to at least `28` to be able to compile the apk.
 
 ## Built with
 

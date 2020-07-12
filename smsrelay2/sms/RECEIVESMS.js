@@ -1,13 +1,24 @@
 // jshint esversion: 8
 import io from 'socket.io-client';
 
-import { sha512 } from 'react-native-sha512';
+import { config, sha512wrapper } from '../config';
 
 module.exports = async (taskData) => {
   //console.log("HeadlessJs");
   //console.log(taskData);
   sendMessage(taskData);
 };
+
+initialize();
+
+/*
+  initialize
+    Initializes config, hashes pin
+ */
+async function initialize() {
+  var { pin, salt, token } = config.authorization;
+  config.authorization.token = await sha512wrapper(pin + salt);
+}
 
 /*
   sendMessage
@@ -16,34 +27,14 @@ module.exports = async (taskData) => {
     message (object) - Message object containing origin and message body
  */
 async function sendMessage(message) {
-  var pin = '#PIN1', salt = '#SALT';
-  var authorization = (await sha512(pin + salt));
-  var config = {
-    socket: {
-      url: 'http://#SOCKETIOHOST:#PORT',
-      'x-clientid': '#XCLIENTID1',
-      authorization: 'Bearer ' + authorization,
-    },
-    fetch: {
-      url: 'http://#EXPRESSHOST:#PORT/api/push/message',
-      method: 'POST',
-      headers: {
-        authorization: 'Bearer ' + authorization,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'x-clientid': '#XCLIENTID1'
-      },
-    }
-  };
+  console.log(config);
 
-  //console.log(config);
-
-  const socket = io(config.socket.url, {
+  const socket = io(config.server.url, {
     transportOptions: {
       polling: {
         extraHeaders: {
-          'x-clientid': config.socket['x-clientid'],
-          authorization: config.socket.authorization,
+          'x-clientid': config.authorization.header1value,
+          Authorization: config.authorization.header2prefix + config.authorization.token,
         }
       }
     }
@@ -57,13 +48,13 @@ async function sendMessage(message) {
     padNumber(message.date.getMonth()) + '/' +
     message.date.getFullYear();
 
-  fetch(config.fetch.url, {
-    method: config.fetch.method,
+  fetch(config.server.url + config.server.apiPath, {
+    method: config.server.method,
     headers: {
-      Accept: config.fetch.headers.Accept,
-      'Content-Type': config.fetch.headers['Content-Type'],
-      'x-clientid': config.fetch.headers['x-clientid'],
-      authorization: config.fetch.headers.authorization
+      Accept: config.authorization.header3value,
+      'Content-Type': config.authorization.header4value,
+      'x-clientid': config.authorization.header1value,
+      Authorization: config.authorization.header2prefix + config.authorization.token
     },
     body: JSON.stringify({
       number: message.originatingAddress,

@@ -32,76 +32,40 @@ import SmsListener from './sms/index';
 
 import io from 'socket.io-client/dist/socket.io.js';
 
-import { sha512 } from 'react-native-sha512';
+import {config, sha512wrapper} from './config'
 
-/*
-  Application configuration
- */
-var config = {
-  socket: {
-    url: 'http://#SOCKETIOHOST:#PORT',  // Server hostname and port
-    'x-clientid': '#XCLIENTID1', // Client ID allowed from server
-    authorization: 'Bearer ' + 'authorization', // Token authorization placeholder
-  },
-  fetch: {
-    url: 'http://#EXPRESSHOST:#PORT/api/push/message', // Server hostname and port
-    method: 'POST', // HTTP method
-    headers: {
-      authorization: 'Bearer ' + 'authorization', // Token authorization placeholder
-      Accept: 'application/json', // Accept header
-      'Content-Type': 'application/json', // Content type header
-      'x-clientid': '#XCLIENTID1' // Client ID allowed from server
-    },
-  }
-};
-
-SmsListener.addListener((message) => {
+console.log(config);
+if (config.misc.listen) SmsListener.addListener((message) => {
   sendMessage(message);
 });
 
-// Null test, initializes configuration
-sendMessage('', true);
+initialize();
+
+/*
+  initialize
+    Initializes config, hashes pin
+ */
+async function initialize() {
+  var { pin, salt, token } = config.authorization;
+  config.authorization.token = await sha512wrapper(pin + salt);
+}
 
 /*
   sendMessage
     Sends a message to the API
   parameters
     message (object) - Message object containing origin and message body
-    nulled (boolean) - Is this not a real message
  */
-async function sendMessage(message, nulled = false) {
-  var pin = '#PIN1', salt = '#SALT'; // Set pin and salt
-  var authorization = (await sha512(pin + salt)); // Generate authorization token
-  config = {
-    socket: {
-      url: 'http://#SOCKETIOHOST:#PORT',
-      'x-clientid': '#XCLIENTID1',
-      authorization: 'Bearer ' + authorization,
-    },
-    fetch: {
-      url: 'http://#EXPRESSHOST:#PORT/api/push/message',
-      method: 'POST',
-      headers: {
-        authorization: 'Bearer ' + authorization,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'x-clientid': '#XCLIENTID1'
-      },
-    }
-  };
-
-  // If is nulled end here
-  if (nulled == true) {return}
-
-  //console.log(config);
+async function sendMessage(message) {
+  console.log(config);
 
   // Open a temporary socket.io to signal presence
-  const socket = io(config.socket.url, {
+  const socket = io(config.server.url, {
     transportOptions: {
       polling: {
         extraHeaders: {
-          'x-clientid': config.socket['x-clientid'],
-          authorization: config.socket.authorization,
+          'x-clientid': config.authorization.header1value,
+          authorization: config.authorization.header2prefix + config.authorization.token,
         }
       }
     }
@@ -117,13 +81,13 @@ async function sendMessage(message, nulled = false) {
     message.date.getFullYear();
 
   // Push new message via API
-  fetch(config.fetch.url, {
-    method: config.fetch.method,
+  fetch(config.server.url + config.server.apiPath, {
+    method: config.server.method,
     headers: {
-      Accept: config.fetch.headers.Accept,
-      'Content-Type': config.fetch.headers['Content-Type'],
-      'x-clientid': config.fetch.headers['x-clientid'],
-      authorization: config.fetch.headers.authorization
+      Accept: config.authorization.header3value,
+      'Content-Type': config.authorization.header4value,
+      'x-clientid': config.authorization.header1value,
+      Authorization: config.authorization.header2prefix + config.authorization.token
     },
     body: JSON.stringify({
       number: message.originatingAddress,
@@ -204,17 +168,17 @@ const App: () => React$Node = () => {
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Current Settings (socket.io)</Text>
               <Text style={styles.sectionDescription}>
-                URL: {config.socket.url}{"\n"}
-                x-clientid: {config.socket['x-clientid'].replace(/.(?=.{3,}$)/g, '*')}{"\n"}
-                token: {config.socket.authorization.substr(config.socket.authorization.length - 10).replace(/.(?=.{5,}$)/g, '*')}{"\n"}
+                URL: {config.server.url}{"\n"}
+                x-clientid: {config.authorization.header1value.replace(/.(?=.{3,}$)/g, '*')}{"\n"}
+                token: {config.authorization.token.substr(config.authorization.token.length - 10).replace(/.(?=.{5,}$)/g, '*')}{"\n"}
               </Text>
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Current Settings (fetch)</Text>
               <Text style={styles.sectionDescription}>
-                URL: {config.fetch.url}{"\n"}
-                x-clientid: {config.fetch.headers['x-clientid'].replace(/.(?=.{3,}$)/g, '*')}{"\n"}
-                token: {config.fetch.headers.authorization.substr(config.socket.authorization.length - 10).replace(/.(?=.{5,}$)/g, '*')}{"\n"}
+                URL: {config.server.url}{"\n"}
+                x-clientid: {config.authorization.header1value.replace(/.(?=.{3,}$)/g, '*')}{"\n"}
+                token: {config.authorization.token.substr(config.authorization.token.length - 10).replace(/.(?=.{5,}$)/g, '*')}{"\n"}
               </Text>
             </View>
             <View style={styles.sectionContainer}>

@@ -10,8 +10,9 @@
   <meta name="author" content="Eduardo Mota">
   <meta name="robots" content="none" />
 
-  <title>Messages</title>
+  <title trl>s_window</title>
 
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
   <link rel="stylesheet" type="text/css" href="css/device-mockups.min.css">
   <link rel="stylesheet" type="text/css" href="css/app/phone.css">
   <link rel="stylesheet" type="text/css" href="css/app/main.css">
@@ -32,13 +33,13 @@
         <!-- Connection status -->
         <div class="status">
           <div class="contents noselect">
-            <span id="clientStatus" title="Server connection hasn't started." class="initial slow blink">⬤</span>
-            <span id="sourceStatus" title="Phone connection hasn't started." class="initial slow blink">⬤</span>
+            <span id="clientStatus" title="s_serverclosed" class="initial slow blink">⬤</span>
+            <span id="sourceStatus" title="s_phoneclosed" class="initial slow blink">⬤</span>
           </div>
         </div>
         <!-- Title -->
         <div class="titlex noselect">
-          <span>Received messages</span>
+          <span trl>s_receivedmessages</span>
         </div>
         <div class="containerx">
           <form class="chat">
@@ -46,7 +47,7 @@
             <div id="messagesx" class="messagesx">
             </div>
             <!-- Session close button -->
-            <div id="close" class="titlex noselect">Close session</div>
+            <div id="close" class="titlex noselect" trl>s_closesession1</div>
           </form>
         </div>
       </div>
@@ -59,17 +60,17 @@
     <div class="modal-card">
       <header class="modal-card-head">
         <!-- Modal title -->
-        <p class="modal-card-title">Close session</p>
+        <p class="modal-card-title" trl>s_closesession2</p>
         <button class="delete" aria-label="close"></button>
       </header>
       <!-- Modal description -->
-      <section class="modal-card-body">
-        You can access messages faster if you don't close this session, closing the session won't delete any messages from the server.
+      <section class="modal-card-body" trl>
+        s_closesessionmsg
       </section>
       <!-- Modal actions -->
       <footer class="modal-card-foot">
-        <button id="close-confirm-yes" class="button is-danger">Close session</button>
-        <button id="close-confirm-no" class="button">Cancel</button>
+        <button id="close-confirm-yes" class="button is-danger" trl>s_closesession3</button>
+        <button id="close-confirm-no" class="button" trl>s_closesessioncancel</button>
       </footer>
     </div>
   </div>
@@ -91,9 +92,10 @@
   <script src="../socket.io/socket.io.js"></script>
   <script src="js/jquery-3.4.1.min.js"></script>
   <script src="js/app/config.js"></script>
+  <script src="js/app/lang.js"></script>
   <script src="js/app/token.js"></script>
   <script src="js/app/phone.js"></script>
-  <script src="js/app/main.js"></script>
+  <script src="js/app/messages.js"></script>
 </body>
 
 </html>
