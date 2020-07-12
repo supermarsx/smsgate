@@ -80,8 +80,15 @@ Tokens cannot be created using "crypto.subtle.digest" over HTTP, for that you'll
 This application is made with modern browsers in mind, older browsers may encounter difficulties or may not function as expected. Chrome is the recommended browser as it implements all functionality in an ideal scenario but any other modern popular browser will probably work well.
 A way of avoiding white screen flash when changing pages is implemented using prefetch/prerender functionality, Safari isn't supported.
 
-... Compilation notes
+## Notes
 
+### Translation
+
+Just access `./smsgate/js/app/lang` and create a new `.json` language file, change key values to the target language accordingly and set it on the config file to use it.
+
+### Regarding android compilation
+
+Follow the general guide to export an APK with code signing.
 You may need to set react native sha512 library `compileSdk` directive to at least `28` to be able to compile the apk.
 
 ## Built with
