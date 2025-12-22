@@ -5,6 +5,11 @@ import androidx.work.Data
 import androidx.work.testing.TestListenableWorkerBuilder
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
+import okhttp3.WebSocketListener
+import okhttp3.WebSocket
+import okhttp3.Response
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,7 +22,23 @@ class SmsUploadWorkerTest {
     fun upload_sendsExpectedPayloadAndHeaders() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val server = MockWebServer()
-        server.enqueue(MockResponse().setResponseCode(200))
+        val smsReceived = arrayListOf<JSONObject>()
+        server.enqueue(
+            MockResponse().withWebSocketUpgrade(
+                object : WebSocketListener() {
+                    override fun onMessage(webSocket: WebSocket, text: String) {
+                        val json = JSONObject(text)
+                        when (json.optString("type")) {
+                            "auth" -> Unit
+                            "sms" -> {
+                                smsReceived.add(json)
+                                webSocket.send("""{"type":"smsAck"}""")
+                            }
+                        }
+                    }
+                }
+            )
+        )
         server.start()
 
         val baseUrl = server.url("/").toString().trimEnd('/')
@@ -52,13 +73,13 @@ class SmsUploadWorkerTest {
         val result = worker.doWork()
         assertEquals(androidx.work.ListenableWorker.Result.success()::class, result::class)
 
-        val request = server.takeRequest()
-        assertEquals("/api/push/message", request.path)
-        assertEquals("DEVICE01", request.getHeader("x-clientid"))
-        val body = request.body.readUtf8()
-        assertTrue(body.contains("\"number\":\"+123456789\""))
-        assertTrue(body.contains("\"message\":\"hello\""))
-        assertTrue(body.contains("\"receivedAtEpochMs\":1700000000000"))
+        val request: RecordedRequest = server.takeRequest()
+        assertEquals("/ws", request.path)
+        assertEquals(1, smsReceived.size)
+        val payload = smsReceived[0].getJSONObject("payload")
+        assertEquals("+123456789", payload.getString("number"))
+        assertEquals("hello", payload.getString("message"))
+        assertEquals(1700000000000L, payload.getLong("receivedAtEpochMs"))
         assertTrue(PendingMessageStore.list(context).isEmpty())
         server.shutdown()
     }

@@ -100,6 +100,7 @@ export default function MessagesPage() {
     const token = getToken();
     if (!token) return;
     if (serverState === "connected") return;
+    if (!clientConfig.management.messages.enableHttpSync) return;
     let stopped = false;
     async function syncMessages() {
       try {

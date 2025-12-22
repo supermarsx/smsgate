@@ -6,6 +6,7 @@ import { isValidClientId, isValidToken } from "./auth";
 import { broadcast, setWebSocketServer } from "./wsHub";
 import { MessageRecord } from "./types";
 import crypto from "crypto";
+import { sanitizeStr } from "./sanitize";
 
 type ClientState = {
   authed: boolean;
@@ -18,11 +19,19 @@ type AuthMessage = {
   clientId?: string;
 };
 
-function parseMessage(data: WebSocket.RawData): AuthMessage | null {
+type SmsMessage = {
+  type: "sms";
+  payload: MessageRecord;
+};
+
+type ClientMessage = AuthMessage | SmsMessage;
+
+function parseMessage(data: WebSocket.RawData): ClientMessage | null {
   try {
     const parsed = JSON.parse(data.toString());
-    if (parsed?.type !== "auth") return null;
-    return parsed;
+    if (parsed?.type === "auth") return parsed;
+    if (parsed?.type === "sms") return parsed;
+    return null;
   } catch {
     return null;
   }
@@ -41,31 +50,58 @@ export function createWebSocketServer(server: HttpServer): WebSocketServer {
     const runtime = getRuntime();
 
     ws.on("message", async (data) => {
-      if (state.authed) return;
-      const auth = parseMessage(data);
-      if (!auth) {
+      const message = parseMessage(data);
+      if (!message) {
         ws.send(JSON.stringify({ type: "error", payload: "Invalid message" }));
         return;
       }
-      if (!isValidToken(auth.token)) {
-        ws.send(JSON.stringify({ type: "error", payload: "Invalid token" }));
-        ws.close();
+      if (!state.authed) {
+        if (message.type !== "auth") {
+          ws.send(JSON.stringify({ type: "error", payload: "Auth required" }));
+          return;
+        }
+        if (!isValidToken(message.token)) {
+          ws.send(JSON.stringify({ type: "error", payload: "Invalid token" }));
+          ws.close();
+          return;
+        }
+        state.authed = true;
+        state.isPhone = isValidClientId(message.clientId);
+        if (state.isPhone) {
+          runtime.phoneConnections += 1;
+          runtime.phoneOnline = runtime.phoneConnections > 0;
+          broadcast({ type: "sourceStatus", payload: true });
+        }
+
+        const messages = await runtime.store.getMessages();
+        const hash = computeHash(messages);
+        ws.send(JSON.stringify({ type: "sourceStatus", payload: runtime.phoneOnline }));
+        ws.send(JSON.stringify({ type: "baseMessages", payload: messages }));
+        ws.send(JSON.stringify({ type: "syncHash", payload: hash }));
+        ws.send(JSON.stringify({ type: "keepMessages", payload: serverConfig.management.messages.keep }));
         return;
       }
-      state.authed = true;
-      state.isPhone = isValidClientId(auth.clientId);
-      if (state.isPhone) {
-        runtime.phoneConnections += 1;
-        runtime.phoneOnline = runtime.phoneConnections > 0;
-        broadcast({ type: "sourceStatus", payload: true });
-      }
 
-      const messages = await runtime.store.getMessages();
-      const hash = computeHash(messages);
-      ws.send(JSON.stringify({ type: "sourceStatus", payload: runtime.phoneOnline }));
-      ws.send(JSON.stringify({ type: "baseMessages", payload: messages }));
-      ws.send(JSON.stringify({ type: "syncHash", payload: hash }));
-      ws.send(JSON.stringify({ type: "keepMessages", payload: serverConfig.management.messages.keep }));
+      if (message.type === "sms" && state.isPhone) {
+        const payload = message.payload ?? {};
+        const sanitized: MessageRecord = {
+          number: sanitizeStr(String(payload.number ?? "")),
+          date: sanitizeStr(String(payload.date ?? "")),
+          message: sanitizeStr(String(payload.message ?? "")),
+          receivedAtEpochMs: payload.receivedAtEpochMs ? Number(payload.receivedAtEpochMs) : undefined,
+          deviceManufacturer: payload.deviceManufacturer
+            ? String(payload.deviceManufacturer)
+            : undefined,
+          deviceModel: payload.deviceModel ? String(payload.deviceModel) : undefined,
+          deviceSdkInt: payload.deviceSdkInt ? Number(payload.deviceSdkInt) : undefined
+        };
+        await runtime.store.addMessage(sanitized);
+        broadcast({ type: "message", payload: sanitized });
+        const messages = await runtime.store.getMessages();
+        const hash = computeHash(messages);
+        broadcast({ type: "syncHash", payload: hash });
+        ws.send(JSON.stringify({ type: "smsAck" }));
+      }
     });
 
     ws.on("close", () => {

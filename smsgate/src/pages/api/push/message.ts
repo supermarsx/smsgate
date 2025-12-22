@@ -5,8 +5,13 @@ import { sanitizeStr } from "../../../server/sanitize";
 import { broadcast } from "../../../server/wsHub";
 import { MessageRecord } from "../../../server/types";
 import crypto from "crypto";
+import { serverConfig } from "../../../config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (!serverConfig.http.enableLegacyPush) {
+    res.status(404).end();
+    return;
+  }
   const runtime = getRuntime();
   const authHeader = req.headers.authorization ?? "";
   const token = authHeader.split(" ")[1];

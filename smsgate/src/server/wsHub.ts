@@ -8,6 +8,7 @@ type WsPayload =
   | { type: "keepMessages"; payload: number }
   | { type: "sourceStatus"; payload: boolean }
   | { type: "message"; payload: MessageRecord }
+  | { type: "smsAck" }
   | { type: "error"; payload: string };
 
 let wss: WebSocketServer | null = null;

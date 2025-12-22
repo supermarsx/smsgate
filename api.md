@@ -17,7 +17,7 @@
   - `Valid token`
   - `Invalid token`
 
-### POST /api/push/message
+### POST /api/push/message (legacy, disabled by default)
 - Headers:
   - `Authorization: Bearer <token>`
   - `x-clientid: <clientId>`
@@ -47,6 +47,16 @@ Sent after the socket opens.
 {"type":"auth","token":"<token>","clientId":"<optional-client-id>"}
 ```
 
+### SMS relay message (phone -> server)
+```json
+{"type":"sms","payload":{"number":"+351 123","date":"01:02:03 01/01/2020","message":"test"}}
+```
+
+### SMS ack (server -> phone)
+```json
+{"type":"smsAck"}
+```
+
 ### Server messages
 - `sourceStatus` (boolean): phone online/offline.
 - `baseMessages` (array): server buffer on connect.
@@ -59,7 +69,7 @@ Example:
 ```
 
 ## Message Sync
-### GET /api/messages/hash
+### GET /api/messages/hash (disabled by default)
 - Headers:
   - `Authorization: Bearer <token>`
 - Response:
@@ -67,7 +77,7 @@ Example:
 {"hash":"<sha512>"}
 ```
 
-### GET /api/messages/list
+### GET /api/messages/list (disabled by default)
 - Headers:
   - `Authorization: Bearer <token>`
 - Response:

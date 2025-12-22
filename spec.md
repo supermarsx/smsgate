@@ -52,6 +52,8 @@
   - Accepts JSON body: `{ number, date, message, receivedAtEpochMs?, device*? }`.
   - Sanitizes fields, stores message, broadcasts via WebSocket.
   - Always responds with an empty body (HTTP 200 if route is reached).
+  - Marked legacy; phone relay uses WebSocket.
+  - Disabled by default via server config.
 
 ### 4.2 WebSocket
 - **Path**: `/ws`
@@ -101,6 +103,7 @@
 - Shows server/phone status indicators and a "Close session" action.
 - Runs a periodic sync against `/api/messages/list` to reconcile any missed messages.
 - Sync polling runs every 5-10 seconds and uses `/api/messages/hash` to skip full sync when unchanged, only when WS is disconnected.
+- HTTP sync endpoints are disabled by default; enable only if needed for recovery.
 
 ### 5.5 Localization
 - Strings are loaded from `/lang/<locale>.json`.
@@ -121,17 +124,13 @@ Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
 - Uses a persistent notification (can be silenced in settings).
 
 ### 6.3 Message Forwarding
-- HTTP `POST /api/push/message` is sent with JSON body:
+- WebSocket `sms` message is sent with JSON payload:
   - `number`: originating address
   - `date`: formatted as `HH:mm:ss dd/MM/yyyy`
   - `message`: message body
   - `receivedAtEpochMs`: SMS receipt time in epoch ms
   - `deviceManufacturer`, `deviceModel`, `deviceSdkInt`: device metadata
-- Headers include:
-  - `x-clientid` (configurable name/value)
-  - `Authorization` (configurable name + prefix + token)
-  - `Accept` and `Content-Type` (configurable)
-  - `X-Device-*` metadata headers (manufacturer, model, sdk)
+- Server responds with `smsAck` on successful store.
 
 ### 6.4 Token Generation
 - Token = SHA-512 of `pin + salt`.

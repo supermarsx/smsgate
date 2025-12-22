@@ -36,6 +36,10 @@ export const serverConfig = {
       purgeOld: parseBool(process.env.SMSGATE_MESSAGES_PURGE, true)
     }
   },
+  http: {
+    enableLegacyPush: parseBool(process.env.SMSGATE_HTTP_LEGACY_PUSH, false),
+    enableSync: parseBool(process.env.SMSGATE_HTTP_SYNC, false)
+  },
   persistence: {
     type: (process.env.SMSGATE_PERSISTENCE_TYPE ?? "memory") as "memory" | "json",
     filePath: process.env.SMSGATE_PERSISTENCE_FILE ?? path.join(process.cwd(), "data", "messages.json")

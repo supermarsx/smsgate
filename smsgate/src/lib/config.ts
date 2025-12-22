@@ -28,7 +28,8 @@ export const clientConfig = {
       keepFromServer: envBool("NEXT_PUBLIC_SMS_KEEP_FROM_SERVER", true),
       showLatest: envBool("NEXT_PUBLIC_SMS_SHOW_LATEST", true),
       invert: envBool("NEXT_PUBLIC_SMS_INVERT", false),
-      syncIntervalMs: envNumber("NEXT_PUBLIC_SMS_SYNC_MS", 7000)
+      syncIntervalMs: envNumber("NEXT_PUBLIC_SMS_SYNC_MS", 7000),
+      enableHttpSync: envBool("NEXT_PUBLIC_SMS_ENABLE_HTTP_SYNC", false)
     },
     sound: {
       enabled: envBool("NEXT_PUBLIC_SMS_SOUND", false),

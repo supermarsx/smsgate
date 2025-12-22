@@ -7,6 +7,7 @@ export type WsMessage =
   | { type: "keepMessages"; payload: number }
   | { type: "sourceStatus"; payload: boolean }
   | { type: "message"; payload: MessageRecord }
+  | { type: "smsAck" }
   | { type: "error"; payload: string };
 
 export function getWebSocketUrl(): string {
