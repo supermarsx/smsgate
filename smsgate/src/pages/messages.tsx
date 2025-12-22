@@ -1,0 +1,193 @@
+import Head from "next/head";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import { clientConfig } from "../lib/config";
+import { clearToken, getToken } from "../lib/token";
+import { getWebSocketUrl, WsMessage } from "../lib/ws";
+import { loadTranslations, Translations } from "../lib/lang";
+import { MessageRecord } from "../server/types";
+
+type ConnectionState = "connecting" | "connected" | "disconnected";
+
+export default function MessagesPage() {
+  const router = useRouter();
+  const [messages, setMessages] = useState<MessageRecord[]>([]);
+  const [keepMessages, setKeepMessages] = useState<number>(0);
+  const [serverState, setServerState] = useState<ConnectionState>("connecting");
+  const [phoneOnline, setPhoneOnline] = useState<boolean>(false);
+  const [translations, setTranslations] = useState<Translations>({});
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    loadTranslations().then(setTranslations).catch(() => setTranslations({}));
+  }, []);
+
+  const t = useMemo(() => {
+    return (key: string) => translations[key] ?? key;
+  }, [translations]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+    verifyToken(token).then((ok) => {
+      if (!ok) {
+        clearToken();
+        router.replace("/");
+      }
+    });
+  }, [router]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    const ws = new WebSocket(getWebSocketUrl());
+    setServerState("connecting");
+
+    ws.onopen = () => {
+      setServerState("connected");
+      ws.send(JSON.stringify({ type: "auth", token }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data) as WsMessage;
+      switch (data.type) {
+        case "message":
+          addMessage(data.payload);
+          break;
+        case "baseMessages":
+          setMessages(data.payload);
+          break;
+        case "keepMessages":
+          setKeepMessages(data.payload);
+          break;
+        case "sourceStatus":
+          setPhoneOnline(data.payload);
+          break;
+        case "error":
+          setServerState("disconnected");
+          break;
+        default:
+          break;
+      }
+    };
+
+    ws.onclose = () => {
+      setServerState("disconnected");
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!clientConfig.management.messages.showLatest) return;
+    const element = scrollRef.current;
+    if (!element) return;
+    if (clientConfig.management.messages.invert) {
+      element.scrollTop = 0;
+    } else {
+      element.scrollTop = element.scrollHeight;
+    }
+  }, [messages]);
+
+  function addMessage(message: MessageRecord): void {
+    setMessages((prev) => {
+      const next = clientConfig.management.messages.invert
+        ? [message, ...prev]
+        : [...prev, message];
+      if (clientConfig.management.messages.keepFromServer && keepMessages > 0) {
+        return next.slice(-keepMessages);
+      }
+      return next;
+    });
+    if (clientConfig.management.sound.enabled) {
+      const audio = new Audio(
+        `${clientConfig.management.sound.path}${clientConfig.management.sound.name}${clientConfig.management.sound.fileExt}`
+      );
+      audio.play().catch(() => undefined);
+    }
+  }
+
+  async function verifyToken(token: string): Promise<boolean> {
+    const res = await fetch("/api/token/check", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    });
+    const text = await res.text();
+    return text === "Valid token";
+  }
+
+  function closeSession(): void {
+    clearToken();
+    router.replace("/");
+  }
+
+  return (
+    <>
+      <Head>
+        <title>{t("s_window")}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/css/device-mockups.min.css" />
+        <link rel="stylesheet" href="/css/app/phone.css" />
+        <link rel="stylesheet" href="/css/app/main.css" />
+        <link rel="stylesheet" href="/css/bulma.min.css" />
+      </Head>
+      <div id="overlay" />
+      <div className="device-wrapper">
+        <div className="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
+          <div className="screen">
+            <div className="status">
+              <div className="contents noselect">
+                <span
+                  id="clientStatus"
+                  title={t("s_serverconnected")}
+                  className={serverState === "connected" ? "connected slow blink" : "disconnected slow blink"}
+                >
+                  {serverState === "connected" ? "✓" : "?"}
+                </span>
+                <span
+                  id="sourceStatus"
+                  title={phoneOnline ? t("s_phoneconnected") : t("s_phonewaiting")}
+                  className={phoneOnline ? "connected slow blink" : "connecting normal blink"}
+                >
+                  {phoneOnline ? "✓" : "?"}
+                </span>
+              </div>
+            </div>
+            <div className="titlex noselect">
+              <span>{t("s_receivedmessages")}</span>
+            </div>
+            <div className="containerx">
+              <form className="chat">
+                <div id="messagesx" className="messagesx" ref={scrollRef}>
+                  {messages.map((msg, index) => (
+                    <div key={`${msg.date}-${index}`} className="messagex">
+                      <div className="fromThem">
+                        <p className="origin noselect">
+                          {msg.number}
+                          <br />
+                          {msg.date}
+                        </p>
+                        <p>{msg.message}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div id="close" className="titlex noselect" onClick={closeSession}>
+                  {t("s_closesession1")}
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

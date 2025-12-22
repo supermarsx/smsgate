@@ -1,40 +1,45 @@
 package com.smsrelay2
 
 import android.content.Context
-import io.socket.client.IO
-import io.socket.client.Socket
-import java.net.URISyntaxException
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 
 object SocketPresenceManager {
-    private var socket: Socket? = null
+    private var socket: WebSocket? = null
 
     fun connect(context: Context) {
-        if (socket?.connected() == true) return
+        if (socket != null) return
         val config = ConfigStore.getConfig(context)
         val token = HashUtil.sha512(config.pin + config.salt)
         ConfigStore.setString(context, ConfigStore.KEY_TOKEN, token)
-        val opts = buildOptions(config, token)
-        try {
-            socket = IO.socket(config.serverUrl, opts)
-            socket?.connect()
-        } catch (_: URISyntaxException) {
-            socket = null
-        }
+        val wsUrl = buildWebSocketUrl(config.serverUrl)
+        val request = Request.Builder().url(wsUrl).build()
+        socket = HttpClient.instance.newWebSocket(
+            request,
+            object : WebSocketListener() {
+                override fun onOpen(webSocket: WebSocket, response: Response) {
+                    webSocket.send(buildAuthMessage(config, token))
+                }
+            }
+        )
     }
 
     fun disconnect() {
-        socket?.disconnect()
+        socket?.close(1000, "client disconnect")
         socket = null
     }
 
-    fun buildOptions(config: AppConfig, tokenOverride: String? = null): IO.Options {
+    fun buildAuthMessage(config: AppConfig, tokenOverride: String? = null): String {
         val token = tokenOverride ?: HashUtil.sha512(config.pin + config.salt)
-        val headers = mapOf(
-            config.clientIdHeader to listOf(config.clientIdValue),
-            config.authHeader to listOf(config.authPrefix + token)
-        )
-        val opts = IO.Options()
-        opts.extraHeaders = headers
-        return opts
+        return """{"type":"auth","token":"$token","clientId":"${config.clientIdValue}"}"""
+    }
+
+    fun buildWebSocketUrl(serverUrl: String): String {
+        val normalized = if (serverUrl.endsWith("/")) serverUrl.dropLast(1) else serverUrl
+        val protocol = if (normalized.startsWith("https://")) "wss://" else "ws://"
+        val host = normalized.removePrefix("https://").removePrefix("http://")
+        return "$protocol$host/ws"
     }
 }

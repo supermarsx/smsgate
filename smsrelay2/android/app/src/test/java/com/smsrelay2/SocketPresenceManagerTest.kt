@@ -6,7 +6,7 @@ import org.junit.Test
 
 class SocketPresenceManagerTest {
     @Test
-    fun buildOptions_setsAuthHeaders() {
+    fun buildAuthMessage_containsTokenAndClientId() {
         val config = AppConfig(
             serverUrl = "https://example.com",
             apiPath = "/api/push/message",
@@ -29,11 +29,14 @@ class SocketPresenceManagerTest {
             notificationEnabled = true
         )
 
-        val opts = SocketPresenceManager.buildOptions(config, "token123")
-        val headers = opts.extraHeaders ?: emptyMap()
-        assertEquals(listOf("DEVICE01"), headers["x-clientid"])
-        assertEquals(listOf("Bearer token123"), headers["Authorization"])
-        assertTrue(headers.containsKey("x-clientid"))
-        assertTrue(headers.containsKey("Authorization"))
+        val message = SocketPresenceManager.buildAuthMessage(config, "token123")
+        assertTrue(message.contains("\"token\":\"token123\""))
+        assertTrue(message.contains("\"clientId\":\"DEVICE01\""))
+    }
+
+    @Test
+    fun buildWebSocketUrl_convertsProtocol() {
+        assertEquals("wss://example.com/ws", SocketPresenceManager.buildWebSocketUrl("https://example.com"))
+        assertEquals("ws://example.com/ws", SocketPresenceManager.buildWebSocketUrl("http://example.com"))
     }
 }
