@@ -25,10 +25,17 @@ class SmsReceiver : BroadcastReceiver() {
         }
 
         messages.forEach { sms ->
+            val pending = PendingMessageStore.create(
+                sms.originatingAddress ?: "",
+                sms.messageBody ?: "",
+                System.currentTimeMillis()
+            )
+            PendingMessageStore.add(context, pending)
             val data = Data.Builder()
-                .putString(SmsUploadWorker.KEY_FROM, sms.originatingAddress ?: "")
-                .putString(SmsUploadWorker.KEY_BODY, sms.messageBody ?: "")
-                .putLong(SmsUploadWorker.KEY_TIMESTAMP, System.currentTimeMillis())
+                .putString(SmsUploadWorker.KEY_MESSAGE_ID, pending.id)
+                .putString(SmsUploadWorker.KEY_FROM, pending.number)
+                .putString(SmsUploadWorker.KEY_BODY, pending.body)
+                .putLong(SmsUploadWorker.KEY_TIMESTAMP, pending.timestamp)
                 .build()
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)

@@ -1,5 +1,5 @@
 export const clientConfig = {
-  language: "en_US",
+  language: "auto",
   authorization: {
     salt: "#SALT",
     storageName: "1234567890abcdef_smstoken",
