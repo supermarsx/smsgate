@@ -47,4 +47,10 @@ dependencies {
     implementation("io.socket:socket.io-client:2.1.0") {
         exclude group: "org.json", module: "json"
     }
+
+    testImplementation "junit:junit:4.13.2"
+    testImplementation "androidx.test:core:1.4.0"
+    testImplementation "org.robolectric:robolectric:4.9.2"
+    testImplementation "androidx.work:work-testing:2.7.1"
+    testImplementation "com.squareup.okhttp3:mockwebserver:4.9.3"
 }

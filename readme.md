@@ -2,7 +2,7 @@
 
 smsgate is a small time, two piece portal software to receive messages from your android phone and forward them to a HTTP API and view them on a browser anywhere. This piece of software was created with the premise of several people in different locations being able to access the latest received messages from an android phone. A very common use case of this is for several people to access two step verification codes, single one time codes for different types of applications.
 
-smsgate is divided in two parts: `smsgate` the socket.io/express server and `smsrelay2` the react-native android application. This includes an Android application in react-native that listens for sms messages both foreground and background but not when closed. This application executes a fetch request to the server once it receives a message pushing it to every connected client. There's also an express/socket.io server to interface with the users browsers, socket.io allows for clients to be connected to the server and receive any incoming messages in real time.
+smsgate is divided in two parts: `smsgate` the socket.io/express server and `smsrelay2` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to the server, and optionally maintains a Socket.IO presence connection. The server interfaces with the browser client using Socket.IO so connected users see incoming messages in real time.
 
 ## Visual Demo
 
@@ -17,7 +17,7 @@ smsgate is divided in two parts: `smsgate` the socket.io/express server and `sms
 
 ## Main specification/features
 
-- React-native android application
+- Native Android (Kotlin) application
 - Foreground and background sms listener
 - Simple user interface
 - Notification sound
@@ -39,15 +39,21 @@ Install smsgate dependencies
 $ cd ./smsgate/smsgate
 $ npm install
 
-Install smsrelay2 dependencies
-$ cd ../smsrelay2/
-$ npm install
+Open the Android app in Android Studio
+$ cd ../smsrelay2/android
 ```
+
+## App walkthrough (Android)
+1) Open the app and grant SMS permissions.
+2) Configure server URL, client ID, PIN, and salt in Settings.
+3) Tap "Start foreground relay" to keep the service active.
+4) Use "Provision from server" if you have a remote config URL.
+5) Send an SMS to the device and verify it appears in the web UI.
 
 Change the variables to suit your preferences, on these files:
 
 ```
-Android application: ./smsrelay2/config.js
+Android application: configure in-app settings or remote JSON
 Express/socketio client: ./smsgate/js/app/config.js
 Express/socketio server: ./smsgate/config.js
 Express/socketio client/phone test: ./smsgate/js/test.js
@@ -55,13 +61,9 @@ Express/socketio client/phone test: ./smsgate/js/test.js
 
 ### smsrelay2
 
-smsrelay2 listens for incoming messages to then forward them to the server, on sending it compiles the origin (from), body (data within the message) and current date formatted as hh:mm:ss dd/mm/yyyy. These parameters can be changed in the code as needed. When opening the app the first time you'll notice that it contains an excerpt of the application configuration but redacted so its not readily visible but able to help troubleshooting issues at distance.
+smsrelay2 listens for incoming messages and forwards them to the server, compiling origin, body, and date/time (plus extra device metadata). Configuration is stored securely on device and can be provisioned remotely.
 
-To launch the app, connect a physical device and type:
-
-```
-$ npx react-native run-android
-```
+To build and run, open `smsrelay2/android` in Android Studio and run on a physical device (Android 10+).
 
 ### smsgate
 
@@ -88,8 +90,7 @@ Just access `./smsgate/js/app/lang` and create a new `.json` language file, chan
 
 ### Regarding android compilation
 
-Follow the general guide to export an APK with code signing.
-You may need to set react native sha512 library `compileSdk` directive to at least `28` to be able to compile the apk.
+Follow the general guide to export an APK with code signing from Android Studio or Gradle.
 
 ## Built with
 
@@ -97,7 +98,7 @@ You may need to set react native sha512 library `compileSdk` directive to at lea
 
 <a href="https://expressjs.com/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/6/64/Expressjs.png"></a>
 
-<a href="https://reactnative.dev/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"></a> React-native
+<a href="https://kotlinlang.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/7/74/Kotlin_Icon.png"></a> Kotlin
 
 <a href="https://jquery.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/sco/9/9e/JQuery_logo.svg"></a>
 
