@@ -98,15 +98,6 @@ Just access `./smsgate/js/app/lang` and create a new `.json` language file, chan
 
 Follow the general guide to export an APK with code signing from Android Studio or Gradle.
 
-## Built with
-
-<a href="https://nextjs.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Nextjs-logo.svg"></a>
-
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/3/3d/WebSocket_logo.svg"></a>
-
-<a href="https://kotlinlang.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/7/74/Kotlin_Icon.png"></a> Kotlin
-
-<a href="https://bulma.io/"><img height=40px src="https://bulma.io/images/made-with-bulma.png"></a>
 
 ## License
 
