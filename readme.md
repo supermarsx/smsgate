@@ -50,6 +50,11 @@ $ cd ../smsrelay2/android
 4) Use "Provision from server" if you have a remote config URL.
 5) Send an SMS to the device and verify it appears in the web UI.
 
+In-app settings (recommended):
+- Settings > Behavior: enable SMS listener, foreground relay, start on boot, and WebSocket presence.
+- Settings > Server: set Remote config URL (optional) plus auth header/value and signature header/secret if you secure provisioning.
+  - Signature format: HMAC SHA-256 of the response body, sent as hex or `sha256=<hex>` in the chosen header.
+
 Change the variables to suit your preferences, on these files:
 
 ```
@@ -63,6 +68,29 @@ smsgate server config: ./smsgate/src/config.ts
 smsrelay2 listens for incoming messages and forwards them to the server, compiling origin, body, and date/time (plus extra device metadata). Configuration is stored securely on device and can be provisioned remotely.
 
 To build and run, open `smsrelay2/android` in Android Studio and run on a physical device (Android 10+).
+
+## OEM and platform optimizations (Android)
+
+To maximize SMS capture reliability, enable the app's foreground relay and apply OEM battery/auto-start exemptions. Menus vary by OS version; use the closest match.
+
+Programmatic settings (in-app):
+- Enable foreground service.
+- Enable boot receiver.
+- Enable WebSocket presence if you want a persistent online indicator.
+
+Samsung (One UI):
+- Settings > Apps > smsrelay2 > Battery: set to Unrestricted.
+- Settings > Battery and device care > Battery > Background usage limits: add smsrelay2 to Never sleeping apps.
+
+Xiaomi (MIUI/HyperOS):
+- Settings > Apps > Manage apps > smsrelay2 > Battery saver: No restrictions.
+- Security app > Autostart: allow smsrelay2.
+- Lock the app in Recents to prevent it from being killed.
+
+Oppo (ColorOS):
+- Settings > Battery > App battery management: set smsrelay2 to Unrestricted.
+- Settings > Apps > Auto-launch: allow smsrelay2.
+- Disable Sleep standby optimization if present.
 
 ### smsgate
 

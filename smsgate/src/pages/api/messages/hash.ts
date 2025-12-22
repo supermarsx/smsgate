@@ -4,6 +4,9 @@ import { getRuntime } from "../../../server/runtime";
 import { isValidToken } from "../../../server/auth";
 import { serverConfig } from "../../../config";
 
+/**
+ * Returns a hash of the current message buffer for sync checks.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (!serverConfig.http.enableSync) {
     res.status(404).end();

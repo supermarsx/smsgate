@@ -22,6 +22,26 @@
             android:title="Remote config URL"
             android:summary="Optional URL to provision settings"
             android:defaultValue="" />
+        <EditTextPreference
+            android:key="remote_config_auth_header"
+            android:title="Remote config auth header"
+            android:summary="Optional auth header name"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="remote_config_auth_value"
+            android:title="Remote config auth value"
+            android:summary="Optional auth header value"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="remote_config_signature_header"
+            android:title="Remote config signature header"
+            android:summary="Optional signature header name"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="remote_config_signature_secret"
+            android:title="Remote config signature secret"
+            android:summary="Shared secret for HMAC SHA-256"
+            android:defaultValue="" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Auth headers">

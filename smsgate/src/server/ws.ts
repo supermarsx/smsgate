@@ -6,26 +6,41 @@ import { isValidClientId, isValidToken } from "./auth";
 import { broadcast, setWebSocketServer } from "./wsHub";
 import { MessageRecord } from "./types";
 import crypto from "crypto";
-import { sanitizeStr } from "./sanitize";
+import { sanitizeMetadata, sanitizeStr } from "./sanitize";
 
+/**
+ * Per-connection authorization state.
+ */
 type ClientState = {
   authed: boolean;
   isPhone: boolean;
 };
 
+/**
+ * Authentication payload from a client.
+ */
 type AuthMessage = {
   type: "auth";
   token: string;
   clientId?: string;
 };
 
+/**
+ * SMS payload sent by a phone client.
+ */
 type SmsMessage = {
   type: "sms";
   payload: MessageRecord;
 };
 
+/**
+ * Union of accepted inbound WebSocket messages.
+ */
 type ClientMessage = AuthMessage | SmsMessage;
 
+/**
+ * Parses inbound WebSocket JSON and narrows to known types.
+ */
 function parseMessage(data: WebSocket.RawData): ClientMessage | null {
   try {
     const parsed = JSON.parse(data.toString());
@@ -37,10 +52,16 @@ function parseMessage(data: WebSocket.RawData): ClientMessage | null {
   }
 }
 
+/**
+ * Computes a hash to allow HTTP sync to detect changes.
+ */
 function computeHash(messages: MessageRecord[]): string {
   return crypto.createHash("sha512").update(JSON.stringify(messages)).digest("hex");
 }
 
+/**
+ * Creates and wires the WebSocket server for real-time messages.
+ */
 export function createWebSocketServer(server: HttpServer): WebSocketServer {
   const wss = new WebSocketServer({ server, path: serverConfig.server.wsPath });
   setWebSocketServer(wss);
@@ -93,7 +114,8 @@ export function createWebSocketServer(server: HttpServer): WebSocketServer {
             ? String(payload.deviceManufacturer)
             : undefined,
           deviceModel: payload.deviceModel ? String(payload.deviceModel) : undefined,
-          deviceSdkInt: payload.deviceSdkInt ? Number(payload.deviceSdkInt) : undefined
+          deviceSdkInt: payload.deviceSdkInt ? Number(payload.deviceSdkInt) : undefined,
+          extra: sanitizeMetadata(payload.extra)
         };
         await runtime.store.addMessage(sanitized);
         broadcast({ type: "message", payload: sanitized });

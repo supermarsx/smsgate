@@ -1,6 +1,9 @@
 import { initializeTokens } from "./auth";
 import { createMessageStore, MessageStore } from "./messageStore";
 
+/**
+ * Global server runtime state cached across requests.
+ */
 type RuntimeState = {
   store: MessageStore;
   initialized: boolean;
@@ -13,6 +16,9 @@ declare global {
   var __SMSGATE_RUNTIME__: RuntimeState | undefined;
 }
 
+/**
+ * Returns the singleton runtime, initializing it on first access.
+ */
 export function getRuntime(): RuntimeState {
   if (!global.__SMSGATE_RUNTIME__) {
     global.__SMSGATE_RUNTIME__ = {

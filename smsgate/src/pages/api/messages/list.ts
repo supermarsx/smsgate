@@ -3,6 +3,9 @@ import { getRuntime } from "../../../server/runtime";
 import { isValidToken } from "../../../server/auth";
 import { serverConfig } from "../../../config";
 
+/**
+ * Returns all stored messages for HTTP sync clients.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (!serverConfig.http.enableSync) {
     res.status(404).end();

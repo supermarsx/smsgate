@@ -5,6 +5,9 @@ import android.os.Handler
 import android.os.Looper
 import okhttp3.Request
 import org.json.JSONObject
+import java.security.MessageDigest
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 import kotlin.concurrent.thread
 
 object RemoteProvisioner {
@@ -16,11 +19,25 @@ object RemoteProvisioner {
                 onComplete(false)
                 return@thread
             }
-            val request = Request.Builder().url(url).build()
+            val requestBuilder = Request.Builder().url(url)
+            val authHeader = config.remoteConfigAuthHeader.trim()
+            val authValue = config.remoteConfigAuthValue
+            if (authHeader.isNotBlank() && authValue.isNotBlank()) {
+                requestBuilder.header(authHeader, authValue)
+            }
+            val request = requestBuilder.build()
             val success = try {
                 HttpClient.instance.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@use false
                     val body = response.body?.string() ?: return@use false
+                    val signatureHeader = config.remoteConfigSignatureHeader.trim()
+                    val signatureSecret = config.remoteConfigSignatureSecret
+                    if (signatureHeader.isNotBlank() && signatureSecret.isNotBlank()) {
+                        val signature = response.header(signatureHeader) ?: return@use false
+                        if (!verifySignature(body, signature, signatureSecret)) {
+                            return@use false
+                        }
+                    }
                     applyConfig(context, body)
                     true
                 }
@@ -125,5 +142,29 @@ object RemoteProvisioner {
                 )
             }
         }
+    }
+
+    private fun verifySignature(body: String, signature: String, secret: String): Boolean {
+        val normalized = signature.trim()
+            .removePrefix("sha256=")
+            .removePrefix("SHA256=")
+            .lowercase()
+        if (normalized.isBlank()) return false
+        val expected = hmacSha256Hex(secret, body).lowercase()
+        return MessageDigest.isEqual(
+            expected.toByteArray(Charsets.US_ASCII),
+            normalized.toByteArray(Charsets.US_ASCII)
+        )
+    }
+
+    private fun hmacSha256Hex(secret: String, body: String): String {
+        val mac = Mac.getInstance("HmacSHA256")
+        mac.init(SecretKeySpec(secret.toByteArray(Charsets.UTF_8), "HmacSHA256"))
+        val bytes = mac.doFinal(body.toByteArray(Charsets.UTF_8))
+        val result = StringBuilder(bytes.size * 2)
+        for (b in bytes) {
+            result.append(String.format("%02x", b))
+        }
+        return result.toString()
     }
 }

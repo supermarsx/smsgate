@@ -1,12 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getRuntime } from "../../../server/runtime";
 import { isValidClientId, isValidToken } from "../../../server/auth";
-import { sanitizeStr } from "../../../server/sanitize";
+import { sanitizeMetadata, sanitizeStr } from "../../../server/sanitize";
 import { broadcast } from "../../../server/wsHub";
 import { MessageRecord } from "../../../server/types";
 import crypto from "crypto";
 import { serverConfig } from "../../../config";
 
+/**
+ * Legacy HTTP endpoint for SMS pushes (disabled by default).
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (!serverConfig.http.enableLegacyPush) {
     res.status(404).end();
@@ -31,7 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     receivedAtEpochMs: body.receivedAtEpochMs ? Number(body.receivedAtEpochMs) : undefined,
     deviceManufacturer: body.deviceManufacturer ? String(body.deviceManufacturer) : undefined,
     deviceModel: body.deviceModel ? String(body.deviceModel) : undefined,
-    deviceSdkInt: body.deviceSdkInt ? Number(body.deviceSdkInt) : undefined
+    deviceSdkInt: body.deviceSdkInt ? Number(body.deviceSdkInt) : undefined,
+    extra: sanitizeMetadata(body.extra)
   };
 
   await runtime.store.addMessage(message);

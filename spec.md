@@ -140,6 +140,9 @@ Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
 ### 6.5 Remote Provisioning
 - Optional remote JSON config can be fetched by URL.
 - Provisioning applies server/auth/feature settings atomically.
+- Optional request auth can be set via a custom header/value.
+- Optional response signature verification uses HMAC SHA-256 of the raw response body.
+  - Signature is read from a configurable response header (hex or `sha256=<hex>`).
 
 ### 6.6 Pending Resend
 - Pending SMS are stored in a local JSON outbox.
@@ -154,6 +157,28 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 - `FOREGROUND_SERVICE`
 - `RECEIVE_BOOT_COMPLETED`
 - `SYSTEM_ALERT_WINDOW`
+
+### 6.8 OEM and Platform Optimizations (Android)
+OEM power management can delay or block background SMS processing unless the app is exempted.
+
+Programmatic settings (in-app):
+- `enable_foreground_service`: keep the relay in a persistent foreground service.
+- `enable_boot_receiver`: re-enable relay after reboot.
+- `enable_socket_presence`: maintain WebSocket presence for online status.
+
+Samsung (One UI):
+- Apps > smsrelay2 > Battery: set to Unrestricted.
+- Battery and device care > Battery > Background usage limits: add smsrelay2 to Never sleeping apps.
+
+Xiaomi (MIUI/HyperOS):
+- Apps > Manage apps > smsrelay2 > Battery saver: No restrictions.
+- Security app > Autostart: allow smsrelay2.
+- Lock the app in Recents to prevent it from being killed.
+
+Oppo (ColorOS):
+- Battery > App battery management: set smsrelay2 to Unrestricted.
+- Apps > Auto-launch: allow smsrelay2.
+- Disable Sleep standby optimization if present.
 
 ## 7. Authentication Model
 - Server stores a list of allowed access codes and client IDs.
@@ -186,6 +211,8 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 ### 8.3 Android App Config (native)
 - Stored in EncryptedSharedPreferences; editable via in-app settings.
 - `server_url`, `api_path`, `http_method`, `remote_config_url`.
+- `remote_config_auth_header`, `remote_config_auth_value`.
+- `remote_config_signature_header`, `remote_config_signature_secret`.
 - `client_id_header`, `client_id_value`, `auth_header`, `auth_prefix`.
 - `accept_header`, `accept_value`, `content_type_header`, `content_type_value`.
 - `pin`, `salt` (encrypted).

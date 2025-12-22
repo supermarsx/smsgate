@@ -3,6 +3,9 @@ import next from "next";
 import { createWebSocketServer } from "./src/server/ws";
 import { serverConfig } from "./src/config";
 
+/**
+ * Bootstraps the Next.js server and WebSocket relay.
+ */
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev, dir: __dirname });
 const handle = app.getRequestHandler();

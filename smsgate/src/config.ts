@@ -1,21 +1,33 @@
 import path from "path";
 
+/**
+ * Parses a boolean environment variable.
+ */
 function parseBool(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined) return fallback;
   return value === "true" || value === "1";
 }
 
+/**
+ * Parses a numeric environment variable.
+ */
 function parseNumber(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+/**
+ * Parses a comma-delimited list from an environment variable.
+ */
 function parseList(value: string | undefined, fallback: string[]): string[] {
   if (!value) return fallback;
   return value.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+/**
+ * Server configuration derived from environment variables.
+ */
 export const serverConfig = {
   authorization: {
     token: {

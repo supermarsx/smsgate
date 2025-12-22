@@ -10,6 +10,10 @@ data class AppConfig(
     val apiPath: String,
     val httpMethod: String,
     val remoteConfigUrl: String,
+    val remoteConfigAuthHeader: String,
+    val remoteConfigAuthValue: String,
+    val remoteConfigSignatureHeader: String,
+    val remoteConfigSignatureSecret: String,
     val clientIdHeader: String,
     val clientIdValue: String,
     val authHeader: String,
@@ -34,6 +38,10 @@ object ConfigStore {
     const val KEY_API_PATH = "api_path"
     const val KEY_HTTP_METHOD = "http_method"
     const val KEY_REMOTE_CONFIG_URL = "remote_config_url"
+    const val KEY_REMOTE_CONFIG_AUTH_HEADER = "remote_config_auth_header"
+    const val KEY_REMOTE_CONFIG_AUTH_VALUE = "remote_config_auth_value"
+    const val KEY_REMOTE_CONFIG_SIGNATURE_HEADER = "remote_config_signature_header"
+    const val KEY_REMOTE_CONFIG_SIGNATURE_SECRET = "remote_config_signature_secret"
     const val KEY_CLIENT_ID_HEADER = "client_id_header"
     const val KEY_CLIENT_ID_VALUE = "client_id_value"
     const val KEY_AUTH_HEADER = "auth_header"
@@ -75,6 +83,10 @@ object ConfigStore {
             apiPath = prefs.getString(KEY_API_PATH, "/api/push/message") ?: "",
             httpMethod = prefs.getString(KEY_HTTP_METHOD, "POST") ?: "POST",
             remoteConfigUrl = prefs.getString(KEY_REMOTE_CONFIG_URL, "") ?: "",
+            remoteConfigAuthHeader = prefs.getString(KEY_REMOTE_CONFIG_AUTH_HEADER, "") ?: "",
+            remoteConfigAuthValue = prefs.getString(KEY_REMOTE_CONFIG_AUTH_VALUE, "") ?: "",
+            remoteConfigSignatureHeader = prefs.getString(KEY_REMOTE_CONFIG_SIGNATURE_HEADER, "") ?: "",
+            remoteConfigSignatureSecret = prefs.getString(KEY_REMOTE_CONFIG_SIGNATURE_SECRET, "") ?: "",
             clientIdHeader = prefs.getString(KEY_CLIENT_ID_HEADER, "x-clientid") ?: "x-clientid",
             clientIdValue = prefs.getString(KEY_CLIENT_ID_VALUE, "#XCLIENTID1") ?: "",
             authHeader = prefs.getString(KEY_AUTH_HEADER, "Authorization") ?: "Authorization",
@@ -111,6 +123,10 @@ object ConfigStore {
             KEY_API_PATH -> "/api/push/message"
             KEY_HTTP_METHOD -> "POST"
             KEY_REMOTE_CONFIG_URL -> ""
+            KEY_REMOTE_CONFIG_AUTH_HEADER -> ""
+            KEY_REMOTE_CONFIG_AUTH_VALUE -> ""
+            KEY_REMOTE_CONFIG_SIGNATURE_HEADER -> ""
+            KEY_REMOTE_CONFIG_SIGNATURE_SECRET -> ""
             KEY_CLIENT_ID_HEADER -> "x-clientid"
             KEY_CLIENT_ID_VALUE -> "#XCLIENTID1"
             KEY_AUTH_HEADER -> "Authorization"

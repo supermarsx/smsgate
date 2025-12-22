@@ -197,6 +197,21 @@ export default function MessagesPage() {
     ].join("|");
   }
 
+  function renderMetadata(message: MessageRecord): JSX.Element | null {
+    const entries = message.extra ? Object.entries(message.extra) : [];
+    if (!entries.length) return null;
+    return (
+      <p className="metadata">
+        {entries.map(([key, value]) => (
+          <span key={key}>
+            {key}: {value}
+            <br />
+          </span>
+        ))}
+      </p>
+    );
+  }
+
   function reconcileMessages(serverMessages: MessageRecord[]): void {
     setMessages((prev) => {
       const map = new Map<string, MessageRecord>();
@@ -288,6 +303,7 @@ export default function MessagesPage() {
                           {msg.date}
                         </p>
                         <p>{msg.message}</p>
+                        {renderMetadata(msg)}
                       </div>
                     </div>
                   ))}

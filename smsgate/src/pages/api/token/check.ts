@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getRuntime } from "../../../server/runtime";
 import { isValidToken } from "../../../server/auth";
 
+/**
+ * Validates a token and returns a simple text response.
+ */
 export default function handler(req: NextApiRequest, res: NextApiResponse): void {
   getRuntime();
   const authHeader = req.headers.authorization ?? "";
