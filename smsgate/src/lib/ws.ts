@@ -3,6 +3,7 @@ import { MessageRecord } from "../server/types";
 export type WsMessage =
   | { type: "auth"; token: string; clientId?: string }
   | { type: "baseMessages"; payload: MessageRecord[] }
+  | { type: "syncHash"; payload: string }
   | { type: "keepMessages"; payload: number }
   | { type: "sourceStatus"; payload: boolean }
   | { type: "message"; payload: MessageRecord }

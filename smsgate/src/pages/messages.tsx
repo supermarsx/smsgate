@@ -61,6 +61,9 @@ export default function MessagesPage() {
         case "baseMessages":
           setMessages(data.payload);
           break;
+        case "syncHash":
+          setSyncHash(data.payload);
+          break;
         case "keepMessages":
           setKeepMessages(data.payload);
           break;
@@ -87,6 +90,7 @@ export default function MessagesPage() {
   useEffect(() => {
     const token = getToken();
     if (!token) return;
+    if (serverState === "connected") return;
     let stopped = false;
     async function syncMessages() {
       try {
@@ -124,7 +128,7 @@ export default function MessagesPage() {
       stopped = true;
       window.clearInterval(interval);
     };
-  }, [syncHash]);
+  }, [syncHash, serverState]);
 
   useEffect(() => {
     if (!clientConfig.management.messages.showLatest) return;
@@ -142,10 +146,7 @@ export default function MessagesPage() {
       const next = clientConfig.management.messages.invert
         ? [message, ...prev]
         : [...prev, message];
-      if (clientConfig.management.messages.keepFromServer && keepMessages > 0) {
-        return next.slice(-keepMessages);
-      }
-      return next;
+      return trimMessages(next, keepMessages);
     });
     if (clientConfig.management.sound.enabled) {
       const audio = new Audio(
@@ -177,11 +178,18 @@ export default function MessagesPage() {
       const ordered = clientConfig.management.messages.invert
         ? [...merged].reverse()
         : merged;
-      if (clientConfig.management.messages.keepFromServer && keepMessages > 0) {
-        return ordered.slice(-keepMessages);
-      }
-      return ordered;
+      return trimMessages(ordered, keepMessages);
     });
+  }
+
+  function trimMessages(list: MessageRecord[], serverKeep: number): MessageRecord[] {
+    const localKeep = clientConfig.management.messages.keep;
+    const effectiveKeep =
+      clientConfig.management.messages.keepFromServer && serverKeep > 0
+        ? Math.min(serverKeep, localKeep)
+        : localKeep;
+    if (effectiveKeep <= 0) return list;
+    return list.slice(-effectiveKeep);
   }
 
   async function verifyToken(token: string): Promise<boolean> {

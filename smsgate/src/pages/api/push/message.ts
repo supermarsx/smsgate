@@ -4,6 +4,7 @@ import { isValidClientId, isValidToken } from "../../../server/auth";
 import { sanitizeStr } from "../../../server/sanitize";
 import { broadcast } from "../../../server/wsHub";
 import { MessageRecord } from "../../../server/types";
+import crypto from "crypto";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const runtime = getRuntime();
@@ -30,5 +31,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await runtime.store.addMessage(message);
   broadcast({ type: "message", payload: message });
+  const messages = await runtime.store.getMessages();
+  const hash = crypto.createHash("sha512").update(JSON.stringify(messages)).digest("hex");
+  broadcast({ type: "syncHash", payload: hash });
   res.status(200).end();
 }

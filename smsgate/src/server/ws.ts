@@ -5,6 +5,7 @@ import { getRuntime } from "./runtime";
 import { isValidClientId, isValidToken } from "./auth";
 import { broadcast, setWebSocketServer } from "./wsHub";
 import { MessageRecord } from "./types";
+import crypto from "crypto";
 
 type ClientState = {
   authed: boolean;
@@ -25,6 +26,10 @@ function parseMessage(data: WebSocket.RawData): AuthMessage | null {
   } catch {
     return null;
   }
+}
+
+function computeHash(messages: MessageRecord[]): string {
+  return crypto.createHash("sha512").update(JSON.stringify(messages)).digest("hex");
 }
 
 export function createWebSocketServer(server: HttpServer): WebSocketServer {
@@ -56,8 +61,10 @@ export function createWebSocketServer(server: HttpServer): WebSocketServer {
       }
 
       const messages = await runtime.store.getMessages();
+      const hash = computeHash(messages);
       ws.send(JSON.stringify({ type: "sourceStatus", payload: runtime.phoneOnline }));
       ws.send(JSON.stringify({ type: "baseMessages", payload: messages }));
+      ws.send(JSON.stringify({ type: "syncHash", payload: hash }));
       ws.send(JSON.stringify({ type: "keepMessages", payload: serverConfig.management.messages.keep }));
     });
 

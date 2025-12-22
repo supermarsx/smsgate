@@ -15,6 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const messages = await runtime.store.getMessages();
   const payload = JSON.stringify(messages);
-  const hash = crypto.createHash("sha256").update(payload).digest("hex");
+  const hash = crypto.createHash("sha512").update(payload).digest("hex");
   res.status(200).json({ hash });
 }

@@ -64,7 +64,7 @@ Example:
   - `Authorization: Bearer <token>`
 - Response:
 ```json
-{"hash":"<sha256>"}
+{"hash":"<sha512>"}
 ```
 
 ### GET /api/messages/list

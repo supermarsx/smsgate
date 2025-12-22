@@ -68,6 +68,22 @@ To build and run, open `smsrelay2/android` in Android Studio and run on a physic
 
 smsgate receives messages from devices that are authenticated by the `authorization` and `x-clientid` headers included in every communication with the server. The server retains the latest messages it receives and broadcasts them to every connected client via WebSockets. Every connected client has to be authorized by using a valid token generated from the login page.
 
+Server settings can be overridden via environment variables:
+```
+SMSGATE_PORT, SMSGATE_WS_PATH, SMSGATE_CLIENT_IDS, SMSGATE_ACCESS_CODES,
+SMSGATE_USE_HASHED, SMSGATE_SALT, SMSGATE_MESSAGES_KEEP, SMSGATE_MESSAGES_PURGE,
+SMSGATE_PERSISTENCE_TYPE, SMSGATE_PERSISTENCE_FILE
+```
+
+Client settings can be overridden via Next.js public env vars:
+```
+NEXT_PUBLIC_SMS_LANG, NEXT_PUBLIC_SMS_SALT, NEXT_PUBLIC_SMS_STORAGE,
+NEXT_PUBLIC_SMS_PERSISTENT, NEXT_PUBLIC_SMS_SEND_LOGIN, NEXT_PUBLIC_SMS_KEEP_LOCAL,
+NEXT_PUBLIC_SMS_KEEP_FROM_SERVER, NEXT_PUBLIC_SMS_SHOW_LATEST, NEXT_PUBLIC_SMS_INVERT,
+NEXT_PUBLIC_SMS_SYNC_MS, NEXT_PUBLIC_SMS_SOUND, NEXT_PUBLIC_SMS_SOUND_NAME,
+NEXT_PUBLIC_SMS_SOUND_PATH, NEXT_PUBLIC_SMS_SOUND_EXT
+```
+
 To run the smsgate server:
 
 ```

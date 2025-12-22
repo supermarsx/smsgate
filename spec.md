@@ -46,7 +46,7 @@
   - Returns `{ messages: [...] }` for sync reconciliation.
 - `GET /api/messages/hash`
   - Requires `Authorization: Bearer <token>`.
-  - Returns `{ hash: "<sha256>" }` for fast sync checks.
+  - Returns `{ hash: "<sha512>" }` for fast sync checks.
 - `POST /api/push/message`
   - Requires `Authorization: Bearer <token>` and `x-clientid`.
   - Accepts JSON body: `{ number, date, message, receivedAtEpochMs?, device*? }`.
@@ -99,7 +99,7 @@
 - Plays notification sound if enabled.
 - Shows server/phone status indicators and a "Close session" action.
 - Runs a periodic sync against `/api/messages/list` to reconcile any missed messages.
-- Sync polling runs every 5-10 seconds and uses `/api/messages/hash` to skip full sync when unchanged.
+- Sync polling runs every 5-10 seconds and uses `/api/messages/hash` to skip full sync when unchanged, only when WS is disconnected.
 
 ### 5.5 Localization
 - Strings are loaded from `/lang/<locale>.json`.
@@ -180,7 +180,7 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 - `authorization.storageName`: storage key for token.
 - `authorization.sendLogin`: auto-check token on page load.
 - `authorization.usePersistent`: localStorage vs sessionStorage.
-- `management.messages`: UI retention/scroll settings.
+- `management.messages`: UI retention/scroll settings (local keep defaults to 10).
 - `management.sound`: sound selection and enablement.
 
 ### 8.3 Android App Config (native)
