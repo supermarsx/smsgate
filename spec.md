@@ -59,6 +59,7 @@
 ### 4.3 Message Buffer
 - Backed by a pluggable persistence adapter.
 - Built-in adapters: in-memory and JSON file.
+- Custom adapters can be added by implementing the MessageStore interface.
 - Default retention is 10 messages with purge enabled.
 - Purge removes oldest messages when buffer exceeds `management.messages.keep`.
 
@@ -161,17 +162,14 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 - `persistence.type`: `memory` or `json`.
 - `persistence.filePath`: JSON storage file path.
 
-### 8.2 Web Client Config (`smsgate/public/js/app/config.js`)
+### 8.2 Web Client Config (`smsgate/src/lib/config.ts`)
 - `language`: language file key.
-- `authorization.useInsecure`: allows hashing in HTTP contexts via `sha512.min.js`.
+- `authorization.salt`: hashing salt.
 - `authorization.storageName`: storage key for token.
 - `authorization.sendLogin`: auto-check token on page load.
 - `authorization.usePersistent`: localStorage vs sessionStorage.
-- `management.messages`: UI retention/push/scroll settings.
+- `management.messages`: UI retention/scroll settings.
 - `management.sound`: sound selection and enablement.
-- `management.paths`: route paths and redirect timings.
-- `management.request`: HTTP header and response strings.
-- `debug.nulled`: disables token operations or hashing for debugging.
 
 ### 8.3 Android App Config (native)
 - Stored in EncryptedSharedPreferences; editable via in-app settings.
@@ -190,12 +188,12 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 6. Web clients append the message to the UI and optionally play a sound.
 
 ## 10. Storage and Persistence
-- **Server**: in-memory or JSON file persistence (configurable).
+- **Server**: in-memory or JSON file persistence (configurable). JSON uses `smsgate/data/messages.json` by default.
 - **Browser**: token stored in local/session storage.
 - **Android**: encrypted prefs store config and credentials; messages are not persisted locally.
 
 ## 11. Error Handling and Edge Cases
-- Invalid token on Socket.IO still allows `connect`, but server will disconnect.
+- Invalid token on WebSocket connection leads to an auth error and disconnect.
 - Invalid token on login or messages page redirects back to login.
 - If server is unavailable, login errors are shown and UI recovers after delay.
 - If `keepMessages` is 0, message purge is disabled on client and server.
@@ -220,7 +218,7 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 - Build with Gradle or Run on a device (Android 10+).
 
 ## 14. Non-Goals and Known Limitations
-- No message persistence or history beyond in-memory buffer.
+- No database-backed persistence beyond memory/JSON file adapters.
 - No user management or per-user access controls.
 - No outgoing SMS support.
 - OEM-specific background limits (Samsung, Xiaomi, etc.) may still require manual whitelisting.

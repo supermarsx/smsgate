@@ -35,10 +35,10 @@
     - `deviceModel` (string).
     - `deviceSdkInt` (number).
 - Responses: empty body (HTTP 200 when route is reached).
-- Server behavior:
-  - Sanitizes `number`, `date`, `message`.
-  - Stores up to `management.messages.keep`.
-  - Broadcasts via Socket.IO.
+Server behavior:
+- Sanitizes `number`, `date`, `message`.
+- Stores up to `management.messages.keep`.
+- Broadcasts via WebSocket.
 
 ## WebSocket (`/ws`)
 ### Auth message (client -> server)

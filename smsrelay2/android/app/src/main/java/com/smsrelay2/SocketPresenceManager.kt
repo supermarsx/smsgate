@@ -38,6 +38,9 @@ object SocketPresenceManager {
 
     fun buildWebSocketUrl(serverUrl: String): String {
         val normalized = if (serverUrl.endsWith("/")) serverUrl.dropLast(1) else serverUrl
+        if (normalized.startsWith("ws://") || normalized.startsWith("wss://")) {
+            return "$normalized/ws"
+        }
         val protocol = if (normalized.startsWith("https://")) "wss://" else "ws://"
         val host = normalized.removePrefix("https://").removePrefix("http://")
         return "$protocol$host/ws"

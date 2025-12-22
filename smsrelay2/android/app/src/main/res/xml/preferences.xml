@@ -98,7 +98,7 @@
             android:defaultValue="true" />
         <SwitchPreferenceCompat
             android:key="enable_socket_presence"
-            android:title="Socket.IO presence"
+            android:title="WebSocket presence"
             android:summary="Keep phone online state via socket"
             android:defaultValue="true" />
         <SwitchPreferenceCompat

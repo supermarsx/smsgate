@@ -9,11 +9,11 @@ smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `s
 1. Base scenario (failed login, valid login, message reception, close session, login with messages, saved session, invalid token redirect)
 
 
-![smsgate](https://github.com/eduardomota/smsgate/raw/master/media/smsgate.gif)
+![smsgate](https://github.com/supermarsx/smsgate/raw/master/media/smsgate.gif)
 
 2. Android application screenshot
 
-<img src="https://github.com/eduardomota/smsgate/raw/master/media/smsrelay2.png" width=300px>
+<img src="https://github.com/supermarsx/smsgate/raw/master/media/smsrelay2.png" width=300px>
 
 ## Main specification/features
 
@@ -33,7 +33,7 @@ Clone this repository, install dependencies, add your variables and run.
 
 ```bash
 Clone repository
-$ git clone https://github.com/eduardomota/smsgate
+$ git clone https://github.com/supermarsx/smsgate
 
 Install smsgate dependencies
 $ cd ./smsgate/smsgate
