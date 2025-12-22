@@ -5,6 +5,7 @@ type RuntimeState = {
   store: MessageStore;
   initialized: boolean;
   phoneOnline: boolean;
+  phoneConnections: number;
 };
 
 declare global {
@@ -17,7 +18,8 @@ export function getRuntime(): RuntimeState {
     global.__SMSGATE_RUNTIME__ = {
       store: createMessageStore(),
       initialized: false,
-      phoneOnline: false
+      phoneOnline: false,
+      phoneConnections: 0
     };
   }
   if (!global.__SMSGATE_RUNTIME__.initialized) {

@@ -2,7 +2,7 @@
 
 smsgate is a small time, two piece portal software to receive messages from your android phone and forward them to a HTTP API and view them on a browser anywhere. This piece of software was created with the premise of several people in different locations being able to access the latest received messages from an android phone. A very common use case of this is for several people to access two step verification codes, single one time codes for different types of applications.
 
-smsgate is divided in two parts: `smsgate` the socket.io/express server and `smsrelay2` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to the server, and optionally maintains a Socket.IO presence connection. The server interfaces with the browser client using Socket.IO so connected users see incoming messages in real time.
+smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `smsrelay2` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to the server, and optionally maintains a WebSocket presence connection. The server interfaces with the browser client using WebSockets so connected users see incoming messages in real time.
 
 ## Visual Demo
 
@@ -21,7 +21,7 @@ smsgate is divided in two parts: `smsgate` the socket.io/express server and `sms
 - Foreground and background sms listener
 - Simple user interface
 - Notification sound
-- Socket.io/Express server
+- Next.js server + WebSockets
 - Real-time sms reception (~ 1 second)
 - Token based authentication, SHA-512 hash with salt (local/session storage)
 - Pseudo uni-directional communications (reception only)
@@ -67,12 +67,12 @@ To build and run, open `smsrelay2/android` in Android Studio and run on a physic
 
 ### smsgate
 
-smsgate receives messages from devices that are both authenticated by the `authorization`  and `x-clientid` headers included in every communication with the server. The server retains the latest 10 messages it receives and broadcasts using socket.io to every connected client. Every connected client has to be authorized by using a valid `authorization` header that is generated using the login page and inserting the correct access code, it then hashes the code with a salt and sets as its auth header.
+smsgate receives messages from devices that are authenticated by the `authorization` and `x-clientid` headers included in every communication with the server. The server retains the latest messages it receives and broadcasts them to every connected client via WebSockets. Every connected client has to be authorized by using a valid token generated from the login page.
 
-To run the smsgate server type:
+To run the smsgate server:
 
 ```
-$ node ./index.js
+$ npm run dev
 ```
 
 ## Considerations
@@ -94,13 +94,11 @@ Follow the general guide to export an APK with code signing from Android Studio 
 
 ## Built with
 
-<a href="https://socket.io/"><img height=40px src="https://socket.io/css/images/logo.svg"></a>
+<a href="https://nextjs.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Nextjs-logo.svg"></a>
 
-<a href="https://expressjs.com/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/6/64/Expressjs.png"></a>
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/3/3d/WebSocket_logo.svg"></a>
 
 <a href="https://kotlinlang.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/commons/7/74/Kotlin_Icon.png"></a> Kotlin
-
-<a href="https://jquery.org/"><img height=40px src="https://upload.wikimedia.org/wikipedia/sco/9/9e/JQuery_logo.svg"></a>
 
 <a href="https://bulma.io/"><img height=40px src="https://bulma.io/images/made-with-bulma.png"></a>
 
