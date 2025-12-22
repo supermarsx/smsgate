@@ -23,6 +23,15 @@ export default function MessagesPage() {
     loadTranslations().then(setTranslations).catch(() => setTranslations({}));
   }, []);
 
+  useEffect(() => {
+    if (!clientConfig.management.notifications.enabled) return;
+    if (!clientConfig.management.notifications.requestOnLoad) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => undefined);
+    }
+  }, []);
+
   const t = useMemo(() => {
     return (key: string) => translations[key] ?? key;
   }, [translations]);
@@ -153,6 +162,28 @@ export default function MessagesPage() {
         `${clientConfig.management.sound.path}${clientConfig.management.sound.name}${clientConfig.management.sound.fileExt}`
       );
       audio.play().catch(() => undefined);
+    }
+    triggerNotification(message);
+  }
+
+  function triggerNotification(message: MessageRecord): void {
+    if (!clientConfig.management.notifications.enabled) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission !== "granted") return;
+    if (
+      clientConfig.management.notifications.onlyWhenUnfocused &&
+      typeof document !== "undefined" &&
+      document.hasFocus()
+    ) {
+      return;
+    }
+    try {
+      new Notification("New SMS", {
+        body: `${message.number}: ${message.message}`,
+        tag: "smsgate-message"
+      });
+    } catch {
+      // Ignore notification errors.
     }
   }
 

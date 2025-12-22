@@ -35,6 +35,11 @@ export const clientConfig = {
       name: env("NEXT_PUBLIC_SMS_SOUND_NAME", "gglass"),
       path: env("NEXT_PUBLIC_SMS_SOUND_PATH", "/sounds/"),
       fileExt: env("NEXT_PUBLIC_SMS_SOUND_EXT", ".mp3")
+    },
+    notifications: {
+      enabled: envBool("NEXT_PUBLIC_SMS_NOTIFICATIONS", false),
+      requestOnLoad: envBool("NEXT_PUBLIC_SMS_NOTIF_REQUEST", false),
+      onlyWhenUnfocused: envBool("NEXT_PUBLIC_SMS_NOTIF_UNFOCUSED", true)
     }
   }
 };

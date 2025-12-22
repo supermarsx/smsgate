@@ -97,6 +97,7 @@
 - Receives base messages and new messages in real time.
 - Supports message inversion, auto-scroll to latest, and message purging.
 - Plays notification sound if enabled.
+- Optional browser notifications for new messages (permission required).
 - Shows server/phone status indicators and a "Close session" action.
 - Runs a periodic sync against `/api/messages/list` to reconcile any missed messages.
 - Sync polling runs every 5-10 seconds and uses `/api/messages/hash` to skip full sync when unchanged, only when WS is disconnected.
