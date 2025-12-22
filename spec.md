@@ -6,25 +6,24 @@
 - Provide token-based access control for both phone-to-server and browser-to-server communications.
 
 ## 2. High-Level Architecture
-- **smsrelay2 (Android app, Kotlin native)** listens for incoming SMS in foreground and background and forwards messages to the server.
-- **smsgate (Node.js server)** exposes HTTP API endpoints and a Socket.IO real-time channel.
-- **smsgate web client** (static HTML/JS/CSS) authenticates via a token, then receives messages over Socket.IO.
+- **smsrelay2 (Android app, Kotlin native)** listens for incoming SMS and forwards messages to the server.
+- **smsgate (Next.js + ws server, TypeScript)** exposes HTTP API endpoints and a WebSocket channel.
+- **smsgate web client** (Next.js React) authenticates via a token and receives messages over WebSocket.
 
 ## 3. Components
 ### 3.1 smsgate Server
-- **Runtime**: Node.js with Express and Socket.IO.
-- **Entry point**: `smsgate/index.js`.
-- **Config**: `smsgate/config.js`.
-- **Static assets**: `smsgate/public/` (login, messages UI, JS, CSS, sounds).
+- **Runtime**: Node.js with Next.js and ws.
+- **Entry point**: `smsgate/server.ts`.
+- **Config**: `smsgate/src/config.ts`.
+- **Static assets**: `smsgate/public/` (CSS, images, sounds, lang JSON).
 
 ### 3.2 smsgate Web Client
-- **Login page**: `smsgate/public/login.html`.
-- **Messages page**: `smsgate/public/messages.html`.
-- **Client configuration**: `smsgate/public/js/app/config.js`.
-- **Token utilities**: `smsgate/public/js/app/token.js`.
-- **Login logic**: `smsgate/public/js/app/login.js`.
-- **Messages/UI logic**: `smsgate/public/js/app/messages.js` and `smsgate/public/js/app/phone.js`.
-- **Localization loader**: `smsgate/public/js/app/lang.js` and JSON in `smsgate/public/js/app/lang/`.
+- **Login page**: `smsgate/src/pages/index.tsx`.
+- **Messages page**: `smsgate/src/pages/messages.tsx`.
+- **Client configuration**: `smsgate/src/lib/config.ts`.
+- **Token utilities**: `smsgate/src/lib/token.ts`.
+- **WebSocket helpers**: `smsgate/src/lib/ws.ts`.
+- **Localization loader**: `smsgate/src/lib/lang.ts` and JSON in `smsgate/public/lang/`.
 
 ### 3.3 smsrelay2 Android App
 - **Runtime**: Native Android (Kotlin).
@@ -38,26 +37,28 @@
 ## 4. Server Behavior (smsgate)
 ### 4.1 HTTP Endpoints
 - `GET /`
-  - Serves `public/login.html` (configured via `smsgate/config.js`).
+  - Serves the login page (Next.js).
 - `POST /api/token/check`
   - Requires `Authorization: Bearer <token>`.
   - Returns `Valid token` or `Invalid token`.
 - `POST /api/push/message`
   - Requires `Authorization: Bearer <token>` and `x-clientid`.
-  - Accepts JSON body: `{ number, date, message }`.
-  - Sanitizes fields, stores message, broadcasts via Socket.IO.
+  - Accepts JSON body: `{ number, date, message, receivedAtEpochMs?, device*? }`.
+  - Sanitizes fields, stores message, broadcasts via WebSocket.
   - Always responds with an empty body (HTTP 200 if route is reached).
 
-### 4.2 Socket.IO
-- **Auth**: Reads `Authorization` header from socket handshake and validates token.
+### 4.2 WebSocket
+- **Path**: `/ws`
+- **Auth**: client sends a JSON `{ type: "auth", token, clientId? }` message after connect.
 - **Events emitted by server**:
   - `sourceStatus` (boolean): phone online/offline state.
   - `baseMessages` (array): last buffered messages.
   - `keepMessages` (number): message retention limit (server config).
-  - `message` (object): new message `{ number, date, message }`.
+  - `message` (object): new message payload.
 
 ### 4.3 Message Buffer
-- Stored in memory in `appVar.buffer.messages` (no persistence).
+- Backed by a pluggable persistence adapter.
+- Built-in adapters: in-memory and JSON file.
 - Default retention is 10 messages with purge enabled.
 - Purge removes oldest messages when buffer exceeds `management.messages.keep`.
 
@@ -85,11 +86,11 @@
 - Hash input is `password + salt` from `config.authorization.salt`.
 
 ### 5.4 Messages UI
-- Connects to Socket.IO with `Authorization` header.
+- Connects to WebSocket and sends an auth message containing the token.
 - Receives base messages and new messages in real time.
 - Supports message inversion, auto-scroll to latest, and message purging.
 - Plays notification sound if enabled.
-- Shows server/phone status indicators and a "Close session" modal.
+- Shows server/phone status indicators and a "Close session" action.
 
 ### 5.5 Localization
 - Strings are loaded from JSON (`/js/app/lang/<language>.json`).
@@ -106,7 +107,7 @@ Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
 
 ### 6.2 Foreground Relay Service
 - Optional persistent foreground service for maximum reliability.
-- Maintains a Socket.IO connection to mark the phone as online.
+- Maintains a WebSocket connection to mark the phone as online.
 - Uses a persistent notification (can be silenced in settings).
 
 ### 6.3 Message Forwarding
@@ -148,16 +149,17 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 - `x-clientid` controls which devices are allowed to push messages and be treated as the phone.
 
 ## 8. Configuration
-### 8.1 Server Config (`smsgate/config.js`)
+### 8.1 Server Config (`smsgate/src/config.ts`)
 - `authorization.token.clientId`: list of allowed phone IDs.
 - `authorization.token.accessCode`: list of allowed access codes.
 - `authorization.token.useHashed`: if true, `hashedCode` is used directly.
 - `authorization.salt`: salt for hashing.
 - `server.port`: server port.
-- `server.extensions`: static extension behavior.
-- `server.paths`: entry path and API endpoints.
+- `server.wsPath`: WebSocket path.
 - `management.messages.keep`: server message retention limit.
 - `management.messages.purgeOld`: enable auto-purge.
+- `persistence.type`: `memory` or `json`.
+- `persistence.filePath`: JSON storage file path.
 
 ### 8.2 Web Client Config (`smsgate/public/js/app/config.js`)
 - `language`: language file key.
@@ -182,13 +184,13 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 ## 9. Data Flow Summary
 1. Android phone receives SMS.
 2. smsrelay2 queues a WorkManager upload with metadata.
-3. smsrelay2 foreground service (if enabled) maintains Socket.IO presence.
+3. smsrelay2 foreground service (if enabled) maintains WebSocket presence.
 4. smsrelay2 posts message to `/api/push/message`.
 5. smsgate stores and broadcasts message to all connected clients.
 6. Web clients append the message to the UI and optionally play a sound.
 
 ## 10. Storage and Persistence
-- **Server**: in-memory message buffer; no disk persistence.
+- **Server**: in-memory or JSON file persistence (configurable).
 - **Browser**: token stored in local/session storage.
 - **Android**: encrypted prefs store config and credentials; messages are not persisted locally.
 
@@ -209,7 +211,9 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 ## 13. Build and Run
 ### 13.1 Server
 - Install deps in `smsgate/`.
-- Start: `node index.js` (from `smsgate/`).
+- Start dev: `npm run dev` (from `smsgate/`).
+- Build: `npm run build`.
+- Start prod: `npm run start`.
 
 ### 13.2 Android
 - Open `smsrelay2/android/` in Android Studio.

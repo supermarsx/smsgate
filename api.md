@@ -1,8 +1,8 @@
 # smsgate API
 
 ## Base
-- All endpoints are served by the smsgate server (Express + Socket.IO).
-- Default port is defined in `smsgate/config.js`.
+- All endpoints are served by the smsgate server (Next.js + ws).
+- Default port is defined in `smsgate/src/config.ts`.
 - Authentication uses `Authorization: Bearer <token>` where token is SHA-512 of `pin + salt`.
 
 ## HTTP Endpoints
@@ -40,19 +40,26 @@
   - Stores up to `management.messages.keep`.
   - Broadcasts via Socket.IO.
 
-## Socket.IO
-### Auth Headers
-- `Authorization: Bearer <token>`
-- `x-clientid: <clientId>`
+## WebSocket (`/ws`)
+### Auth message (client -> server)
+Sent after the socket opens.
+```json
+{"type":"auth","token":"<token>","clientId":"<optional-client-id>"}
+```
 
-### Events
+### Server messages
 - `sourceStatus` (boolean): phone online/offline.
 - `baseMessages` (array): server buffer on connect.
 - `keepMessages` (number): server retention limit.
-- `message` (object): `{ number, date, message }`.
+- `message` (object): `{ number, date, message, ... }`.
+
+Example:
+```json
+{"type":"message","payload":{"number":"+351 123","date":"01:02:03 01/01/2020","message":"test"}}
+```
 
 ## Static Resources
-- `GET /login` (via extension mapping) => login UI.
+- `GET /` => login UI.
 - `GET /messages` => messages UI.
 
 ## Remote Provisioning (Android)
