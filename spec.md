@@ -49,7 +49,7 @@
   - Returns `{ hash: "<sha512>" }` for fast sync checks.
 - `POST /api/push/message`
   - Requires `Authorization: Bearer <token>` and `x-clientid`.
-  - Accepts JSON body: `{ number, date, message, receivedAtEpochMs?, device*? }`.
+  - Accepts JSON body: `{ number, date, message, receivedAtEpochMs?, device*?, extra? }`.
   - Sanitizes fields, stores message, broadcasts via WebSocket.
   - Always responds with an empty body (HTTP 200 if route is reached).
   - Marked legacy; phone relay uses WebSocket.
@@ -63,6 +63,9 @@
   - `baseMessages` (array): last buffered messages.
   - `keepMessages` (number): message retention limit (server config).
   - `message` (object): new message payload.
+  - `syncHash` (string): hash of current message buffer.
+  - `smsAck` (no payload): acknowledgement for phone uploads.
+  - `error` (string): error message for invalid or unauthorized requests.
 
 ### 4.3 Message Buffer
 - Backed by a pluggable persistence adapter.
@@ -75,6 +78,29 @@
 - Server considers a client with valid `x-clientid` a phone.
 - On WebSocket auth with valid `clientId`, it marks the phone online.
 - On disconnect, it updates phone-online state based on remaining phone connections.
+
+### 4.5 Message Schema and Validation
+- Required fields: `number`, `date`, `message`.
+- Optional fields: `receivedAtEpochMs`, `deviceManufacturer`, `deviceModel`, `deviceSdkInt`, `extra`.
+- `extra` is a flat object of string key/value pairs used for additional device or carrier metadata.
+- Sanitization removes angle brackets and caps string length; invalid or empty metadata entries are dropped.
+
+Example payload:
+```
+{
+  "number": "+12025550123",
+  "date": "14:02:11 25/12/2025",
+  "message": "Your code is 123456",
+  "receivedAtEpochMs": 1766642531000,
+  "deviceManufacturer": "Samsung",
+  "deviceModel": "SM-S918B",
+  "deviceSdkInt": 34,
+  "extra": {
+    "simSlot": "1",
+    "carrier": "ExampleTel"
+  }
+}
+```
 
 ## 5. Web Client Behavior
 ### 5.1 Login Flow
@@ -101,6 +127,7 @@
 - Plays notification sound if enabled.
 - Optional browser notifications for new messages (permission required).
 - Shows server/phone status indicators and a "Close session" action.
+- Renders optional metadata entries if present on a message.
 - Runs a periodic sync against `/api/messages/list` to reconcile any missed messages.
 - Sync polling runs every 5-10 seconds and uses `/api/messages/hash` to skip full sync when unchanged, only when WS is disconnected.
 - HTTP sync endpoints are disabled by default; enable only if needed for recovery.
@@ -130,6 +157,7 @@ Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
   - `message`: message body
   - `receivedAtEpochMs`: SMS receipt time in epoch ms
   - `deviceManufacturer`, `deviceModel`, `deviceSdkInt`: device metadata
+  - `extra`: optional string map for additional metadata (carrier, SIM slot, etc.)
 - Server responds with `smsAck` on successful store.
 
 ### 6.4 Token Generation
@@ -220,7 +248,7 @@ Oppo (ColorOS):
 
 ## 9. Data Flow Summary
 1. Android phone receives SMS.
-2. smsrelay2 queues a WorkManager upload with metadata.
+2. smsrelay2 queues a WorkManager upload with metadata (device details and optional extra fields).
 3. smsrelay2 foreground service (if enabled) maintains WebSocket presence.
 4. smsrelay2 posts message to `/api/push/message`.
 5. smsgate stores and broadcasts message to all connected clients.
@@ -237,6 +265,7 @@ Oppo (ColorOS):
 - If server is unavailable, login errors are shown and UI recovers after delay.
 - If `keepMessages` is 0, message purge is disabled on client and server.
 - OEM background limits can delay or block SMS processing until the app is whitelisted.
+- Invalid or oversized metadata fields are ignored during sanitization.
 
 ## 12. Security Considerations
 - Intended to be used over TLS.
