@@ -50,7 +50,8 @@ export function createWebSocketServer(server: HttpServer): WebSocketServer {
       state.authed = true;
       state.isPhone = isValidClientId(auth.clientId);
       if (state.isPhone) {
-        runtime.phoneOnline = true;
+        runtime.phoneConnections += 1;
+        runtime.phoneOnline = runtime.phoneConnections > 0;
         broadcast({ type: "sourceStatus", payload: true });
       }
 
@@ -62,8 +63,9 @@ export function createWebSocketServer(server: HttpServer): WebSocketServer {
 
     ws.on("close", () => {
       if (state.authed && state.isPhone) {
-        runtime.phoneOnline = false;
-        broadcast({ type: "sourceStatus", payload: false });
+        runtime.phoneConnections = Math.max(0, runtime.phoneConnections - 1);
+        runtime.phoneOnline = runtime.phoneConnections > 0;
+        broadcast({ type: "sourceStatus", payload: runtime.phoneOnline });
       }
     });
   });

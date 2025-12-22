@@ -75,6 +75,13 @@ To run the smsgate server:
 $ npm run dev
 ```
 
+To build for production:
+
+```
+$ npm run build
+$ npm run start
+```
+
 ## Considerations
 
 This application authentication only makes sense if used under TLS, it uses a salt and strong hashing algorithm to harden against potential rainbow tables against access codes. Using this over plain HTTP defeats the purpose of using a token as it can be easily obtained from raw network traffic.
