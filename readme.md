@@ -54,9 +54,8 @@ Change the variables to suit your preferences, on these files:
 
 ```
 Android application: configure in-app settings or remote JSON
-Express/socketio client: ./smsgate/js/app/config.js
-Express/socketio server: ./smsgate/config.js
-Express/socketio client/phone test: ./smsgate/js/test.js
+smsgate client config: ./smsgate/src/lib/config.ts
+smsgate server config: ./smsgate/src/config.ts
 ```
 
 ### smsrelay2
