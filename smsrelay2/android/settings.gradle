@@ -1,11 +1,2 @@
-rootProject.name = 'smsrelay2'
-include ':react-native-sha512'
-project(':react-native-sha512').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-sha512/android')
-include ':react-native-sha512'
-project(':react-native-sha512').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-sha512/android')
-include ':react-native-background-timer'
-project(':react-native-background-timer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-background-timer/android')
-include ':react-native-background-timer'
-project(':react-native-background-timer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-background-timer/android')
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
-include ':app'
+rootProject.name = "smsrelay2"
+include ":app"

@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">smsrelay2</string>
+    <string name="start_service">Start foreground relay</string>
+    <string name="stop_service">Stop foreground relay</string>
+    <string name="provision_now">Provision from server</string>
+    <string name="open_settings">Open app settings</string>
+    <string name="open_battery">Battery optimization</string>
+    <string name="status_ready">Status: ready</string>
+    <string name="status_running">Status: running</string>
+    <string name="status_stopped">Status: stopped</string>
+    <string name="status_error">Status: error</string>
+    <string name="relay_channel_name">smsrelay2 relay</string>
+    <string name="relay_channel_desc">Foreground relay service</string>
+    <string name="relay_notification_title">smsrelay2 relay active</string>
+    <string name="relay_notification_text">Listening for SMS and forwarding</string>
 </resources>

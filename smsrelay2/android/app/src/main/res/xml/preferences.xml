@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Server">
+        <EditTextPreference
+            android:key="server_url"
+            android:title="Server URL"
+            android:summary="Base URL for smsgate server"
+            android:defaultValue="http://#SERVER:#PORT" />
+        <EditTextPreference
+            android:key="api_path"
+            android:title="API path"
+            android:summary="Message push path"
+            android:defaultValue="/api/push/message" />
+        <EditTextPreference
+            android:key="http_method"
+            android:title="HTTP method"
+            android:summary="Default POST"
+            android:defaultValue="POST" />
+        <EditTextPreference
+            android:key="remote_config_url"
+            android:title="Remote config URL"
+            android:summary="Optional URL to provision settings"
+            android:defaultValue="" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Auth headers">
+        <EditTextPreference
+            android:key="client_id_header"
+            android:title="Client ID header"
+            android:summary="Default x-clientid"
+            android:defaultValue="x-clientid" />
+        <EditTextPreference
+            android:key="client_id_value"
+            android:title="Client ID value"
+            android:summary="Phone client ID"
+            android:defaultValue="#XCLIENTID1" />
+        <EditTextPreference
+            android:key="auth_header"
+            android:title="Authorization header"
+            android:summary="Default Authorization"
+            android:defaultValue="Authorization" />
+        <EditTextPreference
+            android:key="auth_prefix"
+            android:title="Authorization prefix"
+            android:summary="Default Bearer "
+            android:defaultValue="Bearer " />
+        <EditTextPreference
+            android:key="accept_header"
+            android:title="Accept header"
+            android:summary="Default Accept"
+            android:defaultValue="Accept" />
+        <EditTextPreference
+            android:key="accept_value"
+            android:title="Accept value"
+            android:summary="Default application/json"
+            android:defaultValue="application/json" />
+        <EditTextPreference
+            android:key="content_type_header"
+            android:title="Content-Type header"
+            android:summary="Default Content-Type"
+            android:defaultValue="Content-Type" />
+        <EditTextPreference
+            android:key="content_type_value"
+            android:title="Content-Type value"
+            android:summary="Default application/json"
+            android:defaultValue="application/json" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Credentials">
+        <EditTextPreference
+            android:key="pin"
+            android:title="PIN"
+            android:summary="Access code"
+            android:defaultValue="#PIN1" />
+        <EditTextPreference
+            android:key="salt"
+            android:title="Salt"
+            android:summary="Hash salt"
+            android:defaultValue="#SALT" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Behavior">
+        <SwitchPreferenceCompat
+            android:key="enable_listener"
+            android:title="Enable SMS listener"
+            android:summary="Receive SMS and relay"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="enable_foreground_service"
+            android:title="Enable foreground relay"
+            android:summary="Keep a persistent foreground service"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="enable_boot_receiver"
+            android:title="Start on boot"
+            android:summary="Restart foreground relay on boot"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="enable_socket_presence"
+            android:title="Socket.IO presence"
+            android:summary="Keep phone online state via socket"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="notification_enabled"
+            android:title="Show notification"
+            android:summary="Foreground service notification (silent when disabled)"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
