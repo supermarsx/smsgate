@@ -13,5 +13,6 @@ class BootReceiver : BroadcastReceiver() {
             val serviceIntent = Intent(context, RelayForegroundService::class.java)
             ContextCompat.startForegroundService(context, serviceIntent)
         }
+        PendingResendWorker.enqueue(context)
     }
 }

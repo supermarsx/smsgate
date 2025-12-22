@@ -58,6 +58,23 @@ Example:
 {"type":"message","payload":{"number":"+351 123","date":"01:02:03 01/01/2020","message":"test"}}
 ```
 
+## Message Sync
+### GET /api/messages/hash
+- Headers:
+  - `Authorization: Bearer <token>`
+- Response:
+```json
+{"hash":"<sha256>"}
+```
+
+### GET /api/messages/list
+- Headers:
+  - `Authorization: Bearer <token>`
+- Response:
+```json
+{"messages":[{"number":"+351 123","date":"01:02:03 01/01/2020","message":"test"}]}
+```
+
 ## Static Resources
 - `GET /` => login UI.
 - `GET /messages` => messages UI.

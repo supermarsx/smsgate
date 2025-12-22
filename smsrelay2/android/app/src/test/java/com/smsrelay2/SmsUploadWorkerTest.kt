@@ -35,7 +35,11 @@ class SmsUploadWorkerTest {
         ConfigStore.setString(context, ConfigStore.KEY_PIN, "1234")
         ConfigStore.setString(context, ConfigStore.KEY_SALT, "SALT")
 
+        val pending = PendingMessageStore.create("+123456789", "hello", 1700000000000L)
+        PendingMessageStore.add(context, pending)
+
         val input = Data.Builder()
+            .putString(SmsUploadWorker.KEY_MESSAGE_ID, pending.id)
             .putString(SmsUploadWorker.KEY_FROM, "+123456789")
             .putString(SmsUploadWorker.KEY_BODY, "hello")
             .putLong(SmsUploadWorker.KEY_TIMESTAMP, 1700000000000L)
@@ -55,6 +59,7 @@ class SmsUploadWorkerTest {
         assertTrue(body.contains("\"number\":\"+123456789\""))
         assertTrue(body.contains("\"message\":\"hello\""))
         assertTrue(body.contains("\"receivedAtEpochMs\":1700000000000"))
+        assertTrue(PendingMessageStore.list(context).isEmpty())
         server.shutdown()
     }
 }

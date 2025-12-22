@@ -41,6 +41,12 @@
 - `POST /api/token/check`
   - Requires `Authorization: Bearer <token>`.
   - Returns `Valid token` or `Invalid token`.
+- `GET /api/messages/list`
+  - Requires `Authorization: Bearer <token>`.
+  - Returns `{ messages: [...] }` for sync reconciliation.
+- `GET /api/messages/hash`
+  - Requires `Authorization: Bearer <token>`.
+  - Returns `{ hash: "<sha256>" }` for fast sync checks.
 - `POST /api/push/message`
   - Requires `Authorization: Bearer <token>` and `x-clientid`.
   - Accepts JSON body: `{ number, date, message, receivedAtEpochMs?, device*? }`.
@@ -65,8 +71,8 @@
 
 ### 4.4 Online/Offline Tracking
 - Server considers a client with valid `x-clientid` a phone.
-- On socket connect with valid `x-clientid`, it sets `isPhoneOnline = true`.
-- On socket disconnect from that client, it sets `isPhoneOnline = false`.
+- On WebSocket auth with valid `clientId`, it marks the phone online.
+- On disconnect, it updates phone-online state based on remaining phone connections.
 
 ## 5. Web Client Behavior
 ### 5.1 Login Flow
@@ -83,7 +89,7 @@
 
 ### 5.3 Token Hashing
 - Default uses `crypto.subtle.digest("SHA-512")`.
-- If `useInsecure = true`, it injects `sha512.min.js` for hashing over HTTP.
+- Falls back to `crypto-js` if WebCrypto is unavailable.
 - Hash input is `password + salt` from `config.authorization.salt`.
 
 ### 5.4 Messages UI
@@ -92,11 +98,12 @@
 - Supports message inversion, auto-scroll to latest, and message purging.
 - Plays notification sound if enabled.
 - Shows server/phone status indicators and a "Close session" action.
+- Runs a periodic sync against `/api/messages/list` to reconcile any missed messages.
+- Sync polling runs every 5-10 seconds and uses `/api/messages/hash` to skip full sync when unchanged.
 
 ### 5.5 Localization
-- Strings are loaded from JSON (`/js/app/lang/<language>.json`).
-- Elements marked with `trl` use those strings.
-- Password placeholder uses translated string.
+- Strings are loaded from `/lang/<locale>.json`.
+- Client auto-detects locale from the browser and falls back to `en_US`.
 
 ## 6. Android App Behavior (smsrelay2)
 Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
@@ -105,6 +112,7 @@ Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
 - For each received SMS:
   - Enqueues a WorkManager job to upload the message.
   - Starts the foreground relay service if enabled and not running.
+  - Persists the SMS into a local outbox for resend if upload fails.
 
 ### 6.2 Foreground Relay Service
 - Optional persistent foreground service for maximum reliability.
@@ -133,7 +141,11 @@ Target SDK is Android 10 (API 29) and app is intended for Android 10+ devices.
 - Optional remote JSON config can be fetched by URL.
 - Provisioning applies server/auth/feature settings atomically.
 
-### 6.6 Permissions (Android)
+### 6.6 Pending Resend
+- Pending SMS are stored in a local JSON outbox.
+- On boot or app launch, a resend worker re-enqueues uploads for any pending items.
+
+### 6.7 Permissions (Android)
 Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 - `INTERNET`
 - `RECEIVE_SMS`
@@ -190,7 +202,7 @@ Declared in `smsrelay2/android/app/src/main/AndroidManifest.xml`:
 ## 10. Storage and Persistence
 - **Server**: in-memory or JSON file persistence (configurable). JSON uses `smsgate/data/messages.json` by default.
 - **Browser**: token stored in local/session storage.
-- **Android**: encrypted prefs store config and credentials; messages are not persisted locally.
+- **Android**: encrypted prefs store config and credentials; pending SMS are persisted to a local JSON outbox for resend.
 
 ## 11. Error Handling and Edge Cases
 - Invalid token on WebSocket connection leads to an auth error and disconnect.

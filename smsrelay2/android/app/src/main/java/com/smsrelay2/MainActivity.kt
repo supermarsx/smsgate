@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestSmsPermissions()
+        PendingResendWorker.enqueue(this)
     }
 
     override fun onResume() {

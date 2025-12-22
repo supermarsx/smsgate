@@ -16,6 +16,7 @@ export default function MessagesPage() {
   const [serverState, setServerState] = useState<ConnectionState>("connecting");
   const [phoneOnline, setPhoneOnline] = useState<boolean>(false);
   const [translations, setTranslations] = useState<Translations>({});
+  const [syncHash, setSyncHash] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,6 +85,48 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    let stopped = false;
+    async function syncMessages() {
+      try {
+        const hashRes = await fetch("/api/messages/hash", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!hashRes.ok) return;
+        const hashData = await hashRes.json();
+        if (stopped) return;
+        const nextHash = String(hashData?.hash ?? "");
+        if (!nextHash || nextHash === syncHash) return;
+        const res = await fetch("/api/messages/list", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.messages)) {
+          setSyncHash(nextHash);
+          reconcileMessages(data.messages);
+        }
+      } catch {
+        // Ignore sync errors; WebSocket remains primary.
+      }
+    }
+
+    const interval = window.setInterval(syncMessages, clientConfig.management.messages.syncIntervalMs);
+    syncMessages();
+    return () => {
+      stopped = true;
+      window.clearInterval(interval);
+    };
+  }, [syncHash]);
+
+  useEffect(() => {
     if (!clientConfig.management.messages.showLatest) return;
     const element = scrollRef.current;
     if (!element) return;
@@ -110,6 +153,35 @@ export default function MessagesPage() {
       );
       audio.play().catch(() => undefined);
     }
+  }
+
+  function messageKey(message: MessageRecord): string {
+    return [
+      message.number,
+      message.date,
+      message.message,
+      message.receivedAtEpochMs ?? ""
+    ].join("|");
+  }
+
+  function reconcileMessages(serverMessages: MessageRecord[]): void {
+    setMessages((prev) => {
+      const map = new Map<string, MessageRecord>();
+      for (const msg of prev) {
+        map.set(messageKey(msg), msg);
+      }
+      for (const msg of serverMessages) {
+        map.set(messageKey(msg), msg);
+      }
+      const merged = Array.from(map.values());
+      const ordered = clientConfig.management.messages.invert
+        ? [...merged].reverse()
+        : merged;
+      if (clientConfig.management.messages.keepFromServer && keepMessages > 0) {
+        return ordered.slice(-keepMessages);
+      }
+      return ordered;
+    });
   }
 
   async function verifyToken(token: string): Promise<boolean> {

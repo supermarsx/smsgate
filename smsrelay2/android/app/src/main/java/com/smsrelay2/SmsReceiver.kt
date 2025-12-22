@@ -5,11 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import androidx.core.content.ContextCompat
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -42,6 +44,7 @@ class SmsReceiver : BroadcastReceiver() {
                 .build()
             val work = OneTimeWorkRequestBuilder<SmsUploadWorker>()
                 .setConstraints(constraints)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .setInputData(data)
                 .build()
             WorkManager.getInstance(context).enqueue(work)

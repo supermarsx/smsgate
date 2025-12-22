@@ -11,7 +11,8 @@ export const clientConfig = {
       keep: 0,
       keepFromServer: true,
       showLatest: true,
-      invert: false
+      invert: false,
+      syncIntervalMs: 7000
     },
     sound: {
       enabled: false,
