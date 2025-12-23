@@ -14,6 +14,7 @@ data class AppConfig(
     val remoteConfigAuthValue: String,
     val remoteConfigSignatureHeader: String,
     val remoteConfigSignatureSecret: String,
+    val discoveryPort: Int,
     val clientIdHeader: String,
     val clientIdValue: String,
     val authHeader: String,
@@ -42,6 +43,7 @@ object ConfigStore {
     const val KEY_REMOTE_CONFIG_AUTH_VALUE = "remote_config_auth_value"
     const val KEY_REMOTE_CONFIG_SIGNATURE_HEADER = "remote_config_signature_header"
     const val KEY_REMOTE_CONFIG_SIGNATURE_SECRET = "remote_config_signature_secret"
+    const val KEY_DISCOVERY_PORT = "discovery_port"
     const val KEY_CLIENT_ID_HEADER = "client_id_header"
     const val KEY_CLIENT_ID_VALUE = "client_id_value"
     const val KEY_AUTH_HEADER = "auth_header"
@@ -87,6 +89,7 @@ object ConfigStore {
             remoteConfigAuthValue = prefs.getString(KEY_REMOTE_CONFIG_AUTH_VALUE, "") ?: "",
             remoteConfigSignatureHeader = prefs.getString(KEY_REMOTE_CONFIG_SIGNATURE_HEADER, "") ?: "",
             remoteConfigSignatureSecret = prefs.getString(KEY_REMOTE_CONFIG_SIGNATURE_SECRET, "") ?: "",
+            discoveryPort = prefs.getString(KEY_DISCOVERY_PORT, "3000")?.toIntOrNull() ?: 3000,
             clientIdHeader = prefs.getString(KEY_CLIENT_ID_HEADER, "x-clientid") ?: "x-clientid",
             clientIdValue = prefs.getString(KEY_CLIENT_ID_VALUE, "#XCLIENTID1") ?: "",
             authHeader = prefs.getString(KEY_AUTH_HEADER, "Authorization") ?: "Authorization",
@@ -127,6 +130,7 @@ object ConfigStore {
             KEY_REMOTE_CONFIG_AUTH_VALUE -> ""
             KEY_REMOTE_CONFIG_SIGNATURE_HEADER -> ""
             KEY_REMOTE_CONFIG_SIGNATURE_SECRET -> ""
+            KEY_DISCOVERY_PORT -> "3000"
             KEY_CLIENT_ID_HEADER -> "x-clientid"
             KEY_CLIENT_ID_VALUE -> "#XCLIENTID1"
             KEY_AUTH_HEADER -> "Authorization"

@@ -42,6 +42,12 @@
             android:title="Remote config signature secret"
             android:summary="Shared secret for HMAC SHA-256"
             android:defaultValue="" />
+        <EditTextPreference
+            android:key="discovery_port"
+            android:title="Discovery port"
+            android:summary="Port used for local server discovery"
+            android:defaultValue="3000"
+            android:inputType="number" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Auth headers">

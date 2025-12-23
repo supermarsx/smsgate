@@ -14,6 +14,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.content.pm.PackageManager
+import androidx.appcompat.app.AlertDialog
+import kotlin.concurrent.thread
 
 class ControlsFragment : Fragment() {
     private lateinit var statusText: TextView
@@ -34,6 +36,7 @@ class ControlsFragment : Fragment() {
         val provisionNow = view.findViewById<Button>(R.id.provision_now)
         val openBattery = view.findViewById<Button>(R.id.open_battery)
         val openSettings = view.findViewById<Button>(R.id.open_settings)
+        val discoverServer = view.findViewById<Button>(R.id.discover_server)
 
         startService.setOnClickListener {
             val intent = Intent(requireContext(), RelayForegroundService::class.java)
@@ -70,6 +73,28 @@ class ControlsFragment : Fragment() {
             intent.data = Uri.fromParts("package", requireContext().packageName, null)
             startActivity(intent)
         }
+
+        discoverServer.setOnClickListener {
+            val config = ConfigStore.getConfig(requireContext())
+            val port = config.discoveryPort
+            LogStore.append("Discovery: scanning local network on port $port")
+            discoverServer.isEnabled = false
+            thread {
+                val results = LocalServerDiscovery.scan(requireContext(), port)
+                requireActivity().runOnUiThread {
+                    discoverServer.isEnabled = true
+                    if (results.isEmpty()) {
+                        LogStore.append("Discovery: no servers found")
+                        showDiscoveryDialog(emptyList())
+                    } else {
+                        results.forEach {
+                            LogStore.append("Discovery: found ${it.name} at ${it.url}")
+                        }
+                        showDiscoveryDialog(results)
+                    }
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -101,5 +126,30 @@ class ControlsFragment : Fragment() {
 
     companion object {
         private const val REQUEST_NOTIFICATION_PERMISSIONS = 101
+    }
+
+    private fun showDiscoveryDialog(results: List<DiscoveryResult>) {
+        if (results.isEmpty()) {
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.discover_title))
+                .setMessage(getString(R.string.discover_none))
+                .setNegativeButton(getString(R.string.discover_cancel), null)
+                .show()
+            return
+        }
+        val items = results.map { "${it.name} (${it.url})" }.toTypedArray()
+        var selectedIndex = 0
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.discover_title))
+            .setSingleChoiceItems(items, 0) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton(getString(R.string.discover_use)) { _, _ ->
+                val selected = results.getOrNull(selectedIndex) ?: return@setPositiveButton
+                ConfigStore.setString(requireContext(), ConfigStore.KEY_SERVER_URL, selected.url)
+                LogStore.append("Discovery: using ${selected.name} at ${selected.url}")
+            }
+            .setNegativeButton(getString(R.string.discover_cancel), null)
+            .show()
     }
 }

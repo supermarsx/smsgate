@@ -2,11 +2,23 @@ package com.smsrelay2
 
 import android.os.Bundle
 import android.text.InputType
+import android.graphics.Color
+import android.view.View
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 
 class SettingsFragment : PreferenceFragmentCompat() {
+    override fun onCreateView(
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val view = super.onCreateView(inflater, container, savedInstanceState)
+        view?.setBackgroundColor(Color.TRANSPARENT)
+        return view
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = SecurePreferenceDataStore(requireContext())
         setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -14,6 +26,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setSummary(ConfigStore.KEY_API_PATH)
         setSummary(ConfigStore.KEY_HTTP_METHOD)
         setSummary(ConfigStore.KEY_REMOTE_CONFIG_URL)
+        setSummary(ConfigStore.KEY_DISCOVERY_PORT)
         setSummary(ConfigStore.KEY_CLIENT_ID_HEADER)
         setSummary(ConfigStore.KEY_CLIENT_ID_VALUE)
         setSummary(ConfigStore.KEY_AUTH_HEADER)
@@ -22,6 +35,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setSummary(ConfigStore.KEY_ACCEPT_VALUE)
         setSummary(ConfigStore.KEY_CONTENT_TYPE_HEADER)
         setSummary(ConfigStore.KEY_CONTENT_TYPE_VALUE)
+        setSummary(ConfigStore.KEY_REMOTE_CONFIG_AUTH_HEADER)
+        setSummary(ConfigStore.KEY_REMOTE_CONFIG_AUTH_VALUE)
+        setSummary(ConfigStore.KEY_REMOTE_CONFIG_SIGNATURE_HEADER)
+        setSummary(ConfigStore.KEY_REMOTE_CONFIG_SIGNATURE_SECRET, mask = true, passwordInput = true)
         setSummary(ConfigStore.KEY_PIN, mask = true, passwordInput = true)
         setSummary(ConfigStore.KEY_SALT, mask = true, passwordInput = true)
     }

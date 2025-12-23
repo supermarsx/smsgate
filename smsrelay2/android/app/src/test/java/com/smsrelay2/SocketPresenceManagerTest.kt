@@ -16,6 +16,7 @@ class SocketPresenceManagerTest {
             remoteConfigAuthValue = "",
             remoteConfigSignatureHeader = "",
             remoteConfigSignatureSecret = "",
+            discoveryPort = 3000,
             clientIdHeader = "x-clientid",
             clientIdValue = "DEVICE01",
             authHeader = "Authorization",
