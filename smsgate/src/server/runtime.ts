@@ -1,7 +1,7 @@
 import { initializeTokens } from "./auth";
 import { createMessageStore, MessageStore } from "./messageStore";
 import { createLoginGuard, LoginGuard } from "./loginGuard";
-import { ensurePairingConfig, getPairingCode, PairingConfig } from "./pairing";
+import { ensurePairingConfig, PairingConfig } from "./pairing";
 
 /**
  * Global server runtime state cached across requests.
@@ -12,7 +12,6 @@ type RuntimeState = {
   phoneOnline: boolean;
   phoneConnections: number;
   loginGuard: LoginGuard;
-  pairingCode: string;
   pairingConfig: PairingConfig;
   authorization?: typeof import("../config").serverConfig.authorization;
 };
@@ -33,7 +32,6 @@ export function getRuntime(): RuntimeState {
       phoneOnline: false,
       phoneConnections: 0,
       loginGuard: createLoginGuard(),
-      pairingCode: getPairingCode(),
       pairingConfig: ensurePairingConfig(),
       authorization: undefined
     };

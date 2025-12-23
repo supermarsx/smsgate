@@ -5,6 +5,7 @@ import qrcode from "qrcode-terminal";
 import { createWebSocketServer } from "./src/server/ws";
 import { serverConfig } from "./src/config";
 import { getRuntime } from "./src/server/runtime";
+import { getRollingPairingCode } from "./src/server/pairing";
 
 /**
  * Bootstraps the Next.js server and WebSocket relay.
@@ -24,15 +25,16 @@ app.prepare().then(() => {
   server.listen(serverConfig.server.port, () => {
     // eslint-disable-next-line no-console
     console.log(`smsgate listening on *:${serverConfig.server.port}`);
-    logPairingInfo(serverConfig.server.port, runtime.pairingCode);
+    logPairingInfo(serverConfig.server.port, runtime.pairingConfig.pairingSecret);
   });
 });
 
-function logPairingInfo(port: number, code: string): void {
+function logPairingInfo(port: number, secret: string): void {
   const ips = getLocalIpv4s();
+  const code = getRollingPairingCode(secret);
   if (ips.length === 0) {
     // eslint-disable-next-line no-console
-    console.log(`Pairing code: ${code}`);
+    console.log(`Pairing code (rolling): ${code}`);
     return;
   }
   ips.forEach((ip) => {
@@ -42,7 +44,7 @@ function logPairingInfo(port: number, code: string): void {
     qrcode.generate(url, { small: true });
   });
   // eslint-disable-next-line no-console
-  console.log(`Pairing code: ${code}`);
+  console.log(`Pairing code (rolling): ${code}`);
 }
 
 function getLocalIpv4s(): string[] {

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { serverConfig } from "../../config";
 import { getRuntime } from "../../server/runtime";
+import { verifyRollingPairingCode } from "../../server/pairing";
 
 function isPairingEnabled(): boolean {
   if (process.env.SMSGATE_DISCOVERY_DEV === "true") return true;
@@ -51,7 +52,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
 
   const runtime = getRuntime();
   const code = String(req.query.code ?? "");
-  if (!code || code !== runtime.pairingCode) {
+  if (!verifyRollingPairingCode(runtime.pairingConfig.pairingSecret, code)) {
     res.status(401).json({ error: "Invalid pairing code" });
     return;
   }

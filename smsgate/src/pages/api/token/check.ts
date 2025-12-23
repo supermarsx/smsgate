@@ -5,6 +5,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getRuntime } from "../../../server/runtime";
 import { isValidToken } from "../../../server/auth";
+import { serverConfig } from "../../../config";
 import { delay, extractClientKey, isBrowserProofValid } from "../../../server/loginGuard";
 
 const authDebug = process.env.SMSGATE_AUTH_DEBUG !== "false";
@@ -57,7 +58,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     browserProofLength: browserProof.length,
     knownTokens: runtime.authorization?.token?.hashedCode
       ? (runtime.authorization.token.hashedCode as string[]).map((t) => maskToken(t))
-      : "<unknown>"
+      : "<unknown>",
+    serverConfigTokens: (serverConfig.authorization.token.hashedCode || []).map((t) => maskToken(String(t))),
+    lengths: {
+      token: token?.length ?? 0,
+      runtimeTokens: runtime.authorization?.token?.hashedCode?.map((t) => String(t).length) || [],
+      serverTokens: serverConfig.authorization.token.hashedCode.map((t) => String(t).length)
+    }
   });
 
   if (botField.trim()) {
@@ -80,6 +87,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).send("Valid token");
     return;
   }
+
+  const serverTokens = serverConfig.authorization.token.hashedCode;
+  const runtimeTokens = runtime.authorization?.token?.hashedCode as string[] | undefined;
+  const equalityCheckServer = serverTokens.map((t) => ({ match: t === token, token: maskToken(t) }));
+  const equalityCheckRuntime = (runtimeTokens || []).map((t) => ({ match: t === token, token: maskToken(t) }));
+  logDebug("token/check equality", {
+    tokenMasked: maskToken(token),
+    serverMatches: equalityCheckServer.filter((x) => x.match),
+    runtimeMatches: equalityCheckRuntime.filter((x) => x.match)
+  });
 
   const failure = guard.recordFailure(clientKey);
   logDebug("token/check failure", { clientKey, blocked: failure.blocked, retryAfterMs: failure.retryAfterMs });

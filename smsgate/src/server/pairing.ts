@@ -7,6 +7,7 @@ export type PairingConfig = {
   clientId: string;
   pin: string;
   salt: string;
+  pairingSecret: string;
   createdAt: string;
 };
 
@@ -24,6 +25,10 @@ function generateSalt(): string {
 
 function generateClientId(): string {
   return `device-${crypto.randomBytes(4).toString("hex")}`;
+}
+
+function generatePairingSecret(): string {
+  return crypto.randomBytes(16).toString("hex");
 }
 
 function isDefaultSecrets(): boolean {
@@ -54,11 +59,13 @@ function buildPairingConfig(existing?: PairingConfig | null): PairingConfig {
   const envClientId = process.env.SMSGATE_PAIRING_CLIENT_ID?.trim();
   const envPin = process.env.SMSGATE_PAIRING_PIN?.trim();
   const envSalt = process.env.SMSGATE_PAIRING_SALT?.trim();
+  const envSecret = process.env.SMSGATE_PAIRING_SECRET?.trim();
 
   return {
     clientId: envClientId || existing?.clientId || generateClientId(),
     pin: envPin || existing?.pin || generatePin(),
     salt: envSalt || existing?.salt || generateSalt(),
+    pairingSecret: envSecret || existing?.pairingSecret || generatePairingSecret(),
     createdAt: existing?.createdAt || new Date().toISOString()
   };
 }
@@ -92,6 +99,20 @@ export function ensurePairingConfig(): PairingConfig {
   return config;
 }
 
-export function getPairingCode(): string {
-  return process.env.SMSGATE_PAIRING_CODE?.trim() || String(crypto.randomInt(100000, 999999));
+const PAIRING_WINDOW_SECONDS = 60;
+
+export function getRollingPairingCode(secret: string, now: number = Date.now()): string {
+  const window = Math.floor(now / 1000 / PAIRING_WINDOW_SECONDS);
+  const digest = crypto.createHmac("sha256", secret).update(String(window)).digest("hex");
+  const numeric = parseInt(digest.slice(0, 8), 16);
+  const code = (numeric % 1000000).toString().padStart(6, "0");
+  return code;
+}
+
+export function verifyRollingPairingCode(secret: string, code: string): boolean {
+  if (!code || code.length < 4) return false;
+  const now = Date.now();
+  const current = getRollingPairingCode(secret, now);
+  const previous = getRollingPairingCode(secret, now - PAIRING_WINDOW_SECONDS * 1000);
+  return code === current || code === previous;
 }

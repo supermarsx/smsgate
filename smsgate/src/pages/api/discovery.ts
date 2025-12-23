@@ -3,6 +3,7 @@ import os from "os";
 import { serverConfig } from "../../config";
 import { getServerCodename } from "../../server/codename";
 import { getRuntime } from "../../server/runtime";
+import { getRollingPairingCode } from "../../server/pairing";
 
 function isDiscoveryEnabled(): boolean {
   if (process.env.SMSGATE_DISCOVERY_DEV === "true") return true;
@@ -23,10 +24,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
   const codename = getServerCodename(seed);
   const host = req.headers.host ?? "";
   const proto = (req.headers["x-forwarded-proto"] as string) ?? "http";
-  const pairingUrl = host ? `${proto}://${host}/api/pairing?code=${runtime.pairingCode}` : "";
+  const rollingCode = getRollingPairingCode(runtime.pairingConfig.pairingSecret);
+  const pairingUrl = host ? `${proto}://${host}/api/pairing?code=${rollingCode}` : "";
   res.status(200).json({
     codename,
     pairingUrl,
-    pairingCode: runtime.pairingCode
+    pairingCode: rollingCode
   });
 }

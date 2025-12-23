@@ -5,7 +5,7 @@ import { serverConfig } from "../config";
  * Hashes an access code with the provided salt using SHA-512.
  */
 function hashWithSalt(input: string, salt: string): string {
-  return crypto.createHash("sha512").update(input + salt).digest("hex");
+  return crypto.createHash("sha512").update(input + salt).digest("hex").toLowerCase();
 }
 
 function mask(value: string): string {
@@ -28,11 +28,11 @@ export function initializeTokens(): void {
   const hashedVariants: string[] = [];
 
   if (looksHashed) {
-    hashedVariants.push(...accessCodes);
+    hashedVariants.push(...accessCodes.map((c) => c.trim().toLowerCase()));
   }
 
   for (const salt of salts) {
-    hashedVariants.push(...accessCodes.map((code) => hashWithSalt(code, salt)));
+    hashedVariants.push(...accessCodes.map((code) => hashWithSalt(code.trim(), salt)));
   }
 
   serverConfig.authorization.token.hashedCode = Array.from(new Set(hashedVariants));
@@ -67,9 +67,10 @@ export function initializeTokens(): void {
  * Validates an incoming token against the configured list.
  */
 export function isValidToken(token: string | undefined): boolean {
-  if (!token) return false;
-  const tokens = serverConfig.authorization.token.hashedCode;
-  return tokens.includes(token);
+  const normalized = token?.trim().toLowerCase();
+  if (!normalized) return false;
+  const tokens = serverConfig.authorization.token.hashedCode.map((t) => String(t).trim().toLowerCase());
+  return tokens.includes(normalized);
 }
 
 /**
