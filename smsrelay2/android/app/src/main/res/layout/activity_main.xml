@@ -13,10 +13,10 @@
         android:fontFamily="cursive"
         android:text="smsrelay2"
         android:textColor="#F6EEFF"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="24dp"
+        android:textSize="18sp"
+        android:letterSpacing="0.05"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
