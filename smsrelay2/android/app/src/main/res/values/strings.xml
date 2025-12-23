@@ -13,4 +13,8 @@
     <string name="relay_channel_desc">Foreground relay service</string>
     <string name="relay_notification_title">smsrelay2 relay active</string>
     <string name="relay_notification_text">Listening for SMS and forwarding</string>
+    <string name="tab_logs">Logs</string>
+    <string name="tab_controls">Controls</string>
+    <string name="tab_configs">Configs</string>
+    <string name="logs_placeholder">No logs yet. Incoming events will appear here.</string>
 </resources>
