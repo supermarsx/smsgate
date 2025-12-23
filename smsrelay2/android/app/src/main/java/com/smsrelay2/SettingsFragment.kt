@@ -7,6 +7,7 @@ import android.view.View
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.recyclerview.widget.RecyclerView
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val changeListener: () -> Unit = changeListener@{
@@ -21,6 +22,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
     ): View? {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         view?.setBackgroundColor(Color.TRANSPARENT)
+        view?.findViewById<RecyclerView>(androidx.preference.R.id.recycler_view)?.apply {
+            setPadding(8, 0, 8, 0)
+            clipToPadding = false
+        }
         return view
     }
 

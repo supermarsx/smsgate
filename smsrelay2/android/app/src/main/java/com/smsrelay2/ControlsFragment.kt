@@ -17,6 +17,8 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.EditText
+import android.widget.LinearLayout
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import java.io.BufferedReader
@@ -32,7 +34,7 @@ class ControlsFragment : Fragment() {
             val content = LogStore.snapshot().joinToString("\n")
             val success = writeToUri(uri, content)
             requireActivity().runOnUiThread {
-                toast(if (success) getString(R.string.toast_done) else getString(R.string.toast_failed))
+                toast(if (success) getString(R.string.toast_export_logs_done) else getString(R.string.toast_export_logs_failed))
             }
         }
     }
@@ -42,7 +44,7 @@ class ControlsFragment : Fragment() {
             val content = buildConfigJson()
             val success = writeToUri(uri, content)
             requireActivity().runOnUiThread {
-                toast(if (success) getString(R.string.toast_done) else getString(R.string.toast_failed))
+                toast(if (success) getString(R.string.toast_export_config_done) else getString(R.string.toast_export_config_failed))
             }
         }
     }
@@ -52,7 +54,7 @@ class ControlsFragment : Fragment() {
             val content = readFromUri(uri)
             val success = content?.let { applyConfigJson(it) } ?: false
             requireActivity().runOnUiThread {
-                toast(if (success) getString(R.string.toast_done) else getString(R.string.toast_failed))
+                toast(if (success) getString(R.string.toast_import_config_done) else getString(R.string.toast_import_config_failed))
             }
         }
     }
@@ -98,7 +100,7 @@ class ControlsFragment : Fragment() {
                 return@setOnClickListener
             }
             LogStore.append("Foreground service started")
-            toast(getString(R.string.toast_started))
+            toast(getString(R.string.toast_fg_started))
             updateStatus()
         }
 
@@ -106,12 +108,13 @@ class ControlsFragment : Fragment() {
             val intent = Intent(requireContext(), RelayForegroundService::class.java)
             requireContext().stopService(intent)
             LogStore.append("Foreground service stopped")
-            toast(getString(R.string.toast_stopped))
+            toast(getString(R.string.toast_fg_stopped))
             updateStatus()
         }
 
         provisionNow.setOnClickListener {
             LogStore.append("Provisioning: start")
+            toast(getString(R.string.toast_provisioning))
             RemoteProvisioner.provision(requireContext()) provision@{ success ->
                 if (!isAdded) return@provision
                 LogStore.append(if (success) "Provisioning: success" else "Provisioning: failed")
@@ -120,28 +123,30 @@ class ControlsFragment : Fragment() {
                 } else {
                     getString(R.string.status_error)
                 }
-                toast(if (success) getString(R.string.toast_done) else getString(R.string.toast_failed))
+                toast(if (success) getString(R.string.toast_provisioning_ok) else getString(R.string.toast_provisioning_failed))
             }
         }
 
         openBattery.setOnClickListener {
             val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
             startActivity(intent)
-            toast(getString(R.string.toast_done))
+            LogStore.append("Opened battery settings")
+            toast(getString(R.string.toast_open_battery))
         }
 
         openSettings.setOnClickListener {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             intent.data = Uri.fromParts("package", requireContext().packageName, null)
             startActivity(intent)
-            toast(getString(R.string.toast_done))
+            LogStore.append("Opened app settings")
+            toast(getString(R.string.toast_open_settings))
         }
 
         discoverServer.setOnClickListener {
             val config = ConfigStore.getConfig(requireContext())
             val port = config.discoveryPort
             LogStore.append("Discovery: scanning local network on port $port")
-            toast(getString(R.string.toast_done))
+            toast(getString(R.string.toast_discovery_started))
             discoverServer.isEnabled = false
             thread {
                 val results = LocalServerDiscovery.scan(requireContext(), port)
@@ -150,11 +155,13 @@ class ControlsFragment : Fragment() {
                     discoverServer.isEnabled = true
                     if (results.isEmpty()) {
                         LogStore.append("Discovery: no servers found")
+                        toast(getString(R.string.toast_discovery_none))
                         showDiscoveryDialog(emptyList())
                     } else {
                         results.forEach {
                             LogStore.append("Discovery: found ${it.name} at ${it.url}")
                         }
+                        toast(getString(R.string.toast_discovery_done))
                         showDiscoveryDialog(results)
                     }
                 }
@@ -171,40 +178,45 @@ class ControlsFragment : Fragment() {
                 .setBeepEnabled(true)
                 .setOrientationLocked(false)
             scanLauncher.launch(options)
-            toast(getString(R.string.toast_done))
+            LogStore.append("Pairing: opening QR scanner")
+            toast(getString(R.string.toast_scan_qr_started))
         }
 
         exportLogs.setOnClickListener {
             exportLogsLauncher.launch("smsrelay2-logs.txt")
-            toast(getString(R.string.toast_done))
+            LogStore.append("Export: logs")
+            toast(getString(R.string.toast_export_logs_started))
         }
 
         clearLogs.setOnClickListener {
             LogStore.clear()
-            toast(getString(R.string.toast_done))
+            LogStore.append("Logs cleared")
+            toast(getString(R.string.toast_cleared))
         }
 
         exportConfig.setOnClickListener {
             exportConfigLauncher.launch("smsrelay2-config.json")
-            toast(getString(R.string.toast_done))
+            LogStore.append("Export: config")
+            toast(getString(R.string.toast_export_config_started))
         }
 
         importConfig.setOnClickListener {
             importConfigLauncher.launch(arrayOf("application/json"))
-            toast(getString(R.string.toast_done))
+            LogStore.append("Import: config")
+            toast(getString(R.string.toast_import_config_started))
         }
 
         startListener.setOnClickListener {
             ConfigStore.setBoolean(requireContext(), ConfigStore.KEY_ENABLE_LISTENER, true)
             LogStore.append("Listener enabled")
-            toast(getString(R.string.toast_started))
+            toast(getString(R.string.toast_listener_started))
             updateStatus()
         }
 
         stopListener.setOnClickListener {
             ConfigStore.setBoolean(requireContext(), ConfigStore.KEY_ENABLE_LISTENER, false)
             LogStore.append("Listener disabled")
-            toast(getString(R.string.toast_stopped))
+            toast(getString(R.string.toast_listener_stopped))
             updateStatus()
         }
     }
@@ -253,6 +265,15 @@ class ControlsFragment : Fragment() {
                 .show()
             return
         }
+        val pinInput = EditText(requireContext()).apply {
+            hint = "Pairing code (optional)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        }
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(32, 16, 32, 0)
+            addView(pinInput)
+        }
         val items = results.map {
             val code = it.pairingCode?.let { pc -> " code:$pc" } ?: ""
             "${it.name}${code} (${it.url})"
@@ -260,24 +281,32 @@ class ControlsFragment : Fragment() {
         var selectedIndex = 0
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.discover_title))
+            .setView(container)
             .setSingleChoiceItems(items, 0) { _, which ->
                 selectedIndex = which
             }
             .setPositiveButton(getString(R.string.discover_use)) { _, _ ->
                 val selected = results.getOrNull(selectedIndex) ?: return@setPositiveButton
                 ConfigStore.setString(requireContext(), ConfigStore.KEY_SERVER_URL, selected.url)
+                ConfigEvents.notifyChanged()
                 LogStore.append("Discovery: using ${selected.name} at ${selected.url}")
-                toast(getString(R.string.toast_done))
-                selected.pairingUrl?.let { pairingUrl ->
+                toast(getString(R.string.toast_discovery_done))
+                val pin = pinInput.text?.toString()?.trim().orEmpty()
+                val pairingUrl = if (pin.isNotBlank()) {
+                    "${selected.url}/api/pairing?code=$pin"
+                } else {
+                    selected.pairingUrl
+                }
+                pairingUrl?.let {
                     LogStore.append("Discovery: pulling config from pairing endpoint")
-                    RemoteProvisioner.provisionWithUrl(requireContext(), pairingUrl) pairing@{ success ->
+                    RemoteProvisioner.provisionWithUrl(requireContext(), it) pairing@{ success ->
                         if (!isAdded) return@pairing
                         LogStore.append(if (success) {
                             "Discovery: pairing config applied"
                         } else {
                             "Discovery: pairing config failed"
                         })
-                        toast(if (success) getString(R.string.toast_done) else getString(R.string.toast_failed))
+                        toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
                     }
                 }
             }
@@ -290,12 +319,12 @@ class ControlsFragment : Fragment() {
         if (url.startsWith("http://") || url.startsWith("https://")) {
             RemoteProvisioner.provisionWithUrl(requireContext(), url) { success ->
                 LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
-                toast(if (success) getString(R.string.toast_done) else getString(R.string.toast_failed))
+                toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
             }
             return
         }
         LogStore.append(getString(R.string.pairing_failed))
-        toast(getString(R.string.toast_failed))
+        toast(getString(R.string.toast_pairing_failed))
     }
 
     private fun toast(message: String) {
