@@ -1,5 +1,6 @@
 import { Server as HttpServer } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer } from "ws";
+import type { RawData } from "ws";
 import { serverConfig } from "../config";
 import { getRuntime } from "./runtime";
 import { isValidClientId, isValidToken } from "./auth";
@@ -41,7 +42,7 @@ type ClientMessage = AuthMessage | SmsMessage;
 /**
  * Parses inbound WebSocket JSON and narrows to known types.
  */
-function parseMessage(data: WebSocket.RawData): ClientMessage | null {
+function parseMessage(data: RawData): ClientMessage | null {
   try {
     const parsed = JSON.parse(data.toString());
     if (parsed?.type === "auth") return parsed;

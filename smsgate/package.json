@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development ts-node server.ts",
+    "dev": "cross-env NODE_ENV=development ts-node server.ts",
     "build": "next build",
-    "start": "NODE_ENV=production ts-node server.ts",
+    "start": "cross-env NODE_ENV=production ts-node server.ts",
     "lint": "next lint"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
     "@types/react-dom": "^18.2.23",
     "@types/crypto-js": "^4.2.2",
     "@types/ws": "^8.5.10",
+    "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.5",
     "ts-node": "^10.9.2",
