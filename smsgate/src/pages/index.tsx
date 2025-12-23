@@ -194,84 +194,87 @@ export default function LoginPage() {
       <section className="hero is-dark is-fullheight">
         <div className="hero-body">
           <div className="container">
-            <div className="py-5">
-              <h2 className="is-size-2">{t("s_title")}</h2>
-            </div>
-            <div className="field has-addons centered">
-              {status === "checking" && (
-                <div className="notification is-light">{t("s_wait")}</div>
-              )}
-              {status === "valid" && (
-                <div className="notification is-success is-light">{t("s_validcode")}</div>
-              )}
-              {status === "invalid" && (
-                <div className="notification is-danger is-light">
-                  <strong>{t("s_invalidcode1")}</strong>
-                  <small>{t("s_invalidcode2")}</small>
-                </div>
-              )}
-              {status === "blocked" && (
-                <div className="notification is-warning is-light">
-                  <strong>{t("s_blocked")}</strong>
-                  {retryAfterMs !== null && (
-                    <small>{t("s_blockedwait")}{" "}{Math.max(1, Math.ceil(retryAfterMs / 1000))}s</small>
-                  )}
-                </div>
-              )}
-              {status === "bot" && (
-                <div className="notification is-danger is-light">{t("s_bot")}</div>
-              )}
-              {status === "error" && (
-                <div className="notification is-danger is-light">{t("s_errorcode")}</div>
-              )}
-              <form ref={formRef} onSubmit={handleLogin} style={{ display: "contents" }}>
-                <input
-                  id="contact"
-                  className="input"
-                  type="text"
-                  name="contact"
-                  autoComplete="off"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  value={honeypot}
-                  onChange={(event) => setHoneypot(event.target.value)}
-                  style={{ position: "absolute", left: "-5000px", opacity: 0 }}
-                />
-                <input
-                  id="browserProof"
-                  className="input"
-                  type="text"
-                  name="browserProof"
-                  autoComplete="off"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  value={browserProof}
-                  readOnly
-                  style={{ position: "absolute", left: "-5000px", opacity: 0 }}
-                />
-                <div className="control">
+            <div className="glass-panel">
+              <div className="brand-mark">smsrelay2</div>
+              <div className="py-4">
+                <h2 className="is-size-2">{t("s_title")}</h2>
+              </div>
+              <div className="field has-addons centered">
+                {status === "checking" && (
+                  <div className="notification is-light">{t("s_wait")}</div>
+                )}
+                {status === "valid" && (
+                  <div className="notification is-success is-light">{t("s_validcode")}</div>
+                )}
+                {status === "invalid" && (
+                  <div className="notification is-danger is-light">
+                    <strong>{t("s_invalidcode1")}</strong>
+                    <small>{t("s_invalidcode2")}</small>
+                  </div>
+                )}
+                {status === "blocked" && (
+                  <div className="notification is-warning is-light">
+                    <strong>{t("s_blocked")}</strong>
+                    {retryAfterMs !== null && (
+                      <small>{t("s_blockedwait")}{" "}{Math.max(1, Math.ceil(retryAfterMs / 1000))}s</small>
+                    )}
+                  </div>
+                )}
+                {status === "bot" && (
+                  <div className="notification is-danger is-light">{t("s_bot")}</div>
+                )}
+                {status === "error" && (
+                  <div className="notification is-danger is-light">{t("s_errorcode")}</div>
+                )}
+                <form ref={formRef} onSubmit={handleLogin} style={{ display: "contents" }}>
                   <input
-                    id="password"
-                    className="input has-background-grey-darker has-text-white-bis"
-                    type="password"
-                    placeholder={t("s_accesscode")}
-                    value={password}
-                    required
-                    minLength={4}
-                    onChange={(event) => setPassword(event.target.value)}
+                    id="contact"
+                    className="input"
+                    type="text"
+                    name="contact"
+                    autoComplete="off"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    value={honeypot}
+                    onChange={(event) => setHoneypot(event.target.value)}
+                    style={{ position: "absolute", left: "-5000px", opacity: 0 }}
                   />
-                </div>
-                <div className="control">
-                  <button
-                    id="login"
-                    className="button has-background-grey-lighter"
-                    type="submit"
-                    disabled={status === "checking"}
-                  >
-                    {t("s_login")}
-                  </button>
-                </div>
-              </form>
+                  <input
+                    id="browserProof"
+                    className="input"
+                    type="text"
+                    name="browserProof"
+                    autoComplete="off"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    value={browserProof}
+                    readOnly
+                    style={{ position: "absolute", left: "-5000px", opacity: 0 }}
+                  />
+                  <div className="control">
+                    <input
+                      id="password"
+                      className="input has-background-grey-darker has-text-white-bis"
+                      type="password"
+                      placeholder={t("s_accesscode")}
+                      value={password}
+                      required
+                      minLength={4}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                  </div>
+                  <div className="control">
+                    <button
+                      id="login"
+                      className="button has-background-grey-lighter"
+                      type="submit"
+                      disabled={status === "checking"}
+                    >
+                      {t("s_login")}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>

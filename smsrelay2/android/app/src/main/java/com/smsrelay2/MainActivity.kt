@@ -34,7 +34,10 @@ class MainActivity : AppCompatActivity() {
 
         startService.setOnClickListener {
             val intent = Intent(this, RelayForegroundService::class.java)
-            ContextCompat.startForegroundService(this, intent)
+            if (!ForegroundServiceGuard.start(this, intent)) {
+                requestNotificationPermission()
+                return@setOnClickListener
+            }
             updateStatus()
         }
 
@@ -62,6 +65,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestSmsPermissions()
+        requestNotificationPermission()
         PendingResendWorker.enqueue(this)
     }
 
@@ -91,7 +95,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            REQUEST_NOTIFICATION_PERMISSIONS
+        )
+    }
+
     companion object {
         private const val REQUEST_SMS_PERMISSIONS = 100
+        private const val REQUEST_NOTIFICATION_PERMISSIONS = 101
     }
 }

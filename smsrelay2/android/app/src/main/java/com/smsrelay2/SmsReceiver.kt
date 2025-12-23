@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
-import androidx.core.content.ContextCompat
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -23,7 +22,7 @@ class SmsReceiver : BroadcastReceiver() {
 
         if (config.enableForegroundService && !RelayForegroundService.isRunning) {
             val serviceIntent = Intent(context, RelayForegroundService::class.java)
-            ContextCompat.startForegroundService(context, serviceIntent)
+            ForegroundServiceGuard.start(context, serviceIntent)
         }
 
         messages.forEach { sms ->

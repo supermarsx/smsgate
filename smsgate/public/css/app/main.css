@@ -1,72 +1,78 @@
-html {
-  scroll-behavior: smooth;
-  background-image: url('../../images/background.min.jpg');
-  background-size: cover;
+@import url("https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@300;400;600;700&display=swap");
+
+:root {
+  --purple-900: #0f061a;
+  --purple-700: #2f0f52;
+  --purple-500: #7d2cff;
+  --purple-300: #b289ff;
+  --glass-bg: rgba(117, 68, 206, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 24px 60px rgba(10, 2, 24, 0.55);
 }
 
-#messagesx {
-  margin-top: 5px;
+* {
+  font-family: "Manrope", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  background:
+    radial-gradient(circle at 10% 5%, rgba(125, 44, 255, 0.45), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(178, 137, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 50% 90%, rgba(55, 15, 94, 0.65), transparent 60%),
+    linear-gradient(140deg, #0c0416, #1a0a2d 35%, #0a0413 100%);
+  background-attachment: fixed;
 }
 
 #overlay {
   position: fixed;
   width: 100%;
   height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 1);
+  inset: 0;
+  background: rgba(6, 2, 12, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 1;
 }
 
-#close {
-  background-color: #ffd0d0;
-  transition: background-color 0.5s linear, color 0.3s linear;
-  cursor: pointer;
+.brand-mark {
+  font-family: "Allura", cursive;
+  font-size: clamp(42px, 6vw, 64px);
+  letter-spacing: 2px;
+  text-align: center;
+  color: #f4e9ff;
+  text-shadow: 0 8px 24px rgba(126, 76, 255, 0.4);
 }
 
-#close:hover {
-  background-color: #ec4545;
-  color: white;
-}
-
-#close:active {
-  background-color: #a71a1a;
-  color: white;
-}
-
-.modal-background {
-  transition: background-color 1s linear;
+.brand-mark--floating {
+  position: fixed;
+  top: 22px;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .device-wrapper {
   opacity: 0;
-}
-
-.screen > div {
-  opacity: 0;
+  margin: 110px auto 40px;
+  position: relative;
+  z-index: 2;
 }
 
 .screen {
-  background-color: white;
-}
-
-.device {
-  -webkit-filter: drop-shadow(12px 12px 25px rgba(0, 0, 0, 0.5));
-  filter: url(#drop-shadow);
-  -ms-filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";
-  filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";
-}
-
-.device-wrapper {
-  margin: auto;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .status {
   position: relative;
-  background-color: whitesmoke;
-  border-bottom: 1px solid #ecf0f1;
+  background: rgba(10, 4, 18, 0.55);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f2ecff;
   top: -1px;
   cursor: default;
 }
@@ -76,19 +82,15 @@ html {
 }
 
 .status .disconnected {
-  color: red;
+  color: #ff6b6b;
 }
 
 .status .connecting {
-  color: orange;
+  color: #f6c36f;
 }
 
 .status .connected {
-  color: green;
-}
-
-.status .initial {
-  color: orange;
+  color: #73f2a2;
 }
 
 .status .slow.blink {
@@ -113,6 +115,66 @@ html {
   }
 }
 
+.titlex {
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 8px;
+  color: #f5f1ff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.origin {
+  font-size: 12px;
+  padding-bottom: 6px;
+  color: rgba(247, 242, 255, 0.8);
+}
+
+.metadata {
+  font-size: 11px;
+  margin-top: 6px;
+  color: rgba(247, 242, 255, 0.7);
+}
+
+#messagesx {
+  margin-top: 5px;
+}
+
+#close {
+  background: rgba(255, 255, 255, 0.15);
+  color: #f4efff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+#close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #140724;
+  transform: translateY(-1px);
+}
+
+#close:active {
+  background: rgba(178, 137, 255, 0.6);
+  color: #140724;
+}
+
+.screen > div {
+  opacity: 0;
+}
+
+.device {
+  -webkit-filter: drop-shadow(12px 12px 25px rgba(0, 0, 0, 0.5));
+  filter: url(#drop-shadow);
+  -ms-filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";
+  filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";
+}
+
+.device-wrapper {
+  margin: auto;
+}
+
 .chat {
   top: 50px !important;
   bottom: 32px !important;
@@ -124,29 +186,11 @@ html {
   padding-bottom: 3px;
 }
 
-.titlex {
-  text-align: center;
-  font: 400 15px 'Open Sans', sans-serif;
-  padding: 5px;
-  border-bottom: 1px solid #ecf0f1;
-}
-
-.origin {
-  font-size: small;
-  padding-bottom: 6px;
-}
-
 .noselect {
   -webkit-touch-callout: none;
-  /* iOS Safari */
   -webkit-user-select: none;
-  /* Safari */
   -khtml-user-select: none;
-  /* Konqueror HTML */
   -moz-user-select: none;
-  /* Old versions of Firefox */
   -ms-user-select: none;
-  /* Internet Explorer/Edge */
   user-select: none;
-  /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
 }

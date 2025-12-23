@@ -146,6 +146,7 @@ Android:
 - Android Gradle Plugin: 8.6.1.
 - Kotlin: 2.0.21.
 - Java: 21 toolchain and bytecode target.
+- Gradle runtime: requires JDK 17+ (set `JAVA_HOME` to a JDK 17/21 install).
 - SDK levels: min 29, target 34, compile 34.
 - Key libraries: AndroidX Work 2.7.1, Security Crypto 1.1.0-alpha03, OkHttp 4.9.3.
 

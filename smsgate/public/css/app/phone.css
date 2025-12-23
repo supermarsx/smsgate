@@ -38,7 +38,7 @@ form.chat .messagesx {
   height: 100%;
   width: 100%;
   padding: 2% 3%;
-  border-bottom: 1px solid #ecf0f1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 form.chat ::-webkit-scrollbar {
@@ -49,11 +49,11 @@ form.chat ::-webkit-scrollbar {
 }
 
 form.chat ::-webkit-scrollbar-track {
-  background-color: white;
+  background-color: rgba(10, 4, 18, 0.4);
 }
 
 form.chat ::-webkit-scrollbar-thumb {
-  background-color: #bec4c8;
+  background-color: rgba(178, 137, 255, 0.6);
   border-radius: 3px;
 }
 
@@ -78,23 +78,24 @@ form.chat .myMessage,
 .fromThem {
   position: relative;
   padding: 10px 20px;
-  color: white;
-  border-radius: 2px;
+  color: #f7f2ff;
+  border-radius: 16px;
   clear: both;
-  font: 400 15px 'Open Sans', sans-serif;
+  font: 400 15px 'Manrope', sans-serif;
 }
 
 form.chat .myMessage {
-  background: #00e34d;
-  color: white;
+  background: linear-gradient(135deg, rgba(125, 44, 255, 0.8), rgba(178, 137, 255, 0.5));
+  color: #140724;
   float: right;
   clear: both;
   border-bottom-right-radius: 20px 0px\9;
 }
 
 form.chat .fromThem {
-  background: #E5E5EA;
-  color: black;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f7f2ff;
   float: left;
   clear: both;
   border-bottom-left-radius: 30px 0px\9;
