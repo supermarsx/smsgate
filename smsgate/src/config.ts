@@ -4,20 +4,27 @@ import path from "path";
 type PathSegments = string[];
 
 /**
- * Loads an optional JSON configuration file. Defaults to config.local.json in the project root.
+ * Loads configuration from the first available JSON file, preferring user files over envs.
  */
 function loadFileConfig(): Record<string, unknown> {
-  const filePath = process.env.SMSGATE_CONFIG_FILE ?? path.join(process.cwd(), "config.local.json");
-  if (!fs.existsSync(filePath)) return {};
-  try {
-    const raw = fs.readFileSync(filePath, "utf-8");
-    if (!raw.trim()) return {};
-    return JSON.parse(raw) as Record<string, unknown>;
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn("Failed to read config file", err);
-    return {};
+  const candidates = [
+    process.env.SMSGATE_CONFIG_FILE,
+    path.join(process.cwd(), "config.local.json"),
+    path.join(process.cwd(), "config.local.example.json")
+  ].filter(Boolean) as string[];
+
+  for (const filePath of candidates) {
+    if (!fs.existsSync(filePath)) continue;
+    try {
+      const raw = fs.readFileSync(filePath, "utf-8");
+      if (!raw.trim()) continue;
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("Failed to read config file", filePath, err);
+    }
   }
+  return {};
 }
 
 const fileConfig = loadFileConfig();
@@ -32,41 +39,42 @@ function readFromConfig(pathSegments: PathSegments): unknown {
 }
 
 function parseBoolSetting(envKey: string, cfgPath: PathSegments, fallback: boolean): boolean {
-  const envVal = process.env[envKey];
-  if (envVal !== undefined) return envVal === "true" || envVal === "1";
   const cfgVal = readFromConfig(cfgPath);
   if (typeof cfgVal === "boolean") return cfgVal;
   if (typeof cfgVal === "string") return cfgVal === "true" || cfgVal === "1";
+  const envVal = process.env[envKey];
+  if (envVal !== undefined) return envVal === "true" || envVal === "1";
   return fallback;
 }
 
 function parseNumberSetting(envKey: string, cfgPath: PathSegments, fallback: number): number {
+  const cfgVal = readFromConfig(cfgPath);
+  const parsedCfg = typeof cfgVal === "number" ? cfgVal : Number(cfgVal);
+  if (Number.isFinite(parsedCfg)) return parsedCfg;
   const envVal = process.env[envKey];
   if (envVal !== undefined) {
     const parsed = Number(envVal);
     return Number.isFinite(parsed) ? parsed : fallback;
   }
-  const cfgVal = readFromConfig(cfgPath);
-  const parsedCfg = typeof cfgVal === "number" ? cfgVal : Number(cfgVal);
-  return Number.isFinite(parsedCfg) ? parsedCfg : fallback;
+  return fallback;
 }
 
 function parseListSetting(envKey: string, cfgPath: PathSegments, fallback: string[]): string[] {
+  const cfgVal = readFromConfig(cfgPath);
+  if (Array.isArray(cfgVal)) return cfgVal.map((item) => String(item).trim()).filter(Boolean);
+  if (typeof cfgVal === "string") return cfgVal.split(",").map((item) => item.trim()).filter(Boolean);
   const envVal = process.env[envKey];
   if (envVal !== undefined) {
     return envVal.split(",").map((item) => item.trim()).filter(Boolean);
   }
-  const cfgVal = readFromConfig(cfgPath);
-  if (Array.isArray(cfgVal)) return cfgVal.map((item) => String(item).trim()).filter(Boolean);
-  if (typeof cfgVal === "string") return cfgVal.split(",").map((item) => item.trim()).filter(Boolean);
   return fallback;
 }
 
 function parseStringSetting(envKey: string, cfgPath: PathSegments, fallback: string): string {
-  const envVal = process.env[envKey];
-  if (envVal !== undefined) return envVal;
   const cfgVal = readFromConfig(cfgPath);
   if (typeof cfgVal === "string") return cfgVal;
+  const envVal = process.env[envKey];
+  if (envVal !== undefined) return envVal;
   return fallback;
 }
 
