@@ -321,7 +321,21 @@ Oppo (ColorOS):
 - Open `smsrelay2/android/` in Android Studio.
 - Build with Gradle or Run on a device (Android 10+).
 
-## 16. Non-Goals and Known Limitations
+## 16. Tooling and Dependencies
+### 16.1 Server (Node/Next.js)
+- Runtime: Node.js with Next.js 14.2.5 and React 18.2.0.
+- WebSockets: `ws` 8.17.0.
+- Tooling: TypeScript 5.4.5, ts-node 10.9.2, ESLint 8.57.0.
+
+### 16.2 Android (Gradle/Kotlin)
+- Gradle: 9.2.1 (`gradle-9.2.1-all.zip`).
+- Android Gradle Plugin: 8.6.1.
+- Kotlin: 2.0.21.
+- Java: 21 toolchain and bytecode target.
+- SDK levels: min 29, target 34, compile 34.
+- Key libraries: AndroidX Work 2.7.1, Security Crypto 1.1.0-alpha03, OkHttp 4.9.3.
+
+## 17. Non-Goals and Known Limitations
 - No database-backed persistence beyond memory/JSON file adapters.
 - No user management or per-user access controls.
 - No outgoing SMS support.

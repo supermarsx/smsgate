@@ -134,6 +134,21 @@ Tokens cannot be created using "crypto.subtle.digest" over HTTP, for that you'll
 This application is made with modern browsers in mind, older browsers may encounter difficulties or may not function as expected. Chrome is the recommended browser as it implements all functionality in an ideal scenario but any other modern popular browser will probably work well.
 A way of avoiding white screen flash when changing pages is implemented using prefetch/prerender functionality, Safari isn't supported.
 
+## Tooling and dependencies
+
+Server:
+- Node.js with Next.js 14.2.5 and React 18.2.0.
+- WebSockets: `ws` 8.17.0.
+- Tooling: TypeScript 5.4.5, ts-node 10.9.2, ESLint 8.57.0.
+
+Android:
+- Gradle: 9.2.1 (`gradle-9.2.1-all.zip`).
+- Android Gradle Plugin: 8.6.1.
+- Kotlin: 2.0.21.
+- Java: 21 toolchain and bytecode target.
+- SDK levels: min 29, target 34, compile 34.
+- Key libraries: AndroidX Work 2.7.1, Security Crypto 1.1.0-alpha03, OkHttp 4.9.3.
+
 ## Notes
 
 ### Translation
