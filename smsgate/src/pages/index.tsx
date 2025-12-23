@@ -195,7 +195,7 @@ export default function LoginPage() {
         <div className="hero-body">
           <div className="container">
             <div className="glass-panel">
-              <div className="brand-mark">smsrelay2</div>
+              <div className="brand-mark">smsgate</div>
               <div className="py-4">
                 <h2 className="is-size-2">{t("s_title")}</h2>
               </div>
