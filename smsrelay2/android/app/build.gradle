@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace "com.smsrelay2"
+    namespace = "com.smsrelay2"
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
