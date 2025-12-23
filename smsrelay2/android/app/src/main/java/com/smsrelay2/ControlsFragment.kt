@@ -307,6 +307,7 @@ class ControlsFragment : Fragment() {
                             "Discovery: pairing config failed"
                         })
                         toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
+                        ConfigEvents.notifyChanged()
                     }
                 }
             }
