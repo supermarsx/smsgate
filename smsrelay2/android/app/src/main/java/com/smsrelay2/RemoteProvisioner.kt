@@ -19,31 +19,16 @@ object RemoteProvisioner {
                 onComplete(false)
                 return@thread
             }
-            val requestBuilder = Request.Builder().url(url)
-            val authHeader = config.remoteConfigAuthHeader.trim()
-            val authValue = config.remoteConfigAuthValue
-            if (authHeader.isNotBlank() && authValue.isNotBlank()) {
-                requestBuilder.header(authHeader, authValue)
+            val success = fetchAndApply(context, url)
+            Handler(Looper.getMainLooper()).post {
+                onComplete(success)
             }
-            val request = requestBuilder.build()
-            val success = try {
-                HttpClient.instance.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) return@use false
-                    val body = response.body?.string() ?: return@use false
-                    val signatureHeader = config.remoteConfigSignatureHeader.trim()
-                    val signatureSecret = config.remoteConfigSignatureSecret
-                    if (signatureHeader.isNotBlank() && signatureSecret.isNotBlank()) {
-                        val signature = response.header(signatureHeader) ?: return@use false
-                        if (!verifySignature(body, signature, signatureSecret)) {
-                            return@use false
-                        }
-                    }
-                    applyConfig(context, body)
-                    true
-                }
-            } catch (_: Exception) {
-                false
-            }
+        }
+    }
+
+    fun provisionWithUrl(context: Context, url: String, onComplete: (Boolean) -> Unit) {
+        thread {
+            val success = fetchAndApply(context, url)
             Handler(Looper.getMainLooper()).post {
                 onComplete(success)
             }
@@ -141,6 +126,35 @@ object RemoteProvisioner {
                     features.optBoolean("notificationEnabled")
                 )
             }
+        }
+    }
+
+    private fun fetchAndApply(context: Context, url: String): Boolean {
+        val config = ConfigStore.getConfig(context)
+        val requestBuilder = Request.Builder().url(url)
+        val authHeader = config.remoteConfigAuthHeader.trim()
+        val authValue = config.remoteConfigAuthValue
+        if (authHeader.isNotBlank() && authValue.isNotBlank()) {
+            requestBuilder.header(authHeader, authValue)
+        }
+        val request = requestBuilder.build()
+        return try {
+            HttpClient.instance.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@use false
+                val body = response.body?.string() ?: return@use false
+                val signatureHeader = config.remoteConfigSignatureHeader.trim()
+                val signatureSecret = config.remoteConfigSignatureSecret
+                if (signatureHeader.isNotBlank() && signatureSecret.isNotBlank()) {
+                    val signature = response.header(signatureHeader) ?: return@use false
+                    if (!verifySignature(body, signature, signatureSecret)) {
+                        return@use false
+                    }
+                }
+                applyConfig(context, body)
+                true
+            }
+        } catch (_: Exception) {
+            false
         }
     }
 

@@ -22,4 +22,7 @@
     <string name="discover_none">No servers found</string>
     <string name="discover_use">Use selected</string>
     <string name="discover_cancel">None</string>
+    <string name="scan_pairing_qr">Scan pairing QR</string>
+    <string name="pairing_failed">Pairing failed</string>
+    <string name="pairing_success">Pairing applied</string>
 </resources>

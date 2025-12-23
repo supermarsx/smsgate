@@ -4,6 +4,12 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <item name="android:fontFamily">monospace</item>
         <item name="fontFamily">monospace</item>
+        <item name="colorPrimary">@color/purple_primary</item>
+        <item name="colorPrimaryVariant">@color/purple_primary_variant</item>
+        <item name="colorSecondary">@color/purple_secondary</item>
+        <item name="colorSurface">@color/purple_surface</item>
+        <item name="colorOnPrimary">@color/purple_on_primary</item>
+        <item name="colorOnSurface">@color/purple_on_surface</item>
     </style>
 
 </resources>

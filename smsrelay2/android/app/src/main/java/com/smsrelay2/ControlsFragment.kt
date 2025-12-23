@@ -15,10 +15,21 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AlertDialog
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlin.concurrent.thread
 
 class ControlsFragment : Fragment() {
     private lateinit var statusText: TextView
+    private val scanLauncher = registerForActivityResult(ScanContract()) { result ->
+        val contents = result.contents
+        if (contents.isNullOrBlank()) {
+            LogStore.append("Pairing: QR scan cancelled")
+            return@registerForActivityResult
+        }
+        LogStore.append("Pairing: QR scanned")
+        handlePairingPayload(contents)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +48,7 @@ class ControlsFragment : Fragment() {
         val openBattery = view.findViewById<Button>(R.id.open_battery)
         val openSettings = view.findViewById<Button>(R.id.open_settings)
         val discoverServer = view.findViewById<Button>(R.id.discover_server)
+        val scanPairingQr = view.findViewById<Button>(R.id.scan_pairing_qr)
 
         startService.setOnClickListener {
             val intent = Intent(requireContext(), RelayForegroundService::class.java)
@@ -95,6 +107,18 @@ class ControlsFragment : Fragment() {
                 }
             }
         }
+
+        scanPairingQr.setOnClickListener {
+            if (!hasCameraPermission()) {
+                requestCameraPermission()
+                return@setOnClickListener
+            }
+            val options = ScanOptions()
+                .setPrompt("Scan pairing QR")
+                .setBeepEnabled(true)
+                .setOrientationLocked(false)
+            scanLauncher.launch(options)
+        }
     }
 
     override fun onResume() {
@@ -126,6 +150,7 @@ class ControlsFragment : Fragment() {
 
     companion object {
         private const val REQUEST_NOTIFICATION_PERMISSIONS = 101
+        private const val REQUEST_CAMERA_PERMISSIONS = 102
     }
 
     private fun showDiscoveryDialog(results: List<DiscoveryResult>) {
@@ -137,7 +162,10 @@ class ControlsFragment : Fragment() {
                 .show()
             return
         }
-        val items = results.map { "${it.name} (${it.url})" }.toTypedArray()
+        val items = results.map {
+            val code = it.pairingCode?.let { pc -> " code:$pc" } ?: ""
+            "${it.name}${code} (${it.url})"
+        }.toTypedArray()
         var selectedIndex = 0
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.discover_title))
@@ -148,8 +176,42 @@ class ControlsFragment : Fragment() {
                 val selected = results.getOrNull(selectedIndex) ?: return@setPositiveButton
                 ConfigStore.setString(requireContext(), ConfigStore.KEY_SERVER_URL, selected.url)
                 LogStore.append("Discovery: using ${selected.name} at ${selected.url}")
+                selected.pairingUrl?.let { pairingUrl ->
+                    LogStore.append("Discovery: pulling config from pairing endpoint")
+                    RemoteProvisioner.provisionWithUrl(requireContext(), pairingUrl) { success ->
+                        LogStore.append(if (success) {
+                            "Discovery: pairing config applied"
+                        } else {
+                            "Discovery: pairing config failed"
+                        })
+                    }
+                }
             }
             .setNegativeButton(getString(R.string.discover_cancel), null)
             .show()
+    }
+
+    private fun handlePairingPayload(payload: String) {
+        val url = payload.trim()
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            RemoteProvisioner.provisionWithUrl(requireContext(), url) { success ->
+                LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
+            }
+            return
+        }
+        LogStore.append(getString(R.string.pairing_failed))
+    }
+
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            requireActivity(),
+            arrayOf(Manifest.permission.CAMERA),
+            REQUEST_CAMERA_PERMISSIONS
+        )
     }
 }

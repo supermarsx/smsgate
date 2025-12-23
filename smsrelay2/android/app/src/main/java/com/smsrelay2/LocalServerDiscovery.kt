@@ -17,7 +17,9 @@ import java.util.concurrent.TimeUnit
 
 data class DiscoveryResult(
     val name: String,
-    val url: String
+    val url: String,
+    val pairingUrl: String?,
+    val pairingCode: String?
 )
 
 object LocalServerDiscovery {
@@ -45,9 +47,16 @@ object LocalServerDiscovery {
             Runnable {
                 val candidate = "$prefix.$host"
                 val url = "http://$candidate:$port/api/discovery"
-                val name = probe(url)
-                if (!name.isNullOrBlank()) {
-                    results.add(DiscoveryResult(name, "http://$candidate:$port"))
+                val result = probeDiscovery(url)
+                if (result != null) {
+                    results.add(
+                        DiscoveryResult(
+                            result.codename,
+                            "http://$candidate:$port",
+                            result.pairingUrl,
+                            result.pairingCode
+                        )
+                    )
                 }
                 completed.incrementAndGet()
             }
@@ -61,14 +70,23 @@ object LocalServerDiscovery {
         return results.toList()
     }
 
-    private fun probe(url: String): String? {
+    private data class DiscoveryPayload(
+        val codename: String,
+        val pairingUrl: String?,
+        val pairingCode: String?
+    )
+
+    private fun probeDiscovery(url: String): DiscoveryPayload? {
         val request = Request.Builder().url(url).get().build()
         return try {
             httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return null
                 val body = response.body?.string() ?: return null
                 val json = JSONObject(body)
-                json.optString("codename").ifBlank { null }
+                val codename = json.optString("codename").ifBlank { null } ?: return null
+                val pairingUrl = json.optString("pairingUrl").ifBlank { null }
+                val pairingCode = json.optString("pairingCode").ifBlank { null }
+                DiscoveryPayload(codename, pairingUrl, pairingCode)
             }
         } catch (_: Exception) {
             null

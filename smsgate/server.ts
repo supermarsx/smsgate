@@ -1,7 +1,10 @@
 import http from "http";
 import next from "next";
+import os from "os";
+import qrcode from "qrcode-terminal";
 import { createWebSocketServer } from "./src/server/ws";
 import { serverConfig } from "./src/config";
+import { getRuntime } from "./src/server/runtime";
 
 /**
  * Bootstraps the Next.js server and WebSocket relay.
@@ -16,9 +19,41 @@ app.prepare().then(() => {
   });
 
   createWebSocketServer(server);
+  const runtime = getRuntime();
 
   server.listen(serverConfig.server.port, () => {
     // eslint-disable-next-line no-console
     console.log(`smsgate listening on *:${serverConfig.server.port}`);
+    logPairingInfo(serverConfig.server.port, runtime.pairingCode);
   });
 });
+
+function logPairingInfo(port: number, code: string): void {
+  const ips = getLocalIpv4s();
+  if (ips.length === 0) {
+    // eslint-disable-next-line no-console
+    console.log(`Pairing code: ${code}`);
+    return;
+  }
+  ips.forEach((ip) => {
+    const url = `http://${ip}:${port}/api/pairing?code=${code}`;
+    // eslint-disable-next-line no-console
+    console.log(`Pairing URL (${ip}): ${url}`);
+    qrcode.generate(url, { small: true });
+  });
+  // eslint-disable-next-line no-console
+  console.log(`Pairing code: ${code}`);
+}
+
+function getLocalIpv4s(): string[] {
+  const interfaces = os.networkInterfaces();
+  const ips: string[] = [];
+  Object.values(interfaces).forEach((items) => {
+    (items ?? []).forEach((info) => {
+      if (info.family === "IPv4" && !info.internal) {
+        ips.push(info.address);
+      }
+    });
+  });
+  return Array.from(new Set(ips));
+}
