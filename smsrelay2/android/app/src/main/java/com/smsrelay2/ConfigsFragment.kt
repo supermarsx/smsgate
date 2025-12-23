@@ -26,7 +26,7 @@ class ConfigsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        refreshLayout = view.findViewById(R.id.configs_refresh)
+        refreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.configs_refresh)
         refreshLayout?.setOnRefreshListener {
             changeListener()
             refreshLayout?.isRefreshing = false

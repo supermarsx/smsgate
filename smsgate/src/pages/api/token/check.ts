@@ -15,6 +15,11 @@ function logDebug(...args: unknown[]): void {
   console.log("[auth]", ...args);
 }
 
+function maskToken(token: string | undefined): string {
+  if (!token) return "<empty>";
+  return `${token.slice(0, 6)}...${token.slice(-6)}`;
+}
+
 /**
  * Validates a token with anti-bot and anti-bruteforce protections.
  * @param req Incoming request containing the bearer token and optional proof fields.
@@ -44,7 +49,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const botField = typeof req.body?.botField === "string" ? req.body.botField : "";
   const browserProof = typeof req.body?.browserProof === "string" ? req.body.browserProof : "";
 
-  logDebug("token/check request", { clientKey, hasToken: Boolean(token), botFieldLength: botField.length, browserProofLength: browserProof.length });
+  logDebug("token/check request", {
+    clientKey,
+    hasToken: Boolean(token),
+    tokenMasked: maskToken(token),
+    botFieldLength: botField.length,
+    browserProofLength: browserProof.length,
+    knownTokens: runtime.authorization?.token?.hashedCode
+      ? (runtime.authorization.token.hashedCode as string[]).map((t) => maskToken(t))
+      : "<unknown>"
+  });
 
   if (botField.trim()) {
     guard.recordFailure(clientKey);

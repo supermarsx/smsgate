@@ -14,6 +14,7 @@ type RuntimeState = {
   loginGuard: LoginGuard;
   pairingCode: string;
   pairingConfig: PairingConfig;
+  authorization?: typeof import("../config").serverConfig.authorization;
 };
 
 declare global {
@@ -33,11 +34,13 @@ export function getRuntime(): RuntimeState {
       phoneConnections: 0,
       loginGuard: createLoginGuard(),
       pairingCode: getPairingCode(),
-      pairingConfig: ensurePairingConfig()
+      pairingConfig: ensurePairingConfig(),
+      authorization: undefined
     };
   }
   if (!global.__SMSGATE_RUNTIME__.initialized) {
     initializeTokens();
+    global.__SMSGATE_RUNTIME__.authorization = require("../config").serverConfig.authorization;
     global.__SMSGATE_RUNTIME__.initialized = true;
   }
   return global.__SMSGATE_RUNTIME__;
