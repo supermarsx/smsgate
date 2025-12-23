@@ -10,6 +10,16 @@
         <item name="colorSurface">@color/purple_surface</item>
         <item name="colorOnPrimary">@color/purple_on_primary</item>
         <item name="colorOnSurface">@color/purple_on_surface</item>
+        <item name="colorControlActivated">@color/purple_secondary</item>
+        <item name="colorControlHighlight">@color/purple_secondary</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlayGlass</item>
+    </style>
+
+    <style name="PreferenceThemeOverlayGlass" parent="PreferenceThemeOverlay.v14.Material">
+        <item name="android:colorAccent">@color/purple_secondary</item>
+        <item name="colorAccent">@color/purple_secondary</item>
+        <item name="android:textColorPrimary">@color/purple_on_surface</item>
+        <item name="android:textColorSecondary">@color/purple_on_surface</item>
     </style>
 
 </resources>
