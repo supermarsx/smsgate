@@ -131,6 +131,8 @@ object RemoteProvisioner {
                 )
             }
         }
+
+        ConfigEvents.notifyChanged()
     }
 
     private fun fetchAndApply(context: Context, url: String): Boolean {

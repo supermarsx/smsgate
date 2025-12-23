@@ -7,6 +7,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 
 class ConfigsFragment : Fragment() {
+    private val changeListener: () -> Unit = changeListener@{
+        val fragment = childFragmentManager.findFragmentById(R.id.settings_container)
+        if (fragment is SettingsFragment) {
+            fragment.refreshSummaries()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -22,5 +29,15 @@ class ConfigsFragment : Fragment() {
                 .replace(R.id.settings_container, SettingsFragment())
                 .commit()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ConfigEvents.register(changeListener)
+    }
+
+    override fun onStop() {
+        ConfigEvents.unregister(changeListener)
+        super.onStop()
     }
 }

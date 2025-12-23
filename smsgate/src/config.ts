@@ -1,28 +1,73 @@
+import fs from "fs";
 import path from "path";
 
-/**
- * Parses a boolean environment variable.
- */
-function parseBool(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined) return fallback;
-  return value === "true" || value === "1";
-}
+type PathSegments = string[];
 
 /**
- * Parses a numeric environment variable.
+ * Loads an optional JSON configuration file. Defaults to config.local.json in the project root.
  */
-function parseNumber(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
+function loadFileConfig(): Record<string, unknown> {
+  const filePath = process.env.SMSGATE_CONFIG_FILE ?? path.join(process.cwd(), "config.local.json");
+  if (!fs.existsSync(filePath)) return {};
+  try {
+    const raw = fs.readFileSync(filePath, "utf-8");
+    if (!raw.trim()) return {};
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("Failed to read config file", err);
+    return {};
+  }
 }
 
-/**
- * Parses a comma-delimited list from an environment variable.
- */
-function parseList(value: string | undefined, fallback: string[]): string[] {
-  if (!value) return fallback;
-  return value.split(",").map((item) => item.trim()).filter(Boolean);
+const fileConfig = loadFileConfig();
+
+function readFromConfig(pathSegments: PathSegments): unknown {
+  let cursor: unknown = fileConfig;
+  for (const key of pathSegments) {
+    if (!cursor || typeof cursor !== "object") return undefined;
+    cursor = (cursor as Record<string, unknown>)[key];
+  }
+  return cursor;
+}
+
+function parseBoolSetting(envKey: string, cfgPath: PathSegments, fallback: boolean): boolean {
+  const envVal = process.env[envKey];
+  if (envVal !== undefined) return envVal === "true" || envVal === "1";
+  const cfgVal = readFromConfig(cfgPath);
+  if (typeof cfgVal === "boolean") return cfgVal;
+  if (typeof cfgVal === "string") return cfgVal === "true" || cfgVal === "1";
+  return fallback;
+}
+
+function parseNumberSetting(envKey: string, cfgPath: PathSegments, fallback: number): number {
+  const envVal = process.env[envKey];
+  if (envVal !== undefined) {
+    const parsed = Number(envVal);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  const cfgVal = readFromConfig(cfgPath);
+  const parsedCfg = typeof cfgVal === "number" ? cfgVal : Number(cfgVal);
+  return Number.isFinite(parsedCfg) ? parsedCfg : fallback;
+}
+
+function parseListSetting(envKey: string, cfgPath: PathSegments, fallback: string[]): string[] {
+  const envVal = process.env[envKey];
+  if (envVal !== undefined) {
+    return envVal.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  const cfgVal = readFromConfig(cfgPath);
+  if (Array.isArray(cfgVal)) return cfgVal.map((item) => String(item).trim()).filter(Boolean);
+  if (typeof cfgVal === "string") return cfgVal.split(",").map((item) => item.trim()).filter(Boolean);
+  return fallback;
+}
+
+function parseStringSetting(envKey: string, cfgPath: PathSegments, fallback: string): string {
+  const envVal = process.env[envKey];
+  if (envVal !== undefined) return envVal;
+  const cfgVal = readFromConfig(cfgPath);
+  if (typeof cfgVal === "string") return cfgVal;
+  return fallback;
 }
 
 /**
@@ -31,38 +76,38 @@ function parseList(value: string | undefined, fallback: string[]): string[] {
 export const serverConfig = {
   authorization: {
     token: {
-      clientId: parseList(process.env.SMSGATE_CLIENT_IDS, ["#XCLIENTID1"]),
-      accessCode: parseList(process.env.SMSGATE_ACCESS_CODES, ["#PIN1", "#PIN2"]),
+      clientId: parseListSetting("SMSGATE_CLIENT_IDS", ["authorization", "token", "clientId"], ["#XCLIENTID1"]),
+      accessCode: parseListSetting("SMSGATE_ACCESS_CODES", ["authorization", "token", "accessCode"], ["#PIN1", "#PIN2"]),
       hashedCode: [] as string[],
-      useHashed: parseBool(process.env.SMSGATE_USE_HASHED, false)
+      useHashed: parseBoolSetting("SMSGATE_USE_HASHED", ["authorization", "token", "useHashed"], false)
     },
-    salt: process.env.SMSGATE_SALT ?? "#SALT"
+    salt: parseStringSetting("SMSGATE_SALT", ["authorization", "salt"], "#SALT")
   },
   security: {
     login: {
-      maxAttempts: parseNumber(process.env.SMSGATE_LOGIN_MAX_ATTEMPTS, 8),
-      windowMs: parseNumber(process.env.SMSGATE_LOGIN_WINDOW_MS, 10 * 60 * 1000),
-      lockoutMs: parseNumber(process.env.SMSGATE_LOGIN_LOCKOUT_MS, 15 * 60 * 1000),
-      baseDelayMs: parseNumber(process.env.SMSGATE_LOGIN_BASE_DELAY_MS, 350),
-      maxDelayMs: parseNumber(process.env.SMSGATE_LOGIN_MAX_DELAY_MS, 4000)
+      maxAttempts: parseNumberSetting("SMSGATE_LOGIN_MAX_ATTEMPTS", ["security", "login", "maxAttempts"], 8),
+      windowMs: parseNumberSetting("SMSGATE_LOGIN_WINDOW_MS", ["security", "login", "windowMs"], 10 * 60 * 1000),
+      lockoutMs: parseNumberSetting("SMSGATE_LOGIN_LOCKOUT_MS", ["security", "login", "lockoutMs"], 15 * 60 * 1000),
+      baseDelayMs: parseNumberSetting("SMSGATE_LOGIN_BASE_DELAY_MS", ["security", "login", "baseDelayMs"], 350),
+      maxDelayMs: parseNumberSetting("SMSGATE_LOGIN_MAX_DELAY_MS", ["security", "login", "maxDelayMs"], 4000)
     }
   },
   server: {
-    port: parseNumber(process.env.SMSGATE_PORT, 3000),
-    wsPath: process.env.SMSGATE_WS_PATH ?? "/ws"
+    port: parseNumberSetting("SMSGATE_PORT", ["server", "port"], 3000),
+    wsPath: parseStringSetting("SMSGATE_WS_PATH", ["server", "wsPath"], "/ws")
   },
   management: {
     messages: {
-      keep: parseNumber(process.env.SMSGATE_MESSAGES_KEEP, 10),
-      purgeOld: parseBool(process.env.SMSGATE_MESSAGES_PURGE, true)
+      keep: parseNumberSetting("SMSGATE_MESSAGES_KEEP", ["management", "messages", "keep"], 10),
+      purgeOld: parseBoolSetting("SMSGATE_MESSAGES_PURGE", ["management", "messages", "purgeOld"], true)
     }
   },
   http: {
-    enableLegacyPush: parseBool(process.env.SMSGATE_HTTP_LEGACY_PUSH, false),
-    enableSync: parseBool(process.env.SMSGATE_HTTP_SYNC, false)
+    enableLegacyPush: parseBoolSetting("SMSGATE_HTTP_LEGACY_PUSH", ["http", "enableLegacyPush"], false),
+    enableSync: parseBoolSetting("SMSGATE_HTTP_SYNC", ["http", "enableSync"], false)
   },
   persistence: {
-    type: (process.env.SMSGATE_PERSISTENCE_TYPE ?? "memory") as "memory" | "json",
-    filePath: process.env.SMSGATE_PERSISTENCE_FILE ?? path.join(process.cwd(), "data", "messages.json")
+    type: parseStringSetting("SMSGATE_PERSISTENCE_TYPE", ["persistence", "type"], "memory") as "memory" | "json",
+    filePath: parseStringSetting("SMSGATE_PERSISTENCE_FILE", ["persistence", "filePath"], path.join(process.cwd(), "data", "messages.json"))
   }
 };

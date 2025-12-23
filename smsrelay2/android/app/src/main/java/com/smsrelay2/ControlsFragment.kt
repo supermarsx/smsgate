@@ -112,7 +112,8 @@ class ControlsFragment : Fragment() {
 
         provisionNow.setOnClickListener {
             LogStore.append("Provisioning: start")
-            RemoteProvisioner.provision(requireContext()) { success ->
+            RemoteProvisioner.provision(requireContext()) provision@{ success ->
+                if (!isAdded) return@provision
                 LogStore.append(if (success) "Provisioning: success" else "Provisioning: failed")
                 statusText.text = if (success) {
                     getString(R.string.status_ready)
@@ -126,6 +127,7 @@ class ControlsFragment : Fragment() {
         openBattery.setOnClickListener {
             val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
             startActivity(intent)
+            toast(getString(R.string.toast_done))
         }
 
         openSettings.setOnClickListener {
@@ -139,10 +141,12 @@ class ControlsFragment : Fragment() {
             val config = ConfigStore.getConfig(requireContext())
             val port = config.discoveryPort
             LogStore.append("Discovery: scanning local network on port $port")
+            toast(getString(R.string.toast_done))
             discoverServer.isEnabled = false
             thread {
                 val results = LocalServerDiscovery.scan(requireContext(), port)
                 requireActivity().runOnUiThread {
+                    if (!isAdded) return@runOnUiThread
                     discoverServer.isEnabled = true
                     if (results.isEmpty()) {
                         LogStore.append("Discovery: no servers found")
@@ -167,10 +171,12 @@ class ControlsFragment : Fragment() {
                 .setBeepEnabled(true)
                 .setOrientationLocked(false)
             scanLauncher.launch(options)
+            toast(getString(R.string.toast_done))
         }
 
         exportLogs.setOnClickListener {
             exportLogsLauncher.launch("smsrelay2-logs.txt")
+            toast(getString(R.string.toast_done))
         }
 
         clearLogs.setOnClickListener {
@@ -180,10 +186,12 @@ class ControlsFragment : Fragment() {
 
         exportConfig.setOnClickListener {
             exportConfigLauncher.launch("smsrelay2-config.json")
+            toast(getString(R.string.toast_done))
         }
 
         importConfig.setOnClickListener {
             importConfigLauncher.launch(arrayOf("application/json"))
+            toast(getString(R.string.toast_done))
         }
 
         startListener.setOnClickListener {
@@ -208,10 +216,12 @@ class ControlsFragment : Fragment() {
 
     private fun updateStatus() {
         val config = ConfigStore.getConfig(requireContext())
+        val fg = if (RelayForegroundService.isRunning) "on" else "off"
+        val bg = if (config.enableListener) "on" else "off"
         statusText.text = if (RelayForegroundService.isRunning) {
-            "${getString(R.string.status_running)} | listener: ${if (config.enableListener) "on" else "off"}"
+            "${getString(R.string.status_running)} | fg:$fg | bg:$bg"
         } else {
-            "${getString(R.string.status_stopped)} | listener: ${if (config.enableListener) "on" else "off"}"
+            "${getString(R.string.status_stopped)} | fg:$fg | bg:$bg"
         }
     }
 
@@ -260,7 +270,8 @@ class ControlsFragment : Fragment() {
                 toast(getString(R.string.toast_done))
                 selected.pairingUrl?.let { pairingUrl ->
                     LogStore.append("Discovery: pulling config from pairing endpoint")
-                    RemoteProvisioner.provisionWithUrl(requireContext(), pairingUrl) { success ->
+                    RemoteProvisioner.provisionWithUrl(requireContext(), pairingUrl) pairing@{ success ->
+                        if (!isAdded) return@pairing
                         LogStore.append(if (success) {
                             "Discovery: pairing config applied"
                         } else {
@@ -336,6 +347,14 @@ class ControlsFragment : Fragment() {
         auth.put("pin", config.pin)
         auth.put("salt", config.salt)
         json.put("auth", auth)
+        val provisioning = org.json.JSONObject()
+        provisioning.put("remoteConfigUrl", config.remoteConfigUrl)
+        provisioning.put("remoteConfigAuthHeader", config.remoteConfigAuthHeader)
+        provisioning.put("remoteConfigAuthValue", config.remoteConfigAuthValue)
+        provisioning.put("remoteConfigSignatureHeader", config.remoteConfigSignatureHeader)
+        provisioning.put("remoteConfigSignatureSecret", config.remoteConfigSignatureSecret)
+        provisioning.put("discoveryPort", config.discoveryPort)
+        json.put("provisioning", provisioning)
         val features = org.json.JSONObject()
         features.put("enableListener", config.enableListener)
         features.put("enableForegroundService", config.enableForegroundService)
@@ -350,12 +369,37 @@ class ControlsFragment : Fragment() {
         return try {
             val json = org.json.JSONObject(raw)
             RemoteProvisioner.applyConfigJson(requireContext(), json)
+            json.optJSONObject("provisioning")?.let { provisioning ->
+                provisioning.optString("remoteConfigUrl").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(requireContext(), ConfigStore.KEY_REMOTE_CONFIG_URL, it)
+                }
+                provisioning.optString("remoteConfigAuthHeader").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(requireContext(), ConfigStore.KEY_REMOTE_CONFIG_AUTH_HEADER, it)
+                }
+                provisioning.optString("remoteConfigAuthValue").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(requireContext(), ConfigStore.KEY_REMOTE_CONFIG_AUTH_VALUE, it)
+                }
+                provisioning.optString("remoteConfigSignatureHeader").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(requireContext(), ConfigStore.KEY_REMOTE_CONFIG_SIGNATURE_HEADER, it)
+                }
+                provisioning.optString("remoteConfigSignatureSecret").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(requireContext(), ConfigStore.KEY_REMOTE_CONFIG_SIGNATURE_SECRET, it)
+                }
+                provisioning.optInt("discoveryPort", configDiscoveryPort())
+                    .takeIf { it > 0 }
+                    ?.let { ConfigStore.setString(requireContext(), ConfigStore.KEY_DISCOVERY_PORT, it.toString()) }
+            }
+            ConfigEvents.notifyChanged()
             LogStore.append("Import: config applied")
             true
         } catch (_: Exception) {
             LogStore.append("Import: failed")
             false
         }
+    }
+
+    private fun configDiscoveryPort(): Int {
+        return ConfigStore.getConfig(requireContext()).discoveryPort
     }
 
     private fun hasCameraPermission(): Boolean {

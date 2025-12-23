@@ -1,0 +1,37 @@
+{
+  "authorization": {
+    "salt": "#SALT",
+    "token": {
+      "clientId": ["#XCLIENTID1"],
+      "accessCode": ["#PIN1", "#PIN2"],
+      "useHashed": false
+    }
+  },
+  "security": {
+    "login": {
+      "maxAttempts": 8,
+      "windowMs": 600000,
+      "lockoutMs": 900000,
+      "baseDelayMs": 350,
+      "maxDelayMs": 4000
+    }
+  },
+  "server": {
+    "port": 3000,
+    "wsPath": "/ws"
+  },
+  "management": {
+    "messages": {
+      "keep": 10,
+      "purgeOld": true
+    }
+  },
+  "http": {
+    "enableLegacyPush": false,
+    "enableSync": false
+  },
+  "persistence": {
+    "type": "memory",
+    "filePath": "./data/messages.json"
+  }
+}

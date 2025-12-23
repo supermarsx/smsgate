@@ -2,6 +2,8 @@ package com.smsrelay2
 
 import android.Manifest
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -26,9 +28,11 @@ class MainActivity : AppCompatActivity() {
             }
         }.attach()
 
-        requestSmsPermissions()
-        requestNotificationPermission()
-        PendingResendWorker.enqueue(this)
+        Handler(Looper.getMainLooper()).post {
+            requestSmsPermissions()
+            requestNotificationPermission()
+            PendingResendWorker.enqueue(this)
+        }
     }
 
     private fun requestSmsPermissions() {

@@ -12,18 +12,36 @@ object SocketPresenceManager {
     fun connect(context: Context) {
         if (socket != null) return
         val config = ConfigStore.getConfig(context)
+        if (config.serverUrl.isBlank()) {
+            LogStore.append("Socket presence: missing server URL")
+            return
+        }
         val token = HashUtil.sha512(config.pin + config.salt)
         ConfigStore.setString(context, ConfigStore.KEY_TOKEN, token)
         val wsUrl = buildWebSocketUrl(config.serverUrl)
-        val request = Request.Builder().url(wsUrl).build()
-        socket = HttpClient.instance.newWebSocket(
-            request,
-            object : WebSocketListener() {
-                override fun onOpen(webSocket: WebSocket, response: Response) {
-                    webSocket.send(buildAuthMessage(config, token))
+        try {
+            val request = Request.Builder().url(wsUrl).build()
+            socket = HttpClient.instance.newWebSocket(
+                request,
+                object : WebSocketListener() {
+                    override fun onOpen(webSocket: WebSocket, response: Response) {
+                        webSocket.send(buildAuthMessage(config, token))
+                    }
+
+                    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                        LogStore.append("Socket presence: failed (${t.javaClass.simpleName})")
+                        socket = null
+                    }
+
+                    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                        socket = null
+                    }
                 }
-            }
-        )
+            )
+        } catch (ex: IllegalArgumentException) {
+            LogStore.append("Socket presence: invalid server URL")
+            socket = null
+        }
     }
 
     fun disconnect() {
