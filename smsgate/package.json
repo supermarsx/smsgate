@@ -23,7 +23,7 @@
     "@types/ws": "^8.5.10",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.5",
+    "eslint-config-next": "^16.1.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }
