@@ -20,6 +20,15 @@ object LogStore {
         notifyListeners()
     }
 
+    fun snapshot(): List<String> {
+        return lines.toList()
+    }
+
+    fun clear() {
+        lines.clear()
+        notifyListeners()
+    }
+
     fun register(listener: (List<String>) -> Unit) {
         listeners.add(listener)
         listener(lines.toList())

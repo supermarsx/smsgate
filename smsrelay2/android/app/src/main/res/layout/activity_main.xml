@@ -31,7 +31,8 @@
         app:tabIndicatorColor="#E9DAFF"
         app:tabSelectedTextColor="#FFFFFF"
         app:tabTextColor="#CDBDFF"
-        app:tabIndicatorHeight="3dp"
+        app:tabIndicatorHeight="1dp"
+        app:tabTextAppearance="@style/TabTextGlass"
         app:layout_constraintTop_toBottomOf="@id/logo_text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

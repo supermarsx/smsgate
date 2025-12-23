@@ -67,6 +67,32 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/start_listener"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    android:text="@string/start_listener"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/stop_listener"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    android:text="@string/stop_listener"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
                     android:id="@+id/provision_now"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -128,6 +154,58 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/glass_button"
                     android:text="@string/scan_pairing_qr"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/export_logs"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    android:text="@string/export_logs"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/clear_logs"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    android:text="@string/clear_logs"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/export_config"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    android:text="@string/export_config"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/import_config"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    android:text="@string/import_config"
                     android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>

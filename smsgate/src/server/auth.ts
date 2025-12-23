@@ -15,12 +15,19 @@ function hashToken(input: string): string {
  * Initializes hashed tokens when plaintext codes are configured.
  */
 export function initializeTokens(): void {
-  if (serverConfig.authorization.token.useHashed) {
-    return;
+  const accessCodes = serverConfig.authorization.token.accessCode;
+  const looksHashed = accessCodes.every((code) => /^[a-f0-9]{128}$/i.test(code));
+
+  serverConfig.authorization.token.hashedCode = looksHashed
+    ? accessCodes
+    : accessCodes.map((code) => hashToken(code));
+
+  if (process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line no-console
+    console.log("[auth] Loaded", serverConfig.authorization.token.hashedCode.length, "login tokens");
+    // eslint-disable-next-line no-console
+    console.log("[auth] Salt:", serverConfig.authorization.salt);
   }
-  serverConfig.authorization.token.hashedCode = serverConfig.authorization.token.accessCode.map(
-    (code) => hashToken(code)
-  );
 }
 
 /**

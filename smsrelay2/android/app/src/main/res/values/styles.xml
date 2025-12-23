@@ -22,4 +22,10 @@
         <item name="android:textColorSecondary">@color/purple_on_surface</item>
     </style>
 
+    <style name="TabTextGlass" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="fontFamily">monospace</item>
+    </style>
+
 </resources>

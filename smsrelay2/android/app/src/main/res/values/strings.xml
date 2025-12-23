@@ -25,4 +25,14 @@
     <string name="scan_pairing_qr">Scan pairing QR</string>
     <string name="pairing_failed">Pairing failed</string>
     <string name="pairing_success">Pairing applied</string>
+    <string name="start_listener">Start listener</string>
+    <string name="stop_listener">Stop listener</string>
+    <string name="export_logs">Export logs</string>
+    <string name="clear_logs">Clear logs</string>
+    <string name="export_config">Export config</string>
+    <string name="import_config">Import config</string>
+    <string name="toast_started">Started</string>
+    <string name="toast_stopped">Stopped</string>
+    <string name="toast_done">Done</string>
+    <string name="toast_failed">Failed</string>
 </resources>

@@ -44,6 +44,10 @@ object RemoteProvisioner {
         applyConfigFromJson(context, json)
     }
 
+    fun applyConfigJson(context: Context, json: JSONObject) {
+        applyConfigFromJson(context, json)
+    }
+
     private fun applyConfigFromJson(context: Context, json: JSONObject) {
         val server = json.optJSONObject("server")
         val auth = json.optJSONObject("auth")
