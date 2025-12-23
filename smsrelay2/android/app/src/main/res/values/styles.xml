@@ -2,6 +2,8 @@
 
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="fontFamily">monospace</item>
     </style>
 
 </resources>
