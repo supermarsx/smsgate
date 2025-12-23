@@ -99,6 +99,24 @@ export function ensurePairingConfig(): PairingConfig {
   return config;
 }
 
+export function rollPairingPin(previous: PairingConfig): PairingConfig {
+  const updated: PairingConfig = {
+    ...previous,
+    pin: generatePin(),
+    salt: generateSalt(),
+    createdAt: new Date().toISOString()
+  };
+
+  persistPairingFile(updated);
+
+  if (process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line no-console
+    console.log("[pairing] Rolled pairing PIN", { clientId: updated.clientId, pin: updated.pin });
+  }
+
+  return updated;
+}
+
 const PAIRING_WINDOW_SECONDS = 60;
 
 export function getRollingPairingCode(secret: string, now: number = Date.now()): string {
