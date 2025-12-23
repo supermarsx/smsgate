@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@300;400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap");
 
 :root {
   --purple-900: #0f061a;
@@ -16,12 +16,7 @@
 
 html {
   scroll-behavior: smooth;
-  background:
-    radial-gradient(circle at 10% 5%, rgba(125, 44, 255, 0.45), transparent 45%),
-    radial-gradient(circle at 85% 15%, rgba(178, 137, 255, 0.35), transparent 55%),
-    radial-gradient(circle at 50% 90%, rgba(55, 15, 94, 0.65), transparent 60%),
-    linear-gradient(140deg, #0c0416, #1a0a2d 35%, #0a0413 100%);
-  background-attachment: fixed;
+  background: url("../../images/background.min.jpg") center/cover no-repeat fixed;
 }
 
 #overlay {
@@ -29,19 +24,19 @@ html {
   width: 100%;
   height: 100%;
   inset: 0;
-  background: rgba(6, 2, 12, 0.6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(8, 5, 12, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 1;
 }
 
 .brand-mark {
-  font-family: "Allura", cursive;
-  font-size: clamp(42px, 6vw, 64px);
-  letter-spacing: 2px;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: 1px;
   text-align: center;
   color: #f4e9ff;
-  text-shadow: 0 8px 24px rgba(126, 76, 255, 0.4);
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .brand-mark--floating {

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class ConfigsFragment : Fragment() {
     private val changeListener: () -> Unit = changeListener@{
@@ -13,6 +14,7 @@ class ConfigsFragment : Fragment() {
             fragment.refreshSummaries()
         }
     }
+    private var refreshLayout: SwipeRefreshLayout? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -24,6 +26,11 @@ class ConfigsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        refreshLayout = view.findViewById(R.id.configs_refresh)
+        refreshLayout?.setOnRefreshListener {
+            changeListener()
+            refreshLayout?.isRefreshing = false
+        }
         if (childFragmentManager.findFragmentById(R.id.settings_container) == null) {
             childFragmentManager.beginTransaction()
                 .replace(R.id.settings_container, SettingsFragment())
@@ -39,5 +46,10 @@ class ConfigsFragment : Fragment() {
     override fun onStop() {
         ConfigEvents.unregister(changeListener)
         super.onStop()
+    }
+
+    override fun onDestroyView() {
+        refreshLayout = null
+        super.onDestroyView()
     }
 }
