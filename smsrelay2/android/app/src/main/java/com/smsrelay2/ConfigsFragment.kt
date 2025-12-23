@@ -15,6 +15,7 @@ class ConfigsFragment : Fragment() {
         }
     }
     private var refreshLayout: SwipeRefreshLayout? = null
+    private var loaded = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,10 +32,15 @@ class ConfigsFragment : Fragment() {
             changeListener()
             refreshLayout?.isRefreshing = false
         }
-        if (childFragmentManager.findFragmentById(R.id.settings_container) == null) {
-            childFragmentManager.beginTransaction()
-                .replace(R.id.settings_container, SettingsFragment())
-                .commit()
+        if (!loaded && childFragmentManager.findFragmentById(R.id.settings_container) == null) {
+            loaded = true
+            refreshLayout?.isRefreshing = true
+            view.post {
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.settings_container, SettingsFragment())
+                    .commit()
+                refreshLayout?.isRefreshing = false
+            }
         }
     }
 

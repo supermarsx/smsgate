@@ -32,7 +32,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = SecurePreferenceDataStore(requireContext())
         setPreferencesFromResource(R.xml.preferences, rootKey)
-        refreshSummaries()
+        view?.post { refreshSummaries() } ?: refreshSummaries()
     }
 
     private fun setSummary(key: String, mask: Boolean = false, passwordInput: Boolean = false) {
