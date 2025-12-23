@@ -267,7 +267,7 @@ export default function MessagesPage() {
         <link rel="stylesheet" href="/css/bulma.min.css" />
       </Head>
       <div id="overlay" />
-      <div className="brand-mark brand-mark--floating">smsrelay2</div>
+      <div className="brand-mark brand-mark--floating">smsgate</div>
       <div className="device-wrapper">
         <div className="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
           <div className="screen">
