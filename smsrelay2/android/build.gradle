@@ -1,17 +1,17 @@
 // Top-level build file for native Android app.
 buildscript {
     ext {
-        kotlin_version = "1.4.32"
+        kotlin_version = "2.0.21"
         minSdkVersion = 29
-        compileSdkVersion = 33
-        targetSdkVersion = 29
+        compileSdkVersion = 34
+        targetSdkVersion = 34
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:4.2.2")
+        classpath("com.android.tools.build:gradle:8.6.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
