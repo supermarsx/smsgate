@@ -29,6 +29,15 @@ function loadFileConfig(): Record<string, unknown> {
 
 const fileConfig = loadFileConfig();
 
+if (process.env.NODE_ENV !== "production") {
+  // eslint-disable-next-line no-console
+  console.log("[config] Loaded config file", Object.keys(fileConfig).length ? "(found)" : "(none)");
+  if (Object.keys(fileConfig).length) {
+    // eslint-disable-next-line no-console
+    console.log("[config] File contents:", JSON.stringify(fileConfig, null, 2));
+  }
+}
+
 function readFromConfig(pathSegments: PathSegments): unknown {
   let cursor: unknown = fileConfig;
   for (const key of pathSegments) {
@@ -90,6 +99,14 @@ export const serverConfig = {
       useHashed: parseBoolSetting("SMSGATE_USE_HASHED", ["authorization", "token", "useHashed"], false)
     },
     salt: parseStringSetting("SMSGATE_SALT", ["authorization", "salt"], "#SALT")
+  },
+  pairing: {
+    enable: parseBoolSetting("SMSGATE_PAIRING_ENABLE", ["pairing", "enable"], false),
+    filePath: parseStringSetting(
+      "SMSGATE_PAIRING_FILE",
+      ["pairing", "filePath"],
+      path.join(process.cwd(), "data", "pairing.json")
+    )
   },
   security: {
     login: {

@@ -10,7 +10,8 @@ export type PairingConfig = {
   createdAt: string;
 };
 
-const PAIRING_FILE = path.join(process.cwd(), "data", "pairing.json");
+const PAIRING_FILE = serverConfig.pairing.filePath;
+const pairingEnabled = serverConfig.pairing.enable;
 
 function generatePin(): string {
   const value = crypto.randomInt(100000, 999999);
@@ -69,10 +70,23 @@ export function ensurePairingConfig(): PairingConfig {
     persistPairingFile(config);
   }
 
-  if (isDefaultSecrets()) {
+  if (pairingEnabled && isDefaultSecrets()) {
     serverConfig.authorization.token.accessCode = [config.pin];
     serverConfig.authorization.token.clientId = [config.clientId];
     serverConfig.authorization.salt = config.salt;
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.log("[pairing] Applied pairing secrets because defaults were detected.");
+    }
+  } else {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.log(
+        "[pairing] Pairing overrides disabled; keeping configured web auth secrets (pairing enable flag:",
+        pairingEnabled,
+        ")"
+      );
+    }
   }
 
   return config;

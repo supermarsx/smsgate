@@ -7,6 +7,10 @@
       "useHashed": false
     }
   },
+  "pairing": {
+    "enable": false,
+    "filePath": "./data/pairing.json"
+  },
   "security": {
     "login": {
       "maxAttempts": 8,
