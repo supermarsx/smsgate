@@ -4,11 +4,14 @@
 - Provide a small, two-piece system that relays SMS messages from an Android device to a server.
 - Allow multiple browser clients to view the latest received SMS messages in real time.
 - Provide token-based access control for both phone-to-server and browser-to-server communications.
+- Minimize operational overhead (no database required, simple configuration, easy to deploy).
+- Preserve privacy by only sharing what is required to identify and route messages.
 
 ## 2. High-Level Architecture
 - **smsrelay2 (Android app, Kotlin native)** listens for incoming SMS and forwards messages to the server.
 - **smsgate (Next.js + ws server, TypeScript)** exposes HTTP API endpoints and a WebSocket channel.
 - **smsgate web client** (Next.js React) authenticates via a token and receives messages over WebSocket.
+- **Persistence adapters** optionally store message history in memory or JSON file storage.
 
 ## 3. Components
 ### 3.1 smsgate Server
@@ -16,6 +19,7 @@
 - **Entry point**: `smsgate/server.ts`.
 - **Config**: `smsgate/src/config.ts`.
 - **Static assets**: `smsgate/public/` (CSS, images, sounds, lang JSON).
+- **Persistence**: `smsgate/src/server/messageStore.ts`.
 
 ### 3.2 smsgate Web Client
 - **Login page**: `smsgate/src/pages/index.tsx`.
@@ -24,6 +28,7 @@
 - **Token utilities**: `smsgate/src/lib/token.ts`.
 - **WebSocket helpers**: `smsgate/src/lib/ws.ts`.
 - **Localization loader**: `smsgate/src/lib/lang.ts` and JSON in `smsgate/public/lang/`.
+- **Notification helpers**: browser notifications and audio alerts (configurable).
 
 ### 3.3 smsrelay2 Android App
 - **Runtime**: Native Android (Kotlin).
@@ -55,7 +60,13 @@
   - Marked legacy; phone relay uses WebSocket.
   - Disabled by default via server config.
 
-### 4.2 WebSocket
+### 4.2 HTTP Responses and Status Codes
+- `POST /api/token/check` returns HTTP 200 with a plain text body.
+- `GET /api/messages/list` and `GET /api/messages/hash` return HTTP 401 on invalid token.
+- Sync endpoints return HTTP 404 when disabled by configuration.
+- Legacy push returns HTTP 404 when disabled; otherwise returns HTTP 200 regardless of auth failure.
+
+### 4.3 WebSocket
 - **Path**: `/ws`
 - **Auth**: client sends a JSON `{ type: "auth", token, clientId? }` message after connect.
 - **Events emitted by server**:
@@ -67,19 +78,19 @@
   - `smsAck` (no payload): acknowledgement for phone uploads.
   - `error` (string): error message for invalid or unauthorized requests.
 
-### 4.3 Message Buffer
+### 4.4 Message Buffer
 - Backed by a pluggable persistence adapter.
 - Built-in adapters: in-memory and JSON file.
 - Custom adapters can be added by implementing the MessageStore interface.
 - Default retention is 10 messages with purge enabled.
 - Purge removes oldest messages when buffer exceeds `management.messages.keep`.
 
-### 4.4 Online/Offline Tracking
+### 4.5 Online/Offline Tracking
 - Server considers a client with valid `x-clientid` a phone.
 - On WebSocket auth with valid `clientId`, it marks the phone online.
 - On disconnect, it updates phone-online state based on remaining phone connections.
 
-### 4.5 Message Schema and Validation
+### 4.6 Message Schema and Validation
 - Required fields: `number`, `date`, `message`.
 - Optional fields: `receivedAtEpochMs`, `deviceManufacturer`, `deviceModel`, `deviceSdkInt`, `extra`.
 - `extra` is a flat object of string key/value pairs used for additional device or carrier metadata.
@@ -101,6 +112,16 @@ Example payload:
   }
 }
 ```
+
+### 4.7 Sanitization and Limits
+- All incoming strings are sanitized and capped at 500 characters.
+- Metadata entries are limited to a fixed maximum count.
+- Empty or null fields are dropped to keep payloads compact.
+
+### 4.8 Hashing and Sync Strategy
+- `syncHash` is a SHA-512 hash of the JSON-serialized message buffer.
+- Web client only uses HTTP sync when WebSocket is disconnected and HTTP sync is enabled.
+- Hash-based polling avoids downloading the full buffer unless it has changed.
 
 ## 5. Web Client Behavior
 ### 5.1 Login Flow
@@ -213,6 +234,7 @@ Oppo (ColorOS):
 - Access codes are hashed with a salt at startup if `useHashed = false`.
 - Incoming tokens are validated by comparing against the hashed list.
 - `x-clientid` controls which devices are allowed to push messages and be treated as the phone.
+- Phone clients are treated as write-capable; browser clients are read-only.
 
 ## 8. Configuration
 ### 8.1 Server Config (`smsgate/src/config.ts`)
@@ -226,6 +248,8 @@ Oppo (ColorOS):
 - `management.messages.purgeOld`: enable auto-purge.
 - `persistence.type`: `memory` or `json`.
 - `persistence.filePath`: JSON storage file path.
+- `http.enableLegacyPush`: enable or disable HTTP push endpoint.
+- `http.enableSync`: enable or disable HTTP sync endpoints.
 
 ### 8.2 Web Client Config (`smsgate/src/lib/config.ts`)
 - `language`: language file key.
@@ -235,6 +259,7 @@ Oppo (ColorOS):
 - `authorization.usePersistent`: localStorage vs sessionStorage.
 - `management.messages`: UI retention/scroll settings (local keep defaults to 10).
 - `management.sound`: sound selection and enablement.
+- `management.notifications`: browser notifications toggles and behavior.
 
 ### 8.3 Android App Config (native)
 - Stored in EncryptedSharedPreferences; editable via in-app settings.
@@ -259,7 +284,17 @@ Oppo (ColorOS):
 - **Browser**: token stored in local/session storage.
 - **Android**: encrypted prefs store config and credentials; pending SMS are persisted to a local JSON outbox for resend.
 
-## 11. Error Handling and Edge Cases
+## 11. Performance and Reliability
+- Foreground relay and WorkManager ensure delivery under background limits.
+- WebSocket is the primary real-time channel; HTTP sync is a fallback.
+- Message retention is bounded by server and client keep limits.
+
+## 12. Observability
+- Server logs only startup messages by default.
+- Client surfaces connection status via UI indicators.
+- Phone presence is tracked via WebSocket auth and disconnect events.
+
+## 13. Error Handling and Edge Cases
 - Invalid token on WebSocket connection leads to an auth error and disconnect.
 - Invalid token on login or messages page redirects back to login.
 - If server is unavailable, login errors are shown and UI recovers after delay.
@@ -267,25 +302,26 @@ Oppo (ColorOS):
 - OEM background limits can delay or block SMS processing until the app is whitelisted.
 - Invalid or oversized metadata fields are ignored during sanitization.
 
-## 12. Security Considerations
+## 14. Security Considerations
 - Intended to be used over TLS.
 - Tokens are SHA-512 hashes with a salt.
 - `useInsecure` is available for HTTP but reduces security.
 - Client and server use shared access codes; no user-specific roles.
 - Android app allows cleartext traffic for local HTTP servers; HTTPS is recommended.
+- Remote provisioning can be protected by auth headers and HMAC signatures.
 
-## 13. Build and Run
-### 13.1 Server
+## 15. Build and Run
+### 15.1 Server
 - Install deps in `smsgate/`.
 - Start dev: `npm run dev` (from `smsgate/`).
 - Build: `npm run build`.
 - Start prod: `npm run start`.
 
-### 13.2 Android
+### 15.2 Android
 - Open `smsrelay2/android/` in Android Studio.
 - Build with Gradle or Run on a device (Android 10+).
 
-## 14. Non-Goals and Known Limitations
+## 16. Non-Goals and Known Limitations
 - No database-backed persistence beyond memory/JSON file adapters.
 - No user management or per-user access controls.
 - No outgoing SMS support.

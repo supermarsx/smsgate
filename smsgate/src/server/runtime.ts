@@ -1,5 +1,6 @@
 import { initializeTokens } from "./auth";
 import { createMessageStore, MessageStore } from "./messageStore";
+import { createLoginGuard, LoginGuard } from "./loginGuard";
 
 /**
  * Global server runtime state cached across requests.
@@ -9,6 +10,7 @@ type RuntimeState = {
   initialized: boolean;
   phoneOnline: boolean;
   phoneConnections: number;
+  loginGuard: LoginGuard;
 };
 
 declare global {
@@ -25,7 +27,8 @@ export function getRuntime(): RuntimeState {
       store: createMessageStore(),
       initialized: false,
       phoneOnline: false,
-      phoneConnections: 0
+      phoneConnections: 0,
+      loginGuard: createLoginGuard()
     };
   }
   if (!global.__SMSGATE_RUNTIME__.initialized) {

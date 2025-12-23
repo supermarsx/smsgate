@@ -38,6 +38,15 @@ export const serverConfig = {
     },
     salt: process.env.SMSGATE_SALT ?? "#SALT"
   },
+  security: {
+    login: {
+      maxAttempts: parseNumber(process.env.SMSGATE_LOGIN_MAX_ATTEMPTS, 8),
+      windowMs: parseNumber(process.env.SMSGATE_LOGIN_WINDOW_MS, 10 * 60 * 1000),
+      lockoutMs: parseNumber(process.env.SMSGATE_LOGIN_LOCKOUT_MS, 15 * 60 * 1000),
+      baseDelayMs: parseNumber(process.env.SMSGATE_LOGIN_BASE_DELAY_MS, 350),
+      maxDelayMs: parseNumber(process.env.SMSGATE_LOGIN_MAX_DELAY_MS, 4000)
+    }
+  },
   server: {
     port: parseNumber(process.env.SMSGATE_PORT, 3000),
     wsPath: process.env.SMSGATE_WS_PATH ?? "/ws"
