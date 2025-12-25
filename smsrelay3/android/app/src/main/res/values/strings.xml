@@ -9,6 +9,12 @@
     <string name="status_running">Status: running</string>
     <string name="status_stopped">Status: stopped</string>
     <string name="status_error">Status: error</string>
+    <string name="status_header">Device status</string>
+    <string name="status_device_id">Device ID: %1$s</string>
+    <string name="status_queue_depth">Queue depth: %1$d</string>
+    <string name="status_last_rtt">Last RTT (ms): %1$s</string>
+    <string name="status_last_send">Last success send (ms): %1$s</string>
+    <string name="status_sim_summary">SIM slots: %1$s</string>
     <string name="relay_channel_name">smsrelay3 relay</string>
     <string name="relay_channel_desc">Foreground relay service</string>
     <string name="relay_notification_title">smsrelay3 relay active</string>
@@ -16,6 +22,7 @@
     <string name="tab_logs">Logs</string>
     <string name="tab_controls">Controls</string>
     <string name="tab_configs">Configs</string>
+    <string name="tab_status">Status</string>
     <string name="logs_placeholder">No logs yet. Incoming events will appear here.</string>
     <string name="discover_server">Find local server</string>
     <string name="discover_title">Local servers</string>
