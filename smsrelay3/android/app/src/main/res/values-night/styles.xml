@@ -1,0 +1,17 @@
+<resources>
+
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/graphite_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="colorPrimary">@color/accent_primary</item>
+        <item name="colorPrimaryVariant">@color/accent_info</item>
+        <item name="colorSecondary">@color/accent_info</item>
+        <item name="colorSurface">@color/graphite_panel_solid</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorControlActivated">@color/accent_primary</item>
+        <item name="colorControlHighlight">@color/accent_primary</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlayGlass</item>
+    </style>
+
+</resources>

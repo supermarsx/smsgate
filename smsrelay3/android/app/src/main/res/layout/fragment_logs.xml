@@ -10,9 +10,20 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            android:id="@+id/logs_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/logs_header"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <Button
@@ -21,6 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/glass_button"
+                style="@style/ButtonSmallGlass"
                 android:text="@string/logs_filter_all"
                 android:textColor="@color/text_primary" />
 
@@ -31,18 +43,39 @@
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:background="@drawable/glass_button"
+                style="@style/ButtonSmallGlass"
                 android:text="@string/logs_filter_errors"
                 android:textColor="@color/text_primary" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/logs_export"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:background="@drawable/glass_button"
-            android:text="@string/logs_export"
-            android:textColor="@color/text_primary" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/logs_export"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/glass_button"
+                style="@style/ButtonSmallGlass"
+                android:text="@string/logs_export"
+                android:textColor="@color/text_primary" />
+
+            <Button
+                android:id="@+id/logs_clear"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/glass_button"
+                style="@style/ButtonSmallGlass"
+                android:text="@string/clear_logs"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/logs_text"

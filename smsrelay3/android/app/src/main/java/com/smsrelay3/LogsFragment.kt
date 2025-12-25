@@ -20,6 +20,7 @@ class LogsFragment : Fragment() {
     private var logsText: TextView? = null
     private var filter: String = "all"
     private var exportButton: Button? = null
+    private var clearButton: Button? = null
     private var filterAll: Button? = null
     private var filterErrors: Button? = null
 
@@ -35,6 +36,7 @@ class LogsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         logsText = view.findViewById(R.id.logs_text)
         exportButton = view.findViewById(R.id.logs_export)
+        clearButton = view.findViewById(R.id.logs_clear)
         filterAll = view.findViewById(R.id.logs_filter_all)
         filterErrors = view.findViewById(R.id.logs_filter_errors)
 
@@ -48,6 +50,9 @@ class LogsFragment : Fragment() {
         }
         exportButton?.setOnClickListener {
             exportLauncher.launch("smsrelay3-logs.txt")
+        }
+        clearButton?.setOnClickListener {
+            clearLogs()
         }
 
         val listener: (List<String>) -> Unit = { lines ->
@@ -69,6 +74,7 @@ class LogsFragment : Fragment() {
         logListener = null
         logsText = null
         exportButton = null
+        clearButton = null
         filterAll = null
         filterErrors = null
         super.onDestroyView()
@@ -97,6 +103,22 @@ class LogsFragment : Fragment() {
     private fun formatTs(tsMs: Long): String {
         val formatter = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
         return formatter.format(java.util.Date(tsMs))
+    }
+
+    private fun clearLogs() {
+        CoroutineScope(Dispatchers.IO).launch {
+            DatabaseProvider.get(requireContext()).localLogDao().clearAll()
+            LogStore.clear()
+            withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
+                logsText?.text = getString(R.string.logs_placeholder)
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    getString(R.string.toast_cleared),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     private val exportLauncher = registerForActivityResult(

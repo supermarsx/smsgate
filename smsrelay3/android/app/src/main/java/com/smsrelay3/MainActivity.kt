@@ -41,13 +41,24 @@ class MainActivity : AppCompatActivity() {
         pager.adapter = MainPagerAdapter(this)
         pager.offscreenPageLimit = 1
         TabLayoutMediator(tabs, pager) { tab, position ->
-            tab.text = when (position) {
+            val label = when (position) {
                 0 -> getString(R.string.tab_status)
                 1 -> getString(R.string.tab_diagnostics)
                 2 -> getString(R.string.tab_logs)
                 3 -> getString(R.string.tab_pairing)
                 else -> getString(R.string.tab_configs)
             }
+            tab.text = null
+            tab.contentDescription = label
+            tab.setIcon(
+                when (position) {
+                    0 -> R.drawable.ic_tab_status
+                    1 -> R.drawable.ic_tab_diagnostics
+                    2 -> R.drawable.ic_tab_logs
+                    3 -> R.drawable.ic_tab_pairing
+                    else -> R.drawable.ic_tab_settings
+                }
+            )
         }.attach()
 
         Handler(Looper.getMainLooper()).post {

@@ -19,4 +19,7 @@ interface LocalLogEntryDao {
 
     @Query("DELETE FROM local_log_entries WHERE tsMs < :olderThanMs")
     suspend fun prune(olderThanMs: Long): Int
+
+    @Query("DELETE FROM local_log_entries")
+    suspend fun clearAll(): Int
 }
