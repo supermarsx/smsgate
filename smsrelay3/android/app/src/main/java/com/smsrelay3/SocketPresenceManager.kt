@@ -21,7 +21,7 @@ object SocketPresenceManager {
         val wsUrl = buildWebSocketUrl(config.serverUrl)
         try {
             val request = Request.Builder().url(wsUrl).build()
-            socket = HttpClient.instance.newWebSocket(
+            socket = HttpClient.get(context).newWebSocket(
                 request,
                 object : WebSocketListener() {
                     override fun onOpen(webSocket: WebSocket, response: Response) {

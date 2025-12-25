@@ -6,6 +6,7 @@ import android.content.Intent
 import com.smsrelay3.config.ConfigScheduler
 import com.smsrelay3.config.ConfigRepository
 import kotlinx.coroutines.runBlocking
+import com.smsrelay3.contacts.ContactsSyncScheduler
 import com.smsrelay3.presence.HeartbeatScheduler
 import com.smsrelay3.reconcile.ReconcileScheduler
 import com.smsrelay3.retention.PruneScheduler
@@ -31,5 +32,6 @@ class BootReceiver : BroadcastReceiver() {
         SimScheduler.ensureScheduled(context)
         ReconcileScheduler.ensureScheduled(context)
         PruneScheduler.ensureScheduled(context)
+        ContactsSyncScheduler.ensureScheduled(context)
     }
 }

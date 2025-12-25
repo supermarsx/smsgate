@@ -157,3 +157,6 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: SMS capture enriches SIM slot/ICCID/MSISDN (when permitted).
 - DONE: realtime_mode policy gate for foreground service on boot.
 - DONE: Local overrides stored on import and applied via allowlist (no PIN gating).
+- DONE: Contacts sync worker (READ_CONTACTS gated).
+- DONE: TLS pinning support via config (pins applied to HttpClient).
+- DONE: Docs for permissions/config keys/OEM guide + readme update.

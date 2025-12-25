@@ -78,6 +78,10 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
         val policy = ConfigRepository(applicationContext).latestPolicy()
         HeartbeatScheduler.scheduleNext(applicationContext, policy.heartbeatIntervalS)
         SimScheduler.scheduleNext(applicationContext, policy.simPollIntervalS)
+        com.smsrelay3.contacts.ContactsSyncScheduler.scheduleNext(
+            applicationContext,
+            policy.contactsSyncIntervalS
+        )
     }
 
     companion object {

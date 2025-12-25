@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.smsrelay3.config.ConfigScheduler
+import com.smsrelay3.contacts.ContactsSyncScheduler
 import com.smsrelay3.presence.HeartbeatScheduler
 import com.smsrelay3.reconcile.ReconcileScheduler
 import com.smsrelay3.retention.PruneScheduler
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity() {
             SimScheduler.ensureScheduled(this)
             ReconcileScheduler.ensureScheduled(this)
             PruneScheduler.ensureScheduled(this)
+            ContactsSyncScheduler.ensureScheduled(this)
         }
     }
 

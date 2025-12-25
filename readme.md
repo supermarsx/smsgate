@@ -2,7 +2,7 @@
 
 smsgate is a small time, two piece portal software to receive messages from your android phone and forward them to a HTTP API and view them on a browser anywhere. This piece of software was created with the premise of several people in different locations being able to access the latest received messages from an android phone. A very common use case of this is for several people to access two step verification codes, single one time codes for different types of applications.
 
-smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `smsrelay3` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to the server, and optionally maintains a WebSocket presence connection. The server interfaces with the browser client using WebSockets so connected users see incoming messages in real time.
+smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `smsrelay3` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to syncserver, and maintains heartbeat + SIM inventory updates. The server interfaces with the browser client using WebSockets so connected users see incoming messages in real time.
 
 ## Visual Demo
 
@@ -46,8 +46,8 @@ $ cd ../smsrelay3/android
 ## App walkthrough (Android)
 1) Open the app and grant SMS permissions.
 2) Configure server URL, client ID, PIN, and salt in Settings.
-3) Tap "Start foreground relay" to keep the service active.
-4) Use "Provision from server" if you have a remote config URL.
+3) Pair the device using a QR code from syncserver.
+4) Ensure foreground relay mode is enabled if you need strict realtime delivery.
 5) Send an SMS to the device and verify it appears in the web UI.
 
 In-app settings (recommended):
@@ -65,7 +65,7 @@ smsgate server config: ./smsgate/src/config.ts
 
 ### smsrelay3
 
-smsrelay3 listens for incoming messages and forwards them to the server, compiling origin, body, and date/time (plus extra device metadata). Configuration is stored securely on device and can be provisioned remotely.
+smsrelay3 listens for incoming messages and forwards them to syncserver, compiling origin, body, and date/time (plus extra device metadata). Configuration is stored securely on device and can be provisioned remotely.
 
 To build and run, open `smsrelay3/android` in Android Studio and run on a physical device (Android 10+).
 
@@ -91,6 +91,12 @@ Oppo (ColorOS):
 - Settings > Battery > App battery management: set smsrelay3 to Unrestricted.
 - Settings > Apps > Auto-launch: allow smsrelay3.
 - Disable Sleep standby optimization if present.
+
+### smsrelay3 docs
+
+- Permissions: `docs/smsrelay3-permissions.md`
+- Config keys: `docs/smsrelay3-config-keys.md`
+- OEM battery guidance: `docs/smsrelay3-oem-guide.md`
 
 ### smsgate
 

@@ -11,13 +11,13 @@ object HttpClient {
     @Volatile
     private var cachedPins: List<String> = emptyList()
     @Volatile
-    private var client: OkHttpClient = OkHttpClient()
+    private var client: OkHttpClient? = null
 
     fun get(context: Context): OkHttpClient {
         val policy = runBlocking { ConfigRepository(context).latestPolicy() }
         val pins = if (policy.tlsPinningEnabled) policy.tlsPins else emptyList()
-        if (pins == cachedPins) {
-            return client
+        if (pins == cachedPins && client != null) {
+            return client!!
         }
         val builder = OkHttpClient.Builder()
         val host = serverHost(context)
@@ -30,7 +30,7 @@ object HttpClient {
         }
         client = builder.build()
         cachedPins = pins
-        return client
+        return client!!
     }
 
     private fun serverHost(context: Context): String? {

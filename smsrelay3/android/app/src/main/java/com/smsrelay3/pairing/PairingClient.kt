@@ -34,7 +34,7 @@ object PairingClient {
 
     private fun execute(context: Context, request: Request): Boolean {
         return try {
-            HttpClient.instance.newCall(request).execute().use { response ->
+            HttpClient.get(context).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@use false
                 val body = response.body?.string().orEmpty()
                 if (body.isBlank()) return@use false
