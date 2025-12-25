@@ -8,3 +8,15 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# Room uses generated classes and reflection for schema info.
+-keep class androidx.room.** { *; }
+-keepclassmembers class * {
+    @androidx.room.* <fields>;
+    @androidx.room.* <methods>;
+}
+-dontwarn androidx.room.**
+
+# OkHttp/Okio are safe to shrink; silence noisy warnings for optional platforms.
+-dontwarn okhttp3.**
+-dontwarn okio.**

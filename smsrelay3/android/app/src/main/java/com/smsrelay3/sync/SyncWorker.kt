@@ -42,7 +42,7 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 lastAttemptAtMs = System.currentTimeMillis()
             )
             dao.update(sending)
-            val success = sendMessage(baseUrl, deviceToken, sending)
+            val success = sendMessage(baseUrl, config.apiPath, deviceToken, sending)
             if (success) {
                 dao.update(sending.copy(status = OutboundMessageStatus.ACKED))
             } else {
@@ -66,7 +66,12 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         return if (hadFailure) Result.retry() else Result.success()
     }
 
-    private fun sendMessage(baseUrl: String, deviceToken: String, message: OutboundMessage): Boolean {
+    private fun sendMessage(
+        baseUrl: String,
+        apiPath: String,
+        deviceToken: String,
+        message: OutboundMessage
+    ): Boolean {
         val json = JSONObject()
         json.put("device_id", message.deviceId)
         json.put("device_seq", message.seq)
@@ -86,7 +91,7 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         json.put("metadata", metadata)
 
         val body = json.toString().toRequestBody(JSON_MEDIA)
-        val path = config.apiPath.trim().ifBlank { "/api/v1/ingest" }
+        val path = apiPath.trim().ifBlank { "/api/v1/ingest" }
         val request = Request.Builder()
             .url("$baseUrl$path")
             .addHeader("Authorization", "Bearer $deviceToken")

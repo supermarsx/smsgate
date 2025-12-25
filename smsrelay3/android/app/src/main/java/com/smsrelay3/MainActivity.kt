@@ -1,6 +1,7 @@
 package com.smsrelay3
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +23,7 @@ import com.smsrelay3.retention.PruneScheduler
 import com.smsrelay3.sim.SimScheduler
 import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.LocaleManager
+import com.smsrelay3.util.ThemeManager
 
 class MainActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ThemeManager.apply(this)
         LogStore.init(applicationContext)
         setContentView(R.layout.activity_main)
 

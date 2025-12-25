@@ -70,6 +70,7 @@
     <string name="status_sim_summary">SIM slots: %1$s</string>
     <string name="diag_header">Diagnostics</string>
     <string name="diag_permissions">Permissions: %1$s</string>
+    <string name="diag_pairing_status">Pairing: %1$s</string>
     <string name="diag_config_version">Config version: %1$s</string>
     <string name="diag_last_heartbeat">Last heartbeat (ms): %1$s</string>
     <string name="relay_channel_name">smsrelay3 relay</string>
@@ -88,6 +89,7 @@
     <string name="discover_cancel">None</string>
     <string name="scan_pairing_qr">Scan pairing QR</string>
     <string name="pairing_failed">Pairing failed</string>
+    <string name="pairing_expired">Pairing expired</string>
     <string name="pairing_success">Pairing applied</string>
     <string name="export_logs">Export logs</string>
     <string name="clear_logs">Clear logs</string>
@@ -98,6 +100,7 @@
     <string name="toast_discovery_none">No servers found</string>
     <string name="toast_pairing_ok">Pairing applied</string>
     <string name="toast_pairing_failed">Pairing failed</string>
+    <string name="toast_pairing_expired">Pairing expired</string>
     <string name="toast_export_logs_started">Exporting logs</string>
     <string name="toast_export_logs_done">Logs exported</string>
     <string name="toast_export_logs_failed">Log export failed</string>
@@ -115,4 +118,11 @@
     <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
     <string name="sms_permission_open_settings">Open settings</string>
     <string name="sms_permission_retry">Try again</string>
-<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string></resources>
+<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string>
+    <string name="pref_app_theme_title">Theme</string>
+    <string name="pref_app_theme_summary">Choose light or dark appearance</string>
+    <string name="theme_entry_system">System default</string>
+    <string name="theme_entry_dark">Dark</string>
+    <string name="theme_entry_light">Light</string>
+    <string name="logs_header">Logs</string>
+</resources>

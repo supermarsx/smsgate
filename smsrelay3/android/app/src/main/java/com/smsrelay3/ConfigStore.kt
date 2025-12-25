@@ -61,6 +61,7 @@ object ConfigStore {
     const val KEY_ENABLE_SOCKET = "enable_socket_presence"
     const val KEY_NOTIFICATION_ENABLED = "notification_enabled"
     const val KEY_APP_LOCALE = "app_locale"
+    const val KEY_APP_THEME = "app_theme"
 
     private fun prefs(context: Context): SharedPreferences {
         return try {
@@ -143,6 +144,7 @@ object ConfigStore {
             KEY_PIN -> "#PIN1"
             KEY_SALT -> "#SALT"
             KEY_APP_LOCALE -> "system"
+            KEY_APP_THEME -> "system"
             else -> ""
         }
     }

@@ -1,20 +1,20 @@
 <resources>
-    <color name="graphite_bg">#07090C</color>
-    <color name="graphite_bg_2">#0B0F14</color>
-    <color name="graphite_panel">#9E101722</color>
-    <color name="graphite_panel_2">#B8161F2B</color>
-    <color name="graphite_panel_solid">#101722</color>
+    <color name="graphite_bg">#F6F7FA</color>
+    <color name="graphite_bg_2">#FFFFFF</color>
+    <color name="graphite_panel">#B7FFFFFF</color>
+    <color name="graphite_panel_2">#D1F0F2F6</color>
+    <color name="graphite_panel_solid">#FFFFFF</color>
 
-    <color name="graphite_border">#14FFFFFF</color>
-    <color name="graphite_border_strong">#24FFFFFF</color>
+    <color name="graphite_border">#1A121826</color>
+    <color name="graphite_border_strong">#29121826</color>
 
-    <color name="text_primary">#E9EEF6</color>
-    <color name="text_secondary">#B9C4D6</color>
-    <color name="text_muted">#7E8CA4</color>
+    <color name="text_primary">#121826</color>
+    <color name="text_secondary">#3A455A</color>
+    <color name="text_muted">#66728A</color>
 
-    <color name="accent_primary">#4CC9FF</color>
-    <color name="accent_info">#6C7CFF</color>
-    <color name="accent_success">#39F0C0</color>
-    <color name="accent_warning">#FFCC66</color>
-    <color name="accent_danger">#FF5C7A</color>
+    <color name="accent_primary">#1FA7E6</color>
+    <color name="accent_info">#4658F0</color>
+    <color name="accent_success">#0DBA8C</color>
+    <color name="accent_warning">#D79A2C</color>
+    <color name="accent_danger">#E13E5B</color>
 </resources>

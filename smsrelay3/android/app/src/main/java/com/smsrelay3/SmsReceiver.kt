@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
+import android.telephony.SmsMessage
 import com.smsrelay3.data.OutboundMessageRepository
 import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.SimInfoResolver
@@ -28,7 +29,7 @@ class SmsReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             val repository = OutboundMessageRepository(context)
             messages.forEach { sms ->
-                val subId = sms.subscriptionId.takeIf { it > 0 }
+                val subId = resolveSubscriptionId(sms)
                 val simInfo = SimInfoResolver.resolve(context, subId)
                 repository.enqueueSms(
                     sender = sms.originatingAddress ?: "",
@@ -43,6 +44,16 @@ class SmsReceiver : BroadcastReceiver() {
             }
             SyncScheduler.enqueueNow(context)
             result.finish()
+        }
+    }
+
+    private fun resolveSubscriptionId(sms: SmsMessage): Int? {
+        return try {
+            val method = sms.javaClass.getMethod("getSubscriptionId")
+            val value = method.invoke(sms) as? Int ?: return null
+            value.takeIf { it > 0 }
+        } catch (_: Exception) {
+            null
         }
     }
 }

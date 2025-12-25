@@ -4,6 +4,11 @@
     <string name="pref_category_general">General</string>
     <string name="pref_app_locale_title">App language</string>
     <string name="pref_app_locale_summary">Choose the display language</string>
+    <string name="pref_app_theme_title">Theme</string>
+    <string name="pref_app_theme_summary">Choose light or dark appearance</string>
+    <string name="theme_entry_system">System default</string>
+    <string name="theme_entry_dark">Dark</string>
+    <string name="theme_entry_light">Light</string>
     <string name="pref_category_server">Server</string>
     <string name="pref_server_url_title">Server URL</string>
     <string name="pref_server_url_summary">Base URL for syncserver</string>
@@ -70,6 +75,7 @@
     <string name="status_sim_summary">SIM slots: %1$s</string>
     <string name="diag_header">Diagnostics</string>
     <string name="diag_permissions">Permissions: %1$s</string>
+    <string name="diag_pairing_status">Pairing: %1$s</string>
     <string name="diag_config_version">Config version: %1$s</string>
     <string name="diag_last_heartbeat">Last heartbeat (ms): %1$s</string>
     <string name="relay_channel_name">smsrelay3 relay</string>
@@ -82,6 +88,7 @@
     <string name="tab_diagnostics">Diagnostics</string>
     <string name="tab_pairing">Pairing</string>
     <string name="logs_placeholder">No logs yet. Incoming events will appear here.</string>
+    <string name="logs_header">Logs</string>
     <string name="discover_server">Find local server</string>
     <string name="discover_title">Local servers</string>
     <string name="discover_none">No servers found</string>
@@ -94,6 +101,7 @@
     <string name="pairing_code_hint">Pairing code (optional)</string>
     <string name="settings_header">Settings</string>
     <string name="pairing_failed">Pairing failed</string>
+    <string name="pairing_expired">Pairing expired</string>
     <string name="pairing_success">Pairing applied</string>
     <string name="export_logs">Export logs</string>
     <string name="clear_logs">Clear logs</string>
@@ -104,6 +112,7 @@
     <string name="toast_discovery_none">No servers found</string>
     <string name="toast_pairing_ok">Pairing applied</string>
     <string name="toast_pairing_failed">Pairing failed</string>
+    <string name="toast_pairing_expired">Pairing expired</string>
     <string name="toast_export_logs_started">Exporting logs</string>
     <string name="toast_export_logs_done">Logs exported</string>
     <string name="toast_export_logs_failed">Log export failed</string>

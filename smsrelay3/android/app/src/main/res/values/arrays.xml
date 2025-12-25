@@ -12,4 +12,14 @@
         <item>pt-PT</item>
         <item>es-ES</item>
     </string-array>
+    <string-array name="theme_entries">
+        <item>@string/theme_entry_system</item>
+        <item>@string/theme_entry_dark</item>
+        <item>@string/theme_entry_light</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>system</item>
+        <item>dark</item>
+        <item>light</item>
+    </string-array>
 </resources>

@@ -9,18 +9,18 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Add a centralized `AppRuntime` state holder for foreground/background/service mode, WS status, and last send/ACK metadata.
 
 ## Data model (Room)
-- Implement DAOs for OutboundMessage, SmsRawStore, HeartbeatSample, SimSnapshot, ConfigState, LocalOverrides, LocalLogEntry.
-- Add migrations for future schema changes (at least stub v1->v2).
-- Implement pruning tasks driven by retention config (WorkManager).
-- Add index/uniqueness rules for content hash + timestamp bucket to support reconciliation dedup.
+- DONE: Implement DAOs for OutboundMessage, SmsRawStore, HeartbeatSample, SimSnapshot, ConfigState, LocalOverrides, LocalLogEntry.
+- DONE: Add migrations for future schema changes (at least stub v1->v2).
+- DONE: Implement pruning tasks driven by retention config (WorkManager).
+- DONE: Add index/uniqueness rules for content hash + timestamp bucket to support reconciliation dedup.
 
 ## Pairing and provisioning
-- Implement QR pairing screen and flow:
-  - Scan QR and call `POST /api/v1/pairing/complete`.
-  - Persist `device_id`, `device_token`, `config_version`.
-  - Handle errors, retries, and expired tokens.
-- Add secure storage for device token in Android Keystore (not SharedPreferences).
-- Add pairing status UI and diagnostics entries.
+- DONE: Implement QR pairing screen and flow:
+  - DONE: Scan QR and call `POST /api/v1/pairing/complete`.
+  - DONE: Persist `device_id`, `device_token`, `config_version`.
+  - DONE: Handle errors, retries, and expired tokens.
+- DONE: Add secure storage for device token in Android Keystore (not SharedPreferences).
+- DONE: Add pairing status UI and diagnostics entries.
 
 ## Remote configuration
 - Build config client:
@@ -132,7 +132,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 ## Build and release
 - Update app icons and branding assets.
 - Confirm min/target SDK and foreground service type.
-- Add Proguard/R8 rules for Room + OkHttp.
+- DONE: Add Proguard/R8 rules for Room + OkHttp.
 - Validate APK builds on CI.
 
 ## Progress
@@ -162,3 +162,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Docs for permissions/config keys/OEM guide + readme update.
 - DONE: Added unit tests for ConfigRepository defaults and LogExport redaction.
 - DONE: Time/ID helpers and AppRuntime state holder.
+- DONE: Build compile fixes (SmsReceiver subscription id, SyncWorker api path, Room schema warning).

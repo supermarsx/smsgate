@@ -10,6 +10,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.smsrelay3.util.LocaleManager
+import com.smsrelay3.util.ThemeManager
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val changeListener: () -> Unit = changeListener@{
@@ -27,6 +28,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
         view?.findViewById<RecyclerView>(androidx.preference.R.id.recycler_view)?.apply {
             setPadding(8, 0, 8, 0)
             clipToPadding = false
+            isNestedScrollingEnabled = false
+            layoutParams = layoutParams?.apply {
+                height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            }
         }
         return view
     }
@@ -77,6 +82,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 LocaleManager.apply(requireContext(), value)
                 activity?.recreate()
             }
+            if (key == ConfigStore.KEY_APP_THEME) {
+                ThemeManager.apply(requireContext(), value)
+                activity?.recreate()
+            }
             true
         }
     }
@@ -99,6 +108,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     fun refreshSummaries() {
         setListSummary(ConfigStore.KEY_APP_LOCALE)
+        setListSummary(ConfigStore.KEY_APP_THEME)
         setSummary(ConfigStore.KEY_SERVER_URL)
         setSummary(ConfigStore.KEY_API_PATH)
         setSummary(ConfigStore.KEY_HTTP_METHOD)

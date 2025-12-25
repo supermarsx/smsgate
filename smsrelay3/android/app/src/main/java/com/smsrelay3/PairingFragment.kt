@@ -19,6 +19,7 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.pairing.PairingClient
+import com.smsrelay3.pairing.PairingClient.PairingResult
 import kotlin.concurrent.thread
 
 class PairingFragment : Fragment() {
@@ -148,15 +149,9 @@ class PairingFragment : Fragment() {
                 }
                 pairingUrl?.let {
                     thread {
-                        val success = PairingClient.completeWithUrl(requireContext(), it)
+                        val result = PairingClient.completeWithUrl(requireContext(), it)
                         requireActivity().runOnUiThread {
-                            LogStore.append(
-                                if (success) "info" else "error",
-                                "pairing",
-                                if (success) "Discovery: pairing applied" else "Discovery: pairing failed"
-                            )
-                            toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
-                            ConfigEvents.notifyChanged()
+                            handlePairingResult(result, "Discovery: pairing")
                         }
                     }
                 }
@@ -169,28 +164,42 @@ class PairingFragment : Fragment() {
         val url = payload.trim()
         if (url.startsWith("http://") || url.startsWith("https://")) {
             thread {
-                val success = PairingClient.completeWithUrl(requireContext(), url)
+                val result = PairingClient.completeWithUrl(requireContext(), url)
                 requireActivity().runOnUiThread {
-                    LogStore.append(
-                        if (success) "info" else "error",
-                        "pairing",
-                        if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed)
-                    )
-                    toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
+                    handlePairingResult(result, getString(R.string.pairing_header))
                 }
             }
             return
         }
         thread {
-            val success = PairingClient.completeWithToken(requireContext(), url)
+            val result = PairingClient.completeWithToken(requireContext(), url)
             requireActivity().runOnUiThread {
-                LogStore.append(
-                    if (success) "info" else "error",
-                    "pairing",
-                    if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed)
-                )
-                toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
+                handlePairingResult(result, getString(R.string.pairing_header))
             }
+        }
+    }
+
+    private fun handlePairingResult(result: PairingResult, source: String) {
+        val success = result.success
+        val message = when {
+            success -> getString(R.string.pairing_success)
+            result.expired -> getString(R.string.pairing_expired)
+            else -> getString(R.string.pairing_failed)
+        }
+        LogStore.append(
+            if (success) "info" else "error",
+            "pairing",
+            "$source: $message"
+        )
+        val toastMessage = when {
+            success -> getString(R.string.toast_pairing_ok)
+            result.expired -> getString(R.string.toast_pairing_expired)
+            else -> getString(R.string.toast_pairing_failed)
+        }
+        toast(toastMessage)
+        if (success) {
+            updateStatus()
+            ConfigEvents.notifyChanged()
         }
     }
 

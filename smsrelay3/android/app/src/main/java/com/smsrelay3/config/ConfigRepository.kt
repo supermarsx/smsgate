@@ -131,9 +131,9 @@ class ConfigRepository(private val context: Context) {
         }
     }
 
-    private suspend fun applyLocalOverrides(policy: ConfigPolicy): ConfigPolicy {
+    private fun applyLocalOverrides(policy: ConfigPolicy): ConfigPolicy {
         if (!policy.overridesEnabled) return policy
-        val overrides = db.localOverridesDao().latest() ?: return policy
+        val overrides = kotlinx.coroutines.runBlocking { db.localOverridesDao().latest() } ?: return policy
         val raw = overrides.rawJson
         if (raw.isBlank()) return policy
         return applyOverrides(policy, raw)

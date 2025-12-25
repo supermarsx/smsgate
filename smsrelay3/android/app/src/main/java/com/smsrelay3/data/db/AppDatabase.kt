@@ -20,7 +20,8 @@ import com.smsrelay3.data.entity.SmsRawStore
         LocalOverrides::class,
         LocalLogEntry::class
     ],
-    version = 2
+    version = 2,
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun outboundMessageDao(): OutboundMessageDao

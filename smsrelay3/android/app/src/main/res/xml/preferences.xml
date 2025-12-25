@@ -9,6 +9,13 @@
             android:entries="@array/locale_entries"
             android:entryValues="@array/locale_values"
             android:defaultValue="system" />
+        <ListPreference
+            android:key="app_theme"
+            android:title="@string/pref_app_theme_title"
+            android:summary="@string/pref_app_theme_summary"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="system" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_category_server">

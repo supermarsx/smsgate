@@ -70,6 +70,7 @@
   <string name="status_sim_summary">Slots SIM: %1$s</string>
   <string name="diag_header">Diagnóstico</string>
   <string name="diag_permissions">Permissões: %1$s</string>
+  <string name="diag_pairing_status">Emparelhamento: %1$s</string>
   <string name="diag_config_version">Versão de configuração: %1$s</string>
   <string name="diag_last_heartbeat">Último heartbeat (ms): %1$s</string>
   <string name="relay_channel_name">relay smsrelay3</string>
@@ -88,6 +89,7 @@
   <string name="discover_cancel">Nenhum</string>
   <string name="scan_pairing_qr">Ler QR de emparelhamento</string>
   <string name="pairing_failed">Emparelhamento falhou</string>
+  <string name="pairing_expired">Emparelhamento expirado</string>
   <string name="pairing_success">Emparelhamento aplicado</string>
   <string name="export_logs">Exportar registos</string>
   <string name="clear_logs">Limpar registos</string>
@@ -98,6 +100,7 @@
   <string name="toast_discovery_none">Nenhum servidor encontrado</string>
   <string name="toast_pairing_ok">Emparelhamento aplicado</string>
   <string name="toast_pairing_failed">Emparelhamento falhou</string>
+  <string name="toast_pairing_expired">Emparelhamento expirado</string>
   <string name="toast_export_logs_started">A exportar registos</string>
   <string name="toast_export_logs_done">Registos exportados</string>
   <string name="toast_export_logs_failed">Falha ao exportar registos</string>
@@ -128,4 +131,11 @@
   <string name="export_diagnostics">Exportar diagnóstico</string>
   <string name="toast_export_diagnostics_done">Diagnóstico exportado</string>
   <string name="toast_export_diagnostics_failed">Falha ao exportar diagnóstico</string>
-<string name="logs_filter_all">Todos os registos</string><string name="logs_filter_errors">Erros</string><string name="logs_export">Exportar registos</string><string name="diag_last_error">Último erro: %1$s</string><string name="diag_overrides">Overrides atualizadas: %1$s</string></resources>
+<string name="logs_filter_all">Todos os registos</string><string name="logs_filter_errors">Erros</string><string name="logs_export">Exportar registos</string><string name="diag_last_error">Último erro: %1$s</string><string name="diag_overrides">Overrides atualizadas: %1$s</string>
+  <string name="pref_app_theme_title">Tema</string>
+  <string name="pref_app_theme_summary">Escolha o modo claro ou escuro</string>
+  <string name="theme_entry_system">Padrão do sistema</string>
+  <string name="theme_entry_dark">Escuro</string>
+  <string name="theme_entry_light">Claro</string>
+  <string name="logs_header">Registos</string>
+</resources>
