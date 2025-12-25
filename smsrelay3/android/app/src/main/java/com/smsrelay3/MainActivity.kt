@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        LogStore.init(applicationContext)
         setContentView(R.layout.activity_main)
 
         val pager = findViewById<ViewPager2>(R.id.main_pager)
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 0 -> getString(R.string.tab_status)
                 1 -> getString(R.string.tab_diagnostics)
                 2 -> getString(R.string.tab_logs)
-                3 -> getString(R.string.tab_controls)
+                3 -> getString(R.string.tab_pairing)
                 else -> getString(R.string.tab_configs)
             }
         }.attach()

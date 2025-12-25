@@ -12,8 +12,8 @@ class MainPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
             0 -> StatusFragment()
             1 -> DiagnosticsFragment()
             2 -> LogsFragment()
-            3 -> ControlsFragment()
-            else -> ConfigsFragment()
+            3 -> PairingFragment()
+            else -> SettingsContainerFragment()
         }
     }
 }

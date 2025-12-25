@@ -83,6 +83,7 @@
     <string name="tab_configs">Configs</string>
     <string name="tab_status">Status</string>
     <string name="tab_diagnostics">Diagnostics</string>
+    <string name="tab_pairing">Pairing</string>
     <string name="logs_placeholder">No logs yet. Incoming events will appear here.</string>
     <string name="discover_server">Find local server</string>
     <string name="discover_title">Local servers</string>
@@ -90,6 +91,11 @@
     <string name="discover_use">Use selected</string>
     <string name="discover_cancel">None</string>
     <string name="scan_pairing_qr">Scan pairing QR</string>
+    <string name="pairing_header">Pairing</string>
+    <string name="pairing_status_unpaired">Unpaired</string>
+    <string name="pairing_status_paired">Paired: %1$s</string>
+    <string name="pairing_code_hint">Pairing code (optional)</string>
+    <string name="settings_header">Settings</string>
     <string name="pairing_failed">Pairing failed</string>
     <string name="pairing_success">Pairing applied</string>
     <string name="start_listener">Start listener</string>

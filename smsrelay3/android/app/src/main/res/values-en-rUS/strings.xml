@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">smsrelay3</string>
     <string name="pref_category_general">General</string>
@@ -127,4 +128,4 @@
     <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
     <string name="sms_permission_open_settings">Open settings</string>
     <string name="sms_permission_retry">Try again</string>
-</resources>
+<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string></resources>

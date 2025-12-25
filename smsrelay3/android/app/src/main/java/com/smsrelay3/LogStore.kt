@@ -1,8 +1,15 @@
 package com.smsrelay3
 
+import android.content.Context
+import com.smsrelay3.data.db.DatabaseProvider
+import com.smsrelay3.data.entity.LocalLogEntry
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 
 object LogStore {
@@ -10,6 +17,12 @@ object LogStore {
     private val formatter = SimpleDateFormat("HH:mm:ss", Locale.US)
     private val lines = CopyOnWriteArrayList<String>()
     private val listeners = CopyOnWriteArrayList<(List<String>) -> Unit>()
+    @Volatile
+    private var appContext: Context? = null
+
+    fun init(context: Context) {
+        appContext = context.applicationContext
+    }
 
     fun append(message: String) {
         val timestamp = formatter.format(Date())
@@ -17,6 +30,7 @@ object LogStore {
         while (lines.size > MAX_LINES) {
             lines.removeAt(0)
         }
+        persist(message)
         notifyListeners()
     }
 
@@ -41,5 +55,20 @@ object LogStore {
     private fun notifyListeners() {
         val snapshot = lines.toList()
         listeners.forEach { it(snapshot) }
+    }
+
+    private fun persist(message: String) {
+        val context = appContext ?: return
+        CoroutineScope(Dispatchers.IO).launch {
+            val entry = LocalLogEntry(
+                id = UUID.randomUUID().toString(),
+                tsMs = System.currentTimeMillis(),
+                level = "info",
+                category = "app",
+                message = message,
+                detailsJson = null
+            )
+            DatabaseProvider.get(context).localLogDao().insert(entry)
+        }
     }
 }

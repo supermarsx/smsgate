@@ -145,3 +145,5 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Status tab with core metrics.
 - DONE: Diagnostics tab scaffold (permissions/config/heartbeat).
 - DONE: App language selector + i18n strings (en-US/pt-PT/es-ES).
+- DONE: Log persistence to Room + logs screen loads recent entries.
+- DONE: Pairing tab + Settings container (export/import + system shortcuts).
