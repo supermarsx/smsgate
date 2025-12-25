@@ -65,7 +65,7 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
             .build()
 
         val success = try {
-            HttpClient.instance.newCall(request).execute().use { response ->
+            HttpClient.get(applicationContext).newCall(request).execute().use { response ->
                 response.isSuccessful
             }
         } catch (_: Exception) {

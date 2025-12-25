@@ -59,7 +59,7 @@ class HeartbeatWorker(appContext: Context, params: WorkerParameters) : Coroutine
 
         val startedAt = System.currentTimeMillis()
         val success = try {
-            HttpClient.instance.newCall(request).execute().use { response ->
+            HttpClient.get(applicationContext).newCall(request).execute().use { response ->
                 response.isSuccessful
             }
         } catch (_: Exception) {
