@@ -13,7 +13,7 @@ object SocketPresenceManager {
         if (socket != null) return
         val config = ConfigStore.getConfig(context)
         if (config.serverUrl.isBlank()) {
-            LogStore.append("Socket presence: missing server URL")
+            LogStore.append("error", "presence", "Socket presence: missing server URL")
             return
         }
         val token = HashUtil.sha512(config.pin + config.salt)
@@ -29,7 +29,7 @@ object SocketPresenceManager {
                     }
 
                     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                        LogStore.append("Socket presence: failed (${t.javaClass.simpleName})")
+                        LogStore.append("error", "presence", "Socket presence: failed (${t.javaClass.simpleName})")
                         socket = null
                     }
 
@@ -39,7 +39,7 @@ object SocketPresenceManager {
                 }
             )
         } catch (ex: IllegalArgumentException) {
-            LogStore.append("Socket presence: invalid server URL")
+            LogStore.append("error", "presence", "Socket presence: invalid server URL")
             socket = null
         }
     }
