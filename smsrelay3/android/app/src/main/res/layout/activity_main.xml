@@ -34,6 +34,8 @@
         app:tabSelectedTextColor="@color/text_primary"
         app:tabTextColor="@color/text_secondary"
         app:tabIndicatorHeight="1dp"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
         app:tabTextAppearance="@style/TabTextGlass"
         app:tabMinWidth="0dp"
         app:tabPaddingStart="8dp"

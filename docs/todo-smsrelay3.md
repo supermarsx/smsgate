@@ -165,3 +165,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Build compile fixes (SmsReceiver subscription id, SyncWorker api path, Room schema warning).
 - DONE: Tab icons + in-panel titles, logs clear action, and compact button styling.
 - DONE: Theme selector (system/dark/light) + light/dark palettes per Graphite Glass spec.
+- DONE: Permissions entry screen with required/optional checks and tab bar fixed-mode icons.

@@ -1,12 +1,10 @@
 package com.smsrelay3
 
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.smsrelay3.data.db.DatabaseProvider
 import com.smsrelay3.export.DiagnosticsExport
@@ -104,9 +102,18 @@ class DiagnosticsFragment : Fragment() {
     }
 
     private fun buildPermissionsSummary(context: android.content.Context): String {
-        val sms = hasPermission(context, android.Manifest.permission.READ_SMS)
-        val contacts = hasPermission(context, android.Manifest.permission.READ_CONTACTS)
-        val phone = hasPermission(context, android.Manifest.permission.READ_PHONE_STATE)
+        val sms = com.smsrelay3.util.PermissionGate.hasPermission(
+            context,
+            android.Manifest.permission.READ_SMS
+        )
+        val contacts = com.smsrelay3.util.PermissionGate.hasPermission(
+            context,
+            android.Manifest.permission.READ_CONTACTS
+        )
+        val phone = com.smsrelay3.util.PermissionGate.hasPermission(
+            context,
+            android.Manifest.permission.READ_PHONE_STATE
+        )
         return "sms:${flag(sms)} contacts:${flag(contacts)} phone:${flag(phone)}"
     }
 
@@ -117,10 +124,6 @@ class DiagnosticsFragment : Fragment() {
         } else {
             getString(R.string.pairing_status_paired, deviceId)
         }
-    }
-
-    private fun hasPermission(context: android.content.Context, permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun flag(value: Boolean): String {

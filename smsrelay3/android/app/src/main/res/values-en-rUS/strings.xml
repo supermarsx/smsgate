@@ -119,10 +119,18 @@
     <string name="sms_permission_open_settings">Open settings</string>
     <string name="sms_permission_retry">Try again</string>
 <string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string>
-    <string name="pref_app_theme_title">Theme</string>
-    <string name="pref_app_theme_summary">Choose light or dark appearance</string>
-    <string name="theme_entry_system">System default</string>
-    <string name="theme_entry_dark">Dark</string>
-    <string name="theme_entry_light">Light</string>
-    <string name="logs_header">Logs</string>
+<string name="pref_app_theme_title">Theme</string>
+<string name="pref_app_theme_summary">Choose light or dark appearance</string>
+<string name="theme_entry_system">System default</string>
+<string name="theme_entry_dark">Dark</string>
+<string name="theme_entry_light">Light</string>
+<string name="logs_header">Logs</string>
+    <string name="permissions_title">Permissions required</string>
+    <string name="permissions_subtitle">smsrelay3 needs these permissions to relay SMS and show live status.</string>
+    <string name="permissions_required_label">Required</string>
+    <string name="permissions_optional_label">Optional</string>
+    <string name="permissions_grant">Grant permissions</string>
+    <string name="permissions_continue">Continue</string>
+    <string name="permissions_ready">All required permissions granted.</string>
+    <string name="permissions_missing">Missing required permissions.</string>
 </resources>

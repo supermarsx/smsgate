@@ -1,17 +1,10 @@
 package com.smsrelay3
 
-import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -24,6 +17,7 @@ import com.smsrelay3.sim.SimScheduler
 import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.LocaleManager
 import com.smsrelay3.util.ThemeManager
+import com.smsrelay3.util.PermissionGate
 
 class MainActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -35,6 +29,11 @@ class MainActivity : AppCompatActivity() {
         ThemeManager.apply(this)
         LogStore.init(applicationContext)
         setContentView(R.layout.activity_main)
+        if (!PermissionGate.allRequiredGranted(this)) {
+            startActivity(Intent(this, PermissionsActivity::class.java))
+            finish()
+            return
+        }
 
         val pager = findViewById<ViewPager2>(R.id.main_pager)
         val tabs = findViewById<TabLayout>(R.id.main_tabs)
@@ -62,8 +61,6 @@ class MainActivity : AppCompatActivity() {
         }.attach()
 
         Handler(Looper.getMainLooper()).post {
-            requestSmsPermissions()
-            requestNotificationPermission()
             SyncScheduler.enqueueNow(this)
             ConfigScheduler.ensureScheduled(this)
             HeartbeatScheduler.ensureScheduled(this)
@@ -74,72 +71,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestSmsPermissions() {
-        val permissions = arrayOf(
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS
-        )
-        val missing = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missing.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, missing.toTypedArray(), REQUEST_SMS_PERMISSIONS)
-            return
-        }
-    }
-
-    private fun requestNotificationPermission() {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-            REQUEST_NOTIFICATION_PERMISSIONS
-        )
-    }
-
     companion object {
-        private const val REQUEST_SMS_PERMISSIONS = 100
-        private const val REQUEST_NOTIFICATION_PERMISSIONS = 101
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode != REQUEST_SMS_PERMISSIONS) return
-        val granted = permissions.indices.all { index ->
-            grantResults.getOrNull(index) == PackageManager.PERMISSION_GRANTED
-        }
-        if (!granted) {
-            showSmsPermissionRequiredDialog()
-        }
-    }
-
-    private fun showSmsPermissionRequiredDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.sms_permission_title))
-            .setMessage(getString(R.string.sms_permission_message))
-            .setPositiveButton(getString(R.string.sms_permission_open_settings)) { _, _ ->
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                intent.data = Uri.fromParts("package", packageName, null)
-                startActivity(intent)
-            }
-            .setNegativeButton(getString(R.string.sms_permission_retry)) { _, _ ->
-                requestSmsPermissions()
-            }
-            .setCancelable(false)
-            .show()
     }
 
     override fun onResume() {
         super.onResume()
-        requestSmsPermissions()
+        if (!PermissionGate.allRequiredGranted(this)) {
+            startActivity(Intent(this, PermissionsActivity::class.java))
+            finish()
+        }
     }
 }

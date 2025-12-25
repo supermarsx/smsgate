@@ -138,4 +138,12 @@
   <string name="theme_entry_dark">Oscuro</string>
   <string name="theme_entry_light">Claro</string>
   <string name="logs_header">Registros</string>
+  <string name="permissions_title">Permisos requeridos</string>
+  <string name="permissions_subtitle">smsrelay3 necesita estos permisos para reenviar SMS y mostrar estado en vivo.</string>
+  <string name="permissions_required_label">Obligatorios</string>
+  <string name="permissions_optional_label">Opcionales</string>
+  <string name="permissions_grant">Conceder permisos</string>
+  <string name="permissions_continue">Continuar</string>
+  <string name="permissions_ready">Permisos obligatorios concedidos.</string>
+  <string name="permissions_missing">Faltan permisos obligatorios.</string>
 </resources>
