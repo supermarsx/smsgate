@@ -1,9 +1,16 @@
 package com.smsrelay3.data.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "outbound_messages")
+@Entity(
+    tableName = "outbound_messages",
+    indices = [
+        Index(value = ["status"]),
+        Index(value = ["contentHash", "smsReceivedAtMs"])
+    ]
+)
 data class OutboundMessage(
     @PrimaryKey val id: String,
     val deviceId: String,

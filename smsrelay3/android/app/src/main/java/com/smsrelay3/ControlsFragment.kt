@@ -26,10 +26,10 @@ class PairingFragment : Fragment() {
     private val scanLauncher = registerForActivityResult(ScanContract()) { result ->
         val contents = result.contents
         if (contents.isNullOrBlank()) {
-            LogStore.append("Pairing: QR scan cancelled")
+            LogStore.append("info", "pairing", "Pairing: QR scan cancelled")
             return@registerForActivityResult
         }
-        LogStore.append("Pairing: QR scanned")
+        LogStore.append("info", "pairing", "Pairing: QR scanned")
         handlePairingPayload(contents)
     }
 
@@ -49,7 +49,7 @@ class PairingFragment : Fragment() {
         discoverServer.setOnClickListener {
             val config = ConfigStore.getConfig(requireContext())
             val port = config.discoveryPort
-            LogStore.append("Discovery: scanning local network on port $port")
+            LogStore.append("info", "pairing", "Discovery: scanning local network on port $port")
             toast(getString(R.string.toast_discovery_started))
             discoverServer.isEnabled = false
             thread {
@@ -58,12 +58,12 @@ class PairingFragment : Fragment() {
                     if (!isAdded) return@runOnUiThread
                     discoverServer.isEnabled = true
                     if (results.isEmpty()) {
-                        LogStore.append("Discovery: no servers found")
+                        LogStore.append("info", "pairing", "Discovery: no servers found")
                         toast(getString(R.string.toast_discovery_none))
                         showDiscoveryDialog(emptyList())
                     } else {
                         results.forEach {
-                            LogStore.append("Discovery: found ${it.name} at ${it.url}")
+                            LogStore.append("info", "pairing", "Discovery: found ${it.name} at ${it.url}")
                         }
                         toast(getString(R.string.toast_discovery_done))
                         showDiscoveryDialog(results)
@@ -82,7 +82,7 @@ class PairingFragment : Fragment() {
                 .setBeepEnabled(true)
                 .setOrientationLocked(false)
             scanLauncher.launch(options)
-            LogStore.append("Pairing: opening QR scanner")
+            LogStore.append("info", "pairing", "Pairing: opening QR scanner")
             toast(getString(R.string.toast_scan_qr_started))
         }
     }
@@ -138,7 +138,7 @@ class PairingFragment : Fragment() {
                 val selected = results.getOrNull(selectedIndex) ?: return@setPositiveButton
                 ConfigStore.setString(requireContext(), ConfigStore.KEY_SERVER_URL, selected.url)
                 ConfigEvents.notifyChanged()
-                LogStore.append("Discovery: using ${selected.name} at ${selected.url}")
+                LogStore.append("info", "pairing", "Discovery: using ${selected.name} at ${selected.url}")
                 toast(getString(R.string.toast_discovery_done))
                 val pin = pinInput.text?.toString()?.trim().orEmpty()
                 val pairingUrl = if (pin.isNotBlank()) {
@@ -150,11 +150,11 @@ class PairingFragment : Fragment() {
                     thread {
                         val success = PairingClient.completeWithUrl(requireContext(), it)
                         requireActivity().runOnUiThread {
-                            LogStore.append(if (success) {
-                                "Discovery: pairing applied"
-                            } else {
-                                "Discovery: pairing failed"
-                            })
+                            LogStore.append(
+                                if (success) "info" else "error",
+                                "pairing",
+                                if (success) "Discovery: pairing applied" else "Discovery: pairing failed"
+                            )
                             toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
                             ConfigEvents.notifyChanged()
                         }
@@ -171,7 +171,11 @@ class PairingFragment : Fragment() {
             thread {
                 val success = PairingClient.completeWithUrl(requireContext(), url)
                 requireActivity().runOnUiThread {
-                    LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
+                    LogStore.append(
+                        if (success) "info" else "error",
+                        "pairing",
+                        if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed)
+                    )
                     toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
                 }
             }
@@ -180,7 +184,11 @@ class PairingFragment : Fragment() {
         thread {
             val success = PairingClient.completeWithToken(requireContext(), url)
             requireActivity().runOnUiThread {
-                LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
+                LogStore.append(
+                    if (success) "info" else "error",
+                    "pairing",
+                    if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed)
+                )
                 toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
             }
         }

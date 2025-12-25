@@ -19,10 +19,16 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     override suspend fun doWork(): Result {
         val config = ConfigStore.getConfig(applicationContext)
         val baseUrl = config.serverUrl.trim().trimEnd('/')
-        if (baseUrl.isBlank()) return Result.retry()
+        if (baseUrl.isBlank()) {
+            com.smsrelay3.LogStore.append("error", "sync", "Sync: missing server URL")
+            return Result.retry()
+        }
 
         val deviceToken = DeviceAuthStore.getDeviceToken(applicationContext)
-        if (deviceToken.isNullOrBlank()) return Result.retry()
+        if (deviceToken.isNullOrBlank()) {
+            com.smsrelay3.LogStore.append("error", "sync", "Sync: missing device token")
+            return Result.retry()
+        }
 
         val db = DatabaseProvider.get(applicationContext)
         val dao = db.outboundMessageDao()
@@ -40,6 +46,7 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             if (success) {
                 dao.update(sending.copy(status = OutboundMessageStatus.ACKED))
             } else {
+                com.smsrelay3.LogStore.append("error", "sync", "Sync: send failed ${message.id}")
                 val attempts = sending.retryCount + 1
                 val status = if (attempts >= DEFAULT_MAX_ATTEMPTS) {
                     OutboundMessageStatus.FAILED

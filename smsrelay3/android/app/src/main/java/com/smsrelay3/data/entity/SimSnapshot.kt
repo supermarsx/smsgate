@@ -1,9 +1,15 @@
 package com.smsrelay3.data.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "sim_snapshots")
+@Entity(
+    tableName = "sim_snapshots",
+    indices = [
+        Index(value = ["capturedAtMs"])
+    ]
+)
 data class SimSnapshot(
     @PrimaryKey val id: String,
     val capturedAtMs: Long,

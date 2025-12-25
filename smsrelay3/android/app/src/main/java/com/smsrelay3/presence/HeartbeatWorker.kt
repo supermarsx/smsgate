@@ -22,6 +22,7 @@ class HeartbeatWorker(appContext: Context, params: WorkerParameters) : Coroutine
         val config = ConfigStore.getConfig(applicationContext)
         val baseUrl = config.serverUrl.trim().trimEnd('/')
         if (baseUrl.isBlank()) {
+            com.smsrelay3.LogStore.append("error", "heartbeat", "Heartbeat: missing server URL")
             HeartbeatScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.retry()
         }
@@ -29,6 +30,7 @@ class HeartbeatWorker(appContext: Context, params: WorkerParameters) : Coroutine
         val deviceToken = DeviceAuthStore.getDeviceToken(applicationContext)
         val deviceId = DeviceAuthStore.getDeviceId(applicationContext)
         if (deviceToken.isNullOrBlank() || deviceId.isNullOrBlank()) {
+            com.smsrelay3.LogStore.append("error", "heartbeat", "Heartbeat: missing device credentials")
             HeartbeatScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.retry()
         }
@@ -62,6 +64,9 @@ class HeartbeatWorker(appContext: Context, params: WorkerParameters) : Coroutine
             }
         } catch (_: Exception) {
             false
+        }
+        if (!success) {
+            com.smsrelay3.LogStore.append("error", "heartbeat", "Heartbeat: send failed")
         }
         val rtt = System.currentTimeMillis() - startedAt
         val sample = HeartbeatSample(

@@ -19,6 +19,7 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
         val config = ConfigStore.getConfig(applicationContext)
         val baseUrl = config.serverUrl.trim().trimEnd('/')
         if (baseUrl.isBlank()) {
+            com.smsrelay3.LogStore.append("error", "sim", "SIM: missing server URL")
             SimScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.retry()
         }
@@ -26,6 +27,7 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
         val deviceToken = DeviceAuthStore.getDeviceToken(applicationContext)
         val deviceId = DeviceAuthStore.getDeviceId(applicationContext)
         if (deviceToken.isNullOrBlank() || deviceId.isNullOrBlank()) {
+            com.smsrelay3.LogStore.append("error", "sim", "SIM: missing device credentials")
             SimScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.retry()
         }
@@ -68,6 +70,9 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
             }
         } catch (_: Exception) {
             false
+        }
+        if (!success) {
+            com.smsrelay3.LogStore.append("error", "sim", "SIM: upload failed")
         }
 
         val policy = ConfigRepository(applicationContext).latestPolicy()

@@ -151,3 +151,8 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: OEM shortcuts (notifications/autostart) + diagnostics export.
 - DONE: Regenerated launcher icons from app-icon-concept.png.
 - DONE: Log filtering + export redaction; diagnostics last error + overrides.
+- DONE: Structured log levels/categories in sync/config/pairing/heartbeat/sim flows.
+- DONE: Retention pruning worker for acked/heartbeat/sim/log/raw.
+- DONE: Room indices + v1->v2 migration stub.
+- DONE: SMS capture enriches SIM slot/ICCID/MSISDN (when permitted).
+- DONE: realtime_mode policy gate for foreground service on boot.

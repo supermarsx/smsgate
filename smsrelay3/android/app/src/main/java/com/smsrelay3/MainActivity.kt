@@ -17,6 +17,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.smsrelay3.config.ConfigScheduler
 import com.smsrelay3.presence.HeartbeatScheduler
 import com.smsrelay3.reconcile.ReconcileScheduler
+import com.smsrelay3.retention.PruneScheduler
 import com.smsrelay3.sim.SimScheduler
 import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.LocaleManager
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
             HeartbeatScheduler.ensureScheduled(this)
             SimScheduler.ensureScheduled(this)
             ReconcileScheduler.ensureScheduled(this)
+            PruneScheduler.ensureScheduled(this)
         }
     }
 

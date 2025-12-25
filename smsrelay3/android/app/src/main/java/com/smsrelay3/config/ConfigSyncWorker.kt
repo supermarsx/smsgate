@@ -36,6 +36,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
         val response = try {
             HttpClient.instance.newCall(requestBuilder.build()).execute()
         } catch (_: Exception) {
+            com.smsrelay3.LogStore.append("error", "config", "Config sync: request failed")
             ConfigScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.retry()
         }
@@ -47,6 +48,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
                 return Result.success()
             }
             if (!res.isSuccessful) {
+                com.smsrelay3.LogStore.append("error", "config", "Config sync: status ${res.code}")
                 ConfigScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
                 return Result.retry()
             }
@@ -65,6 +67,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
                 rawJson = body
             )
             db.configStateDao().upsert(state)
+            com.smsrelay3.LogStore.append("info", "config", "Config sync: applied v$version")
             scheduleFromPolicy()
             ConfigScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.success()

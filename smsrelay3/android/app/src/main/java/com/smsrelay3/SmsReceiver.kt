@@ -6,6 +6,7 @@ import android.content.Intent
 import android.provider.Telephony
 import com.smsrelay3.data.OutboundMessageRepository
 import com.smsrelay3.sync.SyncScheduler
+import com.smsrelay3.util.SimInfoResolver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,14 +28,16 @@ class SmsReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             val repository = OutboundMessageRepository(context)
             messages.forEach { sms ->
+                val subId = sms.subscriptionId.takeIf { it > 0 }
+                val simInfo = SimInfoResolver.resolve(context, subId)
                 repository.enqueueSms(
                     sender = sms.originatingAddress ?: "",
                     content = sms.messageBody ?: "",
                     receivedAtMs = System.currentTimeMillis(),
-                    simSlotIndex = null,
-                    subscriptionId = sms.subscriptionId.takeIf { it > 0 },
-                    iccid = null,
-                    msisdn = null,
+                    simSlotIndex = simInfo.slotIndex,
+                    subscriptionId = simInfo.subscriptionId,
+                    iccid = simInfo.iccid,
+                    msisdn = simInfo.msisdn,
                     source = "broadcast"
                 )
             }
