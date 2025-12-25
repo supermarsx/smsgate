@@ -71,10 +71,10 @@ object SettingsExport {
                     ?.let { ConfigStore.setString(context, ConfigStore.KEY_DISCOVERY_PORT, it.toString()) }
             }
             ConfigEvents.notifyChanged()
-            LogStore.append("Import: config applied")
+            LogStore.append("info", "config", "Import: config applied")
             true
         } catch (_: Exception) {
-            LogStore.append("Import: failed")
+            LogStore.append("error", "config", "Import: failed")
             false
         }
     }
@@ -86,10 +86,10 @@ object SettingsExport {
                     writer.write(content)
                 }
             } ?: return false
-            LogStore.append("Export: wrote ${content.length} bytes")
+            LogStore.append("info", "config", "Export: wrote ${content.length} bytes")
             true
         } catch (_: Exception) {
-            LogStore.append("Export: failed")
+            LogStore.append("error", "config", "Export: failed")
             false
         }
     }

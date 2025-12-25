@@ -18,7 +18,7 @@ class RelayForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         isRunning = true
-        LogStore.append("Foreground service created")
+        LogStore.append("info", "service", "Foreground service created")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -37,7 +37,7 @@ class RelayForegroundService : Service() {
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
-        LogStore.append("Foreground service active")
+        LogStore.append("info", "service", "Foreground service active")
         if (config.enableSocketPresence) {
             SocketPresenceManager.connect(this)
         }
@@ -47,7 +47,7 @@ class RelayForegroundService : Service() {
     override fun onDestroy() {
         SocketPresenceManager.disconnect()
         isRunning = false
-        LogStore.append("Foreground service destroyed")
+        LogStore.append("info", "service", "Foreground service destroyed")
         super.onDestroy()
     }
 
