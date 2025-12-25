@@ -30,7 +30,7 @@ object LocalServerDiscovery {
 
     fun scan(context: Context, port: Int): List<DiscoveryResult> {
         if (!hasLocalNetwork(context)) {
-            LogStore.append("Discovery: no local network (wifi/ethernet/vpn) available")
+            LogStore.append("error", "pairing", "Discovery: no local network (wifi/ethernet/vpn) available")
             return emptyList()
         }
         val ip = getLocalIpv4(context) ?: return emptyList()
@@ -136,7 +136,7 @@ object LocalServerDiscovery {
     ) {
         scheduler.scheduleAtFixedRate({
             val done = completed.get()
-            LogStore.append("Discovery: scanned $done/$total hosts on port $port")
+            LogStore.append("info", "pairing", "Discovery: scanned $done/$total hosts on port $port")
         }, 15, 15, TimeUnit.SECONDS)
     }
 }
