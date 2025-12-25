@@ -32,8 +32,9 @@ class MainActivity : AppCompatActivity() {
         TabLayoutMediator(tabs, pager) { tab, position ->
             tab.text = when (position) {
                 0 -> getString(R.string.tab_status)
-                1 -> getString(R.string.tab_logs)
-                2 -> getString(R.string.tab_controls)
+                1 -> getString(R.string.tab_diagnostics)
+                2 -> getString(R.string.tab_logs)
+                3 -> getString(R.string.tab_controls)
                 else -> getString(R.string.tab_configs)
             }
         }.attach()
