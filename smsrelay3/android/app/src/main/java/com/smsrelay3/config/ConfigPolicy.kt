@@ -12,7 +12,13 @@ data class ConfigPolicy(
     val retentionHeartbeatHours: Int,
     val retentionSimDays: Int,
     val retentionLogDays: Int,
-    val retentionSmsRawHours: Int
+    val retentionSmsRawHours: Int,
+    val overridesEnabled: Boolean,
+    val overridesAllowlist: List<String>,
+    val contactsSyncEnabled: Boolean,
+    val contactsSyncIntervalS: Long,
+    val tlsPinningEnabled: Boolean,
+    val tlsPins: List<String>
 )
 
 object ConfigDefaults {
@@ -28,4 +34,8 @@ object ConfigDefaults {
     const val RETENTION_SIM_DAYS = 7
     const val RETENTION_LOG_DAYS = 7
     const val RETENTION_SMS_RAW_HOURS = 24
+    const val OVERRIDES_ENABLED = false
+    const val CONTACTS_SYNC_ENABLED = false
+    const val CONTACTS_SYNC_INTERVAL_S = 3600L
+    const val TLS_PINNING_ENABLED = false
 }

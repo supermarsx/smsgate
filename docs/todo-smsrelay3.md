@@ -156,3 +156,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Room indices + v1->v2 migration stub.
 - DONE: SMS capture enriches SIM slot/ICCID/MSISDN (when permitted).
 - DONE: realtime_mode policy gate for foreground service on boot.
+- DONE: Local overrides stored on import and applied via allowlist (no PIN gating).

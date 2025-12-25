@@ -2,6 +2,8 @@ package com.smsrelay3
 
 import android.content.Context
 import android.net.Uri
+import com.smsrelay3.data.LocalOverridesRepository
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -69,6 +71,11 @@ object SettingsExport {
                 provisioning.optInt("discoveryPort", configDiscoveryPort(context))
                     .takeIf { it > 0 }
                     ?.let { ConfigStore.setString(context, ConfigStore.KEY_DISCOVERY_PORT, it.toString()) }
+            }
+            json.optJSONObject("overrides")?.let { overrides ->
+                runBlocking {
+                    LocalOverridesRepository(context).setOverrides(overrides.toString())
+                }
             }
             ConfigEvents.notifyChanged()
             LogStore.append("info", "config", "Import: config applied")
