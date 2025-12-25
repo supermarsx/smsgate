@@ -5,9 +5,11 @@ import android.text.InputType
 import android.graphics.Color
 import android.view.View
 import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.smsrelay3.util.LocaleManager
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val changeListener: () -> Unit = changeListener@{
@@ -56,6 +58,29 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
+    private fun setListSummary(key: String) {
+        val pref = findPreference<Preference>(key) as? ListPreference ?: return
+        val current = pref.value ?: ConfigStore.getString(
+            requireContext(),
+            key,
+            ConfigStore.defaultString(key)
+        )
+        pref.value = current
+        val index = pref.findIndexOfValue(current)
+        pref.summary = if (index >= 0) pref.entries[index] else current
+        pref.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
+            val value = newValue?.toString() ?: "system"
+            val listPref = preference as ListPreference
+            val updatedIndex = listPref.findIndexOfValue(value)
+            listPref.summary = if (updatedIndex >= 0) listPref.entries[updatedIndex] else value
+            if (key == ConfigStore.KEY_APP_LOCALE) {
+                LocaleManager.apply(requireContext(), value)
+                activity?.recreate()
+            }
+            true
+        }
+    }
+
     private fun maskValue(value: String): String {
         if (value.length <= 4) return "****"
         return value.take(2) + "****" + value.takeLast(2)
@@ -73,6 +98,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     fun refreshSummaries() {
+        setListSummary(ConfigStore.KEY_APP_LOCALE)
         setSummary(ConfigStore.KEY_SERVER_URL)
         setSummary(ConfigStore.KEY_API_PATH)
         setSummary(ConfigStore.KEY_HTTP_METHOD)

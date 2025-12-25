@@ -1,136 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="Server">
+    <PreferenceCategory android:title="@string/pref_category_general">
+        <ListPreference
+            android:key="app_locale"
+            android:title="@string/pref_app_locale_title"
+            android:summary="@string/pref_app_locale_summary"
+            android:entries="@array/locale_entries"
+            android:entryValues="@array/locale_values"
+            android:defaultValue="system" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_category_server">
         <EditTextPreference
             android:key="server_url"
-            android:title="Server URL"
-            android:summary="Base URL for smsgate server"
-            android:defaultValue="http://#SERVER:#PORT" />
+            android:title="@string/pref_server_url_title"
+            android:summary="@string/pref_server_url_summary"
+            android:defaultValue="https://syncserver.local" />
         <EditTextPreference
             android:key="api_path"
-            android:title="API path"
-            android:summary="Message push path"
-            android:defaultValue="/api/push/message" />
+            android:title="@string/pref_api_path_title"
+            android:summary="@string/pref_api_path_summary"
+            android:defaultValue="/api/v1/ingest" />
         <EditTextPreference
             android:key="http_method"
-            android:title="HTTP method"
-            android:summary="Default POST"
+            android:title="@string/pref_http_method_title"
+            android:summary="@string/pref_http_method_summary"
             android:defaultValue="POST" />
         <EditTextPreference
             android:key="remote_config_url"
-            android:title="Remote config URL"
-            android:summary="Optional URL to provision settings"
+            android:title="@string/pref_remote_config_url_title"
+            android:summary="@string/pref_remote_config_url_summary"
             android:defaultValue="" />
         <EditTextPreference
             android:key="remote_config_auth_header"
-            android:title="Remote config auth header"
-            android:summary="Optional auth header name"
+            android:title="@string/pref_remote_config_auth_header_title"
+            android:summary="@string/pref_remote_config_auth_header_summary"
             android:defaultValue="" />
         <EditTextPreference
             android:key="remote_config_auth_value"
-            android:title="Remote config auth value"
-            android:summary="Optional auth header value"
+            android:title="@string/pref_remote_config_auth_value_title"
+            android:summary="@string/pref_remote_config_auth_value_summary"
             android:defaultValue="" />
         <EditTextPreference
             android:key="remote_config_signature_header"
-            android:title="Remote config signature header"
-            android:summary="Optional signature header name"
+            android:title="@string/pref_remote_config_signature_header_title"
+            android:summary="@string/pref_remote_config_signature_header_summary"
             android:defaultValue="" />
         <EditTextPreference
             android:key="remote_config_signature_secret"
-            android:title="Remote config signature secret"
-            android:summary="Shared secret for HMAC SHA-256"
+            android:title="@string/pref_remote_config_signature_secret_title"
+            android:summary="@string/pref_remote_config_signature_secret_summary"
             android:defaultValue="" />
         <EditTextPreference
             android:key="discovery_port"
-            android:title="Discovery port"
-            android:summary="Port used for local server discovery"
+            android:title="@string/pref_discovery_port_title"
+            android:summary="@string/pref_discovery_port_summary"
             android:defaultValue="3000"
             android:inputType="number" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Auth headers">
+    <PreferenceCategory android:title="@string/pref_category_auth_headers">
         <EditTextPreference
             android:key="client_id_header"
-            android:title="Client ID header"
-            android:summary="Default x-clientid"
+            android:title="@string/pref_client_id_header_title"
+            android:summary="@string/pref_client_id_header_summary"
             android:defaultValue="x-clientid" />
         <EditTextPreference
             android:key="client_id_value"
-            android:title="Client ID value"
-            android:summary="Phone client ID"
+            android:title="@string/pref_client_id_value_title"
+            android:summary="@string/pref_client_id_value_summary"
             android:defaultValue="#XCLIENTID1" />
         <EditTextPreference
             android:key="auth_header"
-            android:title="Authorization header"
-            android:summary="Default Authorization"
+            android:title="@string/pref_auth_header_title"
+            android:summary="@string/pref_auth_header_summary"
             android:defaultValue="Authorization" />
         <EditTextPreference
             android:key="auth_prefix"
-            android:title="Authorization prefix"
-            android:summary="Default Bearer "
+            android:title="@string/pref_auth_prefix_title"
+            android:summary="@string/pref_auth_prefix_summary"
             android:defaultValue="Bearer " />
         <EditTextPreference
             android:key="accept_header"
-            android:title="Accept header"
-            android:summary="Default Accept"
+            android:title="@string/pref_accept_header_title"
+            android:summary="@string/pref_accept_header_summary"
             android:defaultValue="Accept" />
         <EditTextPreference
             android:key="accept_value"
-            android:title="Accept value"
-            android:summary="Default application/json"
+            android:title="@string/pref_accept_value_title"
+            android:summary="@string/pref_accept_value_summary"
             android:defaultValue="application/json" />
         <EditTextPreference
             android:key="content_type_header"
-            android:title="Content-Type header"
-            android:summary="Default Content-Type"
+            android:title="@string/pref_content_type_header_title"
+            android:summary="@string/pref_content_type_header_summary"
             android:defaultValue="Content-Type" />
         <EditTextPreference
             android:key="content_type_value"
-            android:title="Content-Type value"
-            android:summary="Default application/json"
+            android:title="@string/pref_content_type_value_title"
+            android:summary="@string/pref_content_type_value_summary"
             android:defaultValue="application/json" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Credentials">
+    <PreferenceCategory android:title="@string/pref_category_credentials">
         <EditTextPreference
             android:key="pin"
-            android:title="PIN"
-            android:summary="Access code"
+            android:title="@string/pref_pin_title"
+            android:summary="@string/pref_pin_summary"
             android:defaultValue="#PIN1" />
         <EditTextPreference
             android:key="salt"
-            android:title="Salt"
-            android:summary="Hash salt"
+            android:title="@string/pref_salt_title"
+            android:summary="@string/pref_salt_summary"
             android:defaultValue="#SALT" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Behavior">
+    <PreferenceCategory android:title="@string/pref_category_behavior">
         <SwitchPreferenceCompat
             android:key="enable_listener"
-            android:title="Enable SMS listener"
-            android:summary="Receive SMS and relay"
+            android:title="@string/pref_enable_listener_title"
+            android:summary="@string/pref_enable_listener_summary"
             android:defaultValue="true" />
         <SwitchPreferenceCompat
             android:key="enable_foreground_service"
-            android:title="Enable foreground relay"
-            android:summary="Keep a persistent foreground service"
+            android:title="@string/pref_enable_foreground_title"
+            android:summary="@string/pref_enable_foreground_summary"
             android:defaultValue="true" />
         <SwitchPreferenceCompat
             android:key="enable_boot_receiver"
-            android:title="Start on boot"
-            android:summary="Restart foreground relay on boot"
+            android:title="@string/pref_enable_boot_title"
+            android:summary="@string/pref_enable_boot_summary"
             android:defaultValue="true" />
         <SwitchPreferenceCompat
             android:key="enable_socket_presence"
-            android:title="WebSocket presence"
-            android:summary="Keep phone online state via socket"
+            android:title="@string/pref_enable_socket_title"
+            android:summary="@string/pref_enable_socket_summary"
             android:defaultValue="true" />
         <SwitchPreferenceCompat
             android:key="notification_enabled"
-            android:title="Show notification"
-            android:summary="Foreground service notification (silent when disabled)"
+            android:title="@string/pref_notification_title"
+            android:summary="@string/pref_notification_summary"
             android:defaultValue="true" />
     </PreferenceCategory>
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="locale_entries">
+        <item>Predefinição do sistema</item>
+        <item>Inglês (EUA)</item>
+        <item>Português (Portugal)</item>
+        <item>Espanhol (Espanha)</item>
+    </string-array>
+    <string-array name="locale_values">
+        <item>system</item>
+        <item>en-US</item>
+        <item>pt-PT</item>
+        <item>es-ES</item>
+    </string-array>
+</resources>

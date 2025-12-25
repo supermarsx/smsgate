@@ -134,3 +134,14 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - Confirm min/target SDK and foreground service type.
 - Add Proguard/R8 rules for Room + OkHttp.
 - Validate APK builds on CI.
+
+## Progress
+- DONE: Room entities/DAOs scaffolding + database provider.
+- DONE: Sync worker posting `/api/v1/ingest` + queue storage.
+- DONE: Heartbeat + SIM inventory workers/schedulers.
+- DONE: Config polling with ETag and policy-driven scheduling.
+- DONE: Reconciliation worker + SMS provider scan.
+- DONE: Pairing client storing device credentials.
+- DONE: Status tab with core metrics.
+- DONE: Diagnostics tab scaffold (permissions/config/heartbeat).
+- DONE: App language selector + i18n strings (en-US/pt-PT/es-ES).

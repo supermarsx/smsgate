@@ -19,8 +19,13 @@ import com.smsrelay3.presence.HeartbeatScheduler
 import com.smsrelay3.reconcile.ReconcileScheduler
 import com.smsrelay3.sim.SimScheduler
 import com.smsrelay3.sync.SyncScheduler
+import com.smsrelay3.util.LocaleManager
 
 class MainActivity : AppCompatActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(LocaleManager.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
