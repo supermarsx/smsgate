@@ -1,7 +1,5 @@
 package com.smsrelay3
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -10,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.activity.result.contract.ActivityResultContracts
+import com.smsrelay3.util.OemSettings
 import kotlin.concurrent.thread
 
 class SettingsContainerFragment : Fragment() {
@@ -46,12 +45,14 @@ class SettingsContainerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val openSettings = view.findViewById<Button>(R.id.open_settings)
         val openBattery = view.findViewById<Button>(R.id.open_battery)
+        val openNotifications = view.findViewById<Button>(R.id.open_notifications)
+        val openAutostart = view.findViewById<Button>(R.id.open_autostart)
         val exportConfig = view.findViewById<Button>(R.id.export_config)
         val importConfig = view.findViewById<Button>(R.id.import_config)
 
         openSettings.setOnClickListener {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = Uri.fromParts("package", requireContext().packageName, null)
+            val intent = android.content.Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.data = android.net.Uri.fromParts("package", requireContext().packageName, null)
             startActivity(intent)
             toast(getString(R.string.toast_open_settings))
         }
@@ -60,6 +61,21 @@ class SettingsContainerFragment : Fragment() {
             val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
             startActivity(intent)
             toast(getString(R.string.toast_open_battery))
+        }
+
+        openNotifications.setOnClickListener {
+            OemSettings.openNotificationSettings(requireContext())
+            toast(getString(R.string.toast_open_notifications))
+        }
+
+        openAutostart.setOnClickListener {
+            val opened = OemSettings.openAutoStartSettings(requireContext())
+            if (!opened) {
+                val intent = android.content.Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+                startActivity(intent)
+            }
+            toast(getString(R.string.toast_open_autostart))
         }
 
         exportConfig.setOnClickListener {

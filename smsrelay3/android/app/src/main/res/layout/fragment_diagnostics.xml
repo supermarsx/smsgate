@@ -48,6 +48,15 @@
                 android:layout_marginTop="8dp"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/export_diagnostics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/glass_button"
+                android:text="@string/export_diagnostics"
+                android:textColor="@color/text_primary" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -56,9 +56,6 @@
     <string name="pref_enable_socket_summary">Keep phone online state via socket</string>
     <string name="pref_notification_title">Show notification</string>
     <string name="pref_notification_summary">Foreground service notification (silent when disabled)</string>
-    <string name="start_service">Start foreground relay</string>
-    <string name="stop_service">Stop foreground relay</string>
-    <string name="provision_now">Provision from server</string>
     <string name="open_settings">Open app settings</string>
     <string name="open_battery">Battery optimization</string>
     <string name="status_ready">Status: ready</string>
@@ -80,8 +77,7 @@
     <string name="relay_notification_title">smsrelay3 relay active</string>
     <string name="relay_notification_text">Listening for SMS and forwarding</string>
     <string name="tab_logs">Logs</string>
-    <string name="tab_controls">Controls</string>
-    <string name="tab_configs">Configs</string>
+    <string name="tab_configs">Settings</string>
     <string name="tab_status">Status</string>
     <string name="tab_diagnostics">Diagnostics</string>
     <string name="logs_placeholder">No logs yet. Incoming events will appear here.</string>
@@ -93,8 +89,6 @@
     <string name="scan_pairing_qr">Scan pairing QR</string>
     <string name="pairing_failed">Pairing failed</string>
     <string name="pairing_success">Pairing applied</string>
-    <string name="start_listener">Start listener</string>
-    <string name="stop_listener">Stop listener</string>
     <string name="export_logs">Export logs</string>
     <string name="clear_logs">Clear logs</string>
     <string name="export_config">Export config</string>
@@ -128,4 +122,4 @@
     <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
     <string name="sms_permission_open_settings">Open settings</string>
     <string name="sms_permission_retry">Try again</string>
-<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string></resources>
+<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string></resources>

@@ -9,15 +9,18 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.smsrelay3.data.db.DatabaseProvider
+import com.smsrelay3.export.DiagnosticsExport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.concurrent.thread
 
 class DiagnosticsFragment : Fragment() {
     private lateinit var permissionsText: TextView
     private lateinit var configVersionText: TextView
     private lateinit var lastHeartbeatText: TextView
+    private var exportButton: android.widget.Button? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,6 +35,10 @@ class DiagnosticsFragment : Fragment() {
         permissionsText = view.findViewById(R.id.diag_permissions)
         configVersionText = view.findViewById(R.id.diag_config_version)
         lastHeartbeatText = view.findViewById(R.id.diag_last_heartbeat)
+        exportButton = view.findViewById(R.id.export_diagnostics)
+        exportButton?.setOnClickListener {
+            exportLauncher.launch("smsrelay3-diagnostics.json")
+        }
     }
 
     override fun onResume() {
@@ -57,6 +64,23 @@ class DiagnosticsFragment : Fragment() {
                     R.string.diag_last_heartbeat,
                     heartbeat?.createdAtMs?.toString() ?: "-"
                 )
+            }
+        }
+    }
+
+    private val exportLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        thread {
+            val content = DiagnosticsExport.buildDiagnosticsJson(requireContext())
+            val success = DiagnosticsExport.writeToUri(requireContext(), uri, content)
+            requireActivity().runOnUiThread {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    if (success) getString(R.string.toast_export_diagnostics_done) else getString(R.string.toast_export_diagnostics_failed),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

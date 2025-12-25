@@ -43,6 +43,24 @@
                 android:text="@string/open_battery"
                 android:textColor="@color/text_primary" />
 
+            <Button
+                android:id="@+id/open_notifications"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/glass_button"
+                android:text="@string/open_notifications"
+                android:textColor="@color/text_primary" />
+
+            <Button
+                android:id="@+id/open_autostart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/glass_button"
+                android:text="@string/open_autostart"
+                android:textColor="@color/text_primary" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
