@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.smsrelay3.ConfigStore
 import com.smsrelay3.HttpClient
+import com.smsrelay3.config.ConfigRepository
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.OutboundMessageStatus
 import com.smsrelay3.data.SimInventoryRepository
@@ -75,7 +76,8 @@ class HeartbeatWorker(appContext: Context, params: WorkerParameters) : Coroutine
         )
         db.heartbeatDao().insert(sample)
 
-        HeartbeatScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
+        val policy = ConfigRepository(applicationContext).latestPolicy()
+        HeartbeatScheduler.scheduleNext(applicationContext, policy.heartbeatIntervalS)
         return if (success) Result.success() else Result.retry()
     }
 

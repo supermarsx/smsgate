@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.smsrelay3.ConfigStore
 import com.smsrelay3.HttpClient
+import com.smsrelay3.config.ConfigRepository
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.SimInventoryRepository
 import okhttp3.MediaType.Companion.toMediaType
@@ -33,7 +34,8 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
         val repo = SimInventoryRepository(applicationContext)
         repo.saveSnapshots(snapshots)
         if (snapshots.isEmpty()) {
-            SimScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
+            val policy = ConfigRepository(applicationContext).latestPolicy()
+            SimScheduler.scheduleNext(applicationContext, policy.simPollIntervalS)
             return Result.success()
         }
 
@@ -68,7 +70,8 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
             false
         }
 
-        SimScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
+        val policy = ConfigRepository(applicationContext).latestPolicy()
+        SimScheduler.scheduleNext(applicationContext, policy.simPollIntervalS)
         return if (success) Result.success() else Result.retry()
     }
 

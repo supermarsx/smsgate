@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.smsrelay3.config.ConfigScheduler
 import com.smsrelay3.presence.HeartbeatScheduler
 import com.smsrelay3.sim.SimScheduler
 import com.smsrelay3.sync.SyncScheduler
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
             requestSmsPermissions()
             requestNotificationPermission()
             SyncScheduler.enqueueNow(this)
+            ConfigScheduler.ensureScheduled(this)
             HeartbeatScheduler.ensureScheduled(this)
             SimScheduler.ensureScheduled(this)
         }
