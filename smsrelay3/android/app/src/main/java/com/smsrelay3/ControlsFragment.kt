@@ -21,6 +21,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import com.smsrelay3.pairing.PairingClient
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
@@ -318,14 +319,22 @@ class ControlsFragment : Fragment() {
     private fun handlePairingPayload(payload: String) {
         val url = payload.trim()
         if (url.startsWith("http://") || url.startsWith("https://")) {
-            RemoteProvisioner.provisionWithUrl(requireContext(), url) { success ->
-                LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
-                toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
+            thread {
+                val success = PairingClient.completeWithUrl(requireContext(), url)
+                requireActivity().runOnUiThread {
+                    LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
+                    toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
+                }
             }
             return
         }
-        LogStore.append(getString(R.string.pairing_failed))
-        toast(getString(R.string.toast_pairing_failed))
+        thread {
+            val success = PairingClient.completeWithToken(requireContext(), url)
+            requireActivity().runOnUiThread {
+                LogStore.append(if (success) getString(R.string.pairing_success) else getString(R.string.pairing_failed))
+                toast(if (success) getString(R.string.toast_pairing_ok) else getString(R.string.toast_pairing_failed))
+            }
+        }
     }
 
     private fun toast(message: String) {
