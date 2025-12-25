@@ -3,10 +3,10 @@
 This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md` and the Graphite Glass design system.
 
 ## Architecture and packages
-- Create package layout: `config`, `data`, `sync`, `presence`, `sim`, `reconcile`, `pairing`, `ui`, `util`.
-- Add database bootstrap (Room + migrations) and a repository layer to isolate DAOs from services.
-- Introduce a shared clock/UUID/ULID helper for deterministic IDs and testability.
-- Add a centralized `AppRuntime` state holder for foreground/background/service mode, WS status, and last send/ACK metadata.
+- DONE: Create package layout: `config`, `data`, `sync`, `presence`, `sim`, `reconcile`, `pairing`, `ui`, `util`.
+- DONE: Add database bootstrap (Room + migrations) and a repository layer to isolate DAOs from services.
+- DONE: Introduce a shared clock/UUID/ULID helper for deterministic IDs and testability.
+- DONE: Add a centralized `AppRuntime` state holder for foreground/background/service mode, WS status, and last send/ACK metadata.
 
 ## Data model (Room)
 - Implement DAOs for OutboundMessage, SmsRawStore, HeartbeatSample, SimSnapshot, ConfigState, LocalOverrides, LocalLogEntry.
@@ -161,3 +161,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: TLS pinning support via config (pins applied to HttpClient).
 - DONE: Docs for permissions/config keys/OEM guide + readme update.
 - DONE: Added unit tests for ConfigRepository defaults and LogExport redaction.
+- DONE: Time/ID helpers and AppRuntime state holder.
