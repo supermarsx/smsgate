@@ -109,6 +109,23 @@ export function rollPairingPin(previous: PairingConfig): PairingConfig {
 
   persistPairingFile(updated);
 
+  if (pairingEnabled && isDefaultSecrets()) {
+    serverConfig.authorization.token.accessCode = [updated.pin];
+    serverConfig.authorization.token.clientId = [updated.clientId];
+    serverConfig.authorization.salt = updated.salt;
+    // Refresh hashed tokens to keep auth aligned with rolled pairing secrets.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require("./auth").initializeTokens();
+  }
+
+  const runtime = global.__SMSGATE_RUNTIME__;
+  if (runtime) {
+    runtime.pairingConfig = updated;
+    if (pairingEnabled && isDefaultSecrets()) {
+      runtime.authorization = serverConfig.authorization;
+    }
+  }
+
   if (process.env.NODE_ENV !== "production") {
     // eslint-disable-next-line no-console
     console.log("[pairing] Rolled pairing PIN", { clientId: updated.clientId, pin: updated.pin });

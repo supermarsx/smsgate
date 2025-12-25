@@ -3,7 +3,7 @@ import os from "os";
 import { serverConfig } from "../../config";
 import { getServerCodename } from "../../server/codename";
 import { getRuntime } from "../../server/runtime";
-import { getRollingPairingCode, rollPairingPin } from "../../server/pairing";
+import { getRollingPairingCode } from "../../server/pairing";
 
 function isDiscoveryEnabled(): boolean {
   if (process.env.SMSGATE_DISCOVERY_DEV === "true") return true;
@@ -20,7 +20,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
   }
 
   const runtime = getRuntime();
-  runtime.pairingConfig = rollPairingPin(runtime.pairingConfig);
   const seed = `${os.hostname()}-${serverConfig.server.port}`;
   const codename = getServerCodename(seed);
   const host = req.headers.host ?? "";
