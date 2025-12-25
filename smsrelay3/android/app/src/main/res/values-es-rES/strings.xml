@@ -128,4 +128,4 @@
   <string name="export_diagnostics">Exportar diagnóstico</string>
   <string name="toast_export_diagnostics_done">Diagnóstico exportado</string>
   <string name="toast_export_diagnostics_failed">Error al exportar diagnóstico</string>
-</resources>
+<string name="logs_filter_all">Todos los registros</string><string name="logs_filter_errors">Errores</string><string name="logs_export">Exportar registros</string><string name="diag_last_error">Último error: %1$s</string><string name="diag_overrides">Overrides actualizadas: %1$s</string></resources>

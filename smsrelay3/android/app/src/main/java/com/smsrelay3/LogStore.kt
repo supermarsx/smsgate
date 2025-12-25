@@ -25,12 +25,16 @@ object LogStore {
     }
 
     fun append(message: String) {
+        append("info", "app", message)
+    }
+
+    fun append(level: String, category: String, message: String) {
         val timestamp = formatter.format(Date())
         lines.add("[$timestamp] $message")
         while (lines.size > MAX_LINES) {
             lines.removeAt(0)
         }
-        persist(message)
+        persist(level, category, message)
         notifyListeners()
     }
 
@@ -57,14 +61,14 @@ object LogStore {
         listeners.forEach { it(snapshot) }
     }
 
-    private fun persist(message: String) {
+    private fun persist(level: String, category: String, message: String) {
         val context = appContext ?: return
         CoroutineScope(Dispatchers.IO).launch {
             val entry = LocalLogEntry(
                 id = UUID.randomUUID().toString(),
                 tsMs = System.currentTimeMillis(),
-                level = "info",
-                category = "app",
+                level = level,
+                category = category,
                 message = message,
                 detailsJson = null
             )

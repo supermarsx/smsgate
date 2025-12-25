@@ -10,10 +10,45 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/logs_filter_all"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/glass_button"
+                android:text="@string/logs_filter_all"
+                android:textColor="@color/text_primary" />
+
+            <Button
+                android:id="@+id/logs_filter_errors"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/glass_button"
+                android:text="@string/logs_filter_errors"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/logs_export"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/glass_button"
+            android:text="@string/logs_export"
+            android:textColor="@color/text_primary" />
+
         <TextView
             android:id="@+id/logs_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="@string/logs_placeholder"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />

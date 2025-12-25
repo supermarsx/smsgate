@@ -20,6 +20,8 @@ class DiagnosticsFragment : Fragment() {
     private lateinit var permissionsText: TextView
     private lateinit var configVersionText: TextView
     private lateinit var lastHeartbeatText: TextView
+    private lateinit var lastErrorText: TextView
+    private lateinit var overridesText: TextView
     private var exportButton: android.widget.Button? = null
 
     override fun onCreateView(
@@ -35,6 +37,8 @@ class DiagnosticsFragment : Fragment() {
         permissionsText = view.findViewById(R.id.diag_permissions)
         configVersionText = view.findViewById(R.id.diag_config_version)
         lastHeartbeatText = view.findViewById(R.id.diag_last_heartbeat)
+        lastErrorText = view.findViewById(R.id.diag_last_error)
+        overridesText = view.findViewById(R.id.diag_overrides)
         exportButton = view.findViewById(R.id.export_diagnostics)
         exportButton?.setOnClickListener {
             exportLauncher.launch("smsrelay3-diagnostics.json")
@@ -53,6 +57,8 @@ class DiagnosticsFragment : Fragment() {
             val config = db.configStateDao().latest()
             val heartbeat = db.heartbeatDao().latest()
             val permissions = buildPermissionsSummary(context)
+            val lastError = db.localLogDao().loadRecentByLevel("error", 1).firstOrNull()
+            val overrides = db.localOverridesDao().latest()
 
             withContext(Dispatchers.Main) {
                 permissionsText.text = getString(R.string.diag_permissions, permissions)
@@ -63,6 +69,14 @@ class DiagnosticsFragment : Fragment() {
                 lastHeartbeatText.text = getString(
                     R.string.diag_last_heartbeat,
                     heartbeat?.createdAtMs?.toString() ?: "-"
+                )
+                lastErrorText.text = getString(
+                    R.string.diag_last_error,
+                    lastError?.message ?: "-"
+                )
+                overridesText.text = getString(
+                    R.string.diag_overrides,
+                    overrides?.updatedAtMs?.toString() ?: "-"
                 )
             }
         }
