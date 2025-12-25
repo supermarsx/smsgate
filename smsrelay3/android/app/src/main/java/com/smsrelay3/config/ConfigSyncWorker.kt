@@ -34,7 +34,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
         current?.etag?.let { requestBuilder.addHeader("If-None-Match", it) }
 
         val response = try {
-            HttpClient.instance.newCall(requestBuilder.build()).execute()
+            HttpClient.get(applicationContext).newCall(requestBuilder.build()).execute()
         } catch (_: Exception) {
             com.smsrelay3.LogStore.append("error", "config", "Config sync: request failed")
             ConfigScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)

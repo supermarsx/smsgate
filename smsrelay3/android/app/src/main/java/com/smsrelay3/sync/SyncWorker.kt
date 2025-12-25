@@ -94,7 +94,7 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             .build()
 
         return try {
-            HttpClient.instance.newCall(request).execute().use { response ->
+            HttpClient.get(applicationContext).newCall(request).execute().use { response ->
                 response.isSuccessful
             }
         } catch (_: Exception) {
