@@ -2,7 +2,7 @@
 
 smsgate is a small time, two piece portal software to receive messages from your android phone and forward them to a HTTP API and view them on a browser anywhere. This piece of software was created with the premise of several people in different locations being able to access the latest received messages from an android phone. A very common use case of this is for several people to access two step verification codes, single one time codes for different types of applications.
 
-smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `smsrelay2` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to the server, and optionally maintains a WebSocket presence connection. The server interfaces with the browser client using WebSockets so connected users see incoming messages in real time.
+smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `smsrelay3` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to the server, and optionally maintains a WebSocket presence connection. The server interfaces with the browser client using WebSockets so connected users see incoming messages in real time.
 
 ## Visual Demo
 
@@ -13,7 +13,7 @@ smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `s
 
 2. Android application screenshot
 
-<img src="https://github.com/supermarsx/smsgate/raw/master/media/smsrelay2.png" width=300px>
+<img src="https://github.com/supermarsx/smsgate/raw/master/media/smsrelay3.png" width=300px>
 
 ## Main specification/features
 
@@ -40,7 +40,7 @@ $ cd ./smsgate/smsgate
 $ npm install
 
 Open the Android app in Android Studio
-$ cd ../smsrelay2/android
+$ cd ../smsrelay3/android
 ```
 
 ## App walkthrough (Android)
@@ -63,11 +63,11 @@ smsgate client config: ./smsgate/src/lib/config.ts
 smsgate server config: ./smsgate/src/config.ts
 ```
 
-### smsrelay2
+### smsrelay3
 
-smsrelay2 listens for incoming messages and forwards them to the server, compiling origin, body, and date/time (plus extra device metadata). Configuration is stored securely on device and can be provisioned remotely.
+smsrelay3 listens for incoming messages and forwards them to the server, compiling origin, body, and date/time (plus extra device metadata). Configuration is stored securely on device and can be provisioned remotely.
 
-To build and run, open `smsrelay2/android` in Android Studio and run on a physical device (Android 10+).
+To build and run, open `smsrelay3/android` in Android Studio and run on a physical device (Android 10+).
 
 ## OEM and platform optimizations (Android)
 
@@ -79,17 +79,17 @@ Programmatic settings (in-app):
 - Enable WebSocket presence if you want a persistent online indicator.
 
 Samsung (One UI):
-- Settings > Apps > smsrelay2 > Battery: set to Unrestricted.
-- Settings > Battery and device care > Battery > Background usage limits: add smsrelay2 to Never sleeping apps.
+- Settings > Apps > smsrelay3 > Battery: set to Unrestricted.
+- Settings > Battery and device care > Battery > Background usage limits: add smsrelay3 to Never sleeping apps.
 
 Xiaomi (MIUI/HyperOS):
-- Settings > Apps > Manage apps > smsrelay2 > Battery saver: No restrictions.
-- Security app > Autostart: allow smsrelay2.
+- Settings > Apps > Manage apps > smsrelay3 > Battery saver: No restrictions.
+- Security app > Autostart: allow smsrelay3.
 - Lock the app in Recents to prevent it from being killed.
 
 Oppo (ColorOS):
-- Settings > Battery > App battery management: set smsrelay2 to Unrestricted.
-- Settings > Apps > Auto-launch: allow smsrelay2.
+- Settings > Battery > App battery management: set smsrelay3 to Unrestricted.
+- Settings > Apps > Auto-launch: allow smsrelay3.
 - Disable Sleep standby optimization if present.
 
 ### smsgate

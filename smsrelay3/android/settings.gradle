@@ -1,0 +1,2 @@
+rootProject.name = "smsrelay3"
+include ":app"

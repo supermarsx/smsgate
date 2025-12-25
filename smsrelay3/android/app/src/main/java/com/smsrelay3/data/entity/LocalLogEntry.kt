@@ -1,0 +1,14 @@
+package com.smsrelay3.data.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "local_log_entries")
+data class LocalLogEntry(
+    @PrimaryKey val id: String,
+    val tsMs: Long,
+    val level: String,
+    val category: String,
+    val message: String,
+    val detailsJson: String?
+)

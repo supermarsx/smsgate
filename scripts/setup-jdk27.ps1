@@ -59,7 +59,7 @@ if (Test-Path -LiteralPath $installPath) {
 
 Move-Item -Path $extractedDir.FullName -Destination $installPath
 
-$gradleProps = Join-Path -Path $ProjectRoot -ChildPath "smsrelay2\\android\\gradle.properties"
+$gradleProps = Join-Path -Path $ProjectRoot -ChildPath "smsrelay3\\android\\gradle.properties"
 Set-GradleJavaHome $gradleProps $installPath
 
 [Environment]::SetEnvironmentVariable("JAVA_HOME", $installPath, "User")

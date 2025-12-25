@@ -1,0 +1,30 @@
+package com.smsrelay3.config
+
+data class RemoteConfig(
+    val realtimeMode: String,
+    val heartbeatIntervalS: Int,
+    val heartbeatDegradedAfterS: Int,
+    val heartbeatOfflineAfterS: Int,
+    val syncRetryBaseMs: Long,
+    val syncRetryMaxMs: Long,
+    val syncMaxAttempts: Int,
+    val syncQueueMaxDepth: Int,
+    val syncBatchMaxSize: Int,
+    val syncFlushOnConnect: Boolean,
+    val wsKeepaliveS: Int,
+    val wsReconnectBaseMs: Long,
+    val wsReconnectMaxMs: Long,
+    val simPollIntervalS: Int,
+    val simReportOnChangeImmediate: Boolean,
+    val reconcileEnabled: Boolean,
+    val reconcileWindowMinutes: Int,
+    val reconcileIntervalMinutes: Int,
+    val reconcileMaxScanCount: Int,
+    val loggingEnabled: Boolean,
+    val loggingLevel: String,
+    val loggingPersistToDisk: Boolean,
+    val loggingMaxMb: Int,
+    val loggingRedactSmsContent: Boolean,
+    val contactsSyncEnabled: Boolean,
+    val contactsSyncIntervalS: Int
+)
