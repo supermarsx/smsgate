@@ -58,6 +58,10 @@
             android:name=".RelayForegroundService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".BackgroundRelayService"
+            android:exported="false" />
     </application>
 
 </manifest>

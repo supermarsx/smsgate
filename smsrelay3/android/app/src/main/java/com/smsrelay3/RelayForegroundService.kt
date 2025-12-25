@@ -23,7 +23,7 @@ class RelayForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val config = ConfigStore.getConfig(this)
-        if (!config.enableForegroundService) {
+        if (!config.enableForegroundService || !config.servicesEnabled) {
             stopSelf()
             return START_NOT_STICKY
         }

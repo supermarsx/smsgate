@@ -52,6 +52,7 @@ object RemoteProvisioner {
         val server = json.optJSONObject("server")
         val auth = json.optJSONObject("auth")
         val features = json.optJSONObject("features")
+        val ui = json.optJSONObject("ui")
 
         server?.optString("url")?.takeIf { it.isNotBlank() }?.let {
             ConfigStore.setString(context, ConfigStore.KEY_SERVER_URL, it)
@@ -129,6 +130,25 @@ object RemoteProvisioner {
                     ConfigStore.KEY_NOTIFICATION_ENABLED,
                     features.optBoolean("notificationEnabled")
                 )
+            }
+            if (features.has("servicesEnabled")) {
+                ConfigStore.setBoolean(
+                    context,
+                    ConfigStore.KEY_SERVICES_ENABLED,
+                    features.optBoolean("servicesEnabled")
+                )
+            }
+        }
+
+        if (ui != null) {
+            ui.optString("locale").takeIf { it.isNotBlank() }?.let {
+                ConfigStore.setString(context, ConfigStore.KEY_APP_LOCALE, it)
+            }
+            ui.optString("theme").takeIf { it.isNotBlank() }?.let {
+                ConfigStore.setString(context, ConfigStore.KEY_APP_THEME, it)
+            }
+            ui.optString("accent").takeIf { it.isNotBlank() }?.let {
+                ConfigStore.setString(context, ConfigStore.KEY_APP_ACCENT, it)
             }
         }
 

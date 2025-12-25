@@ -16,10 +16,12 @@ import kotlinx.coroutines.withContext
 
 class StatusFragment : Fragment() {
     private lateinit var deviceIdText: TextView
+    private lateinit var connectionText: TextView
     private lateinit var queueDepthText: TextView
     private lateinit var lastRttText: TextView
     private lateinit var lastSendText: TextView
     private lateinit var simSummaryText: TextView
+    private lateinit var reconcileText: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,10 +34,12 @@ class StatusFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         deviceIdText = view.findViewById(R.id.status_device_id)
+        connectionText = view.findViewById(R.id.status_connection)
         queueDepthText = view.findViewById(R.id.status_queue_depth)
         lastRttText = view.findViewById(R.id.status_last_rtt)
         lastSendText = view.findViewById(R.id.status_last_send)
         simSummaryText = view.findViewById(R.id.status_sim_summary)
+        reconcileText = view.findViewById(R.id.status_reconcile)
     }
 
     override fun onResume() {
@@ -53,9 +57,17 @@ class StatusFragment : Fragment() {
             val simSnapshots = db.simSnapshotDao().loadAll()
             val simSlots = simSnapshots.map { it.slotIndex }.distinct().sorted()
             val deviceId = DeviceAuthStore.getDeviceId(context) ?: "unpaired"
+            val policy = com.smsrelay3.config.ConfigRepository(context).latestPolicy()
+            val reconcileAt = com.smsrelay3.runtime.AppRuntime.lastReconcileAtMs()
+            val connectionState = when (heartbeat?.wsState) {
+                "connected" -> "connected"
+                "offline" -> "offline"
+                else -> "unknown"
+            }
 
             withContext(Dispatchers.Main) {
                 deviceIdText.text = getString(R.string.status_device_id, deviceId)
+                connectionText.text = getString(R.string.status_connection, connectionState)
                 queueDepthText.text = getString(R.string.status_queue_depth, queueDepth)
                 lastRttText.text = getString(
                     R.string.status_last_rtt,
@@ -69,6 +81,12 @@ class StatusFragment : Fragment() {
                     R.string.status_sim_summary,
                     if (simSlots.isEmpty()) "-" else simSlots.joinToString(",")
                 )
+                val reconcileStatus = if (policy.reconcileEnabled) {
+                    if (reconcileAt > 0) "on (last $reconcileAt)" else "on"
+                } else {
+                    "off"
+                }
+                reconcileText.text = getString(R.string.status_reconcile, reconcileStatus)
             }
         }
     }

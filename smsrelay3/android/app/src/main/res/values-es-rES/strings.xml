@@ -65,9 +65,11 @@
   <string name="status_header">Estado del dispositivo</string>
   <string name="status_device_id">ID del dispositivo: %1$s</string>
   <string name="status_queue_depth">Profundidad de cola: %1$d</string>
+  <string name="status_connection">Servidor: %1$s</string>
   <string name="status_last_rtt">Último RTT (ms): %1$s</string>
   <string name="status_last_send">Último envío correcto (ms): %1$s</string>
   <string name="status_sim_summary">Ranuras SIM: %1$s</string>
+  <string name="status_reconcile">Reconciliar: %1$s</string>
   <string name="diag_header">Diagnóstico</string>
   <string name="diag_permissions">Permisos: %1$s</string>
   <string name="diag_pairing_status">Emparejamiento: %1$s</string>
@@ -122,6 +124,7 @@
   <string name="pairing_header">Emparejamiento</string>
   <string name="pairing_status_unpaired">Sin emparejamiento</string>
   <string name="pairing_status_paired">Emparejado: %1$s</string>
+  <string name="settings_services_toggle">Servicios de relay habilitados</string>
   <string name="pairing_code_hint">Código de emparejamiento (opcional)</string>
   <string name="settings_header">Ajustes</string>
   <string name="open_notifications">Ajustes de notificaciones</string>
@@ -131,7 +134,7 @@
   <string name="export_diagnostics">Exportar diagnóstico</string>
   <string name="toast_export_diagnostics_done">Diagnóstico exportado</string>
   <string name="toast_export_diagnostics_failed">Error al exportar diagnóstico</string>
-<string name="logs_filter_all">Todos los registros</string><string name="logs_filter_errors">Errores</string><string name="logs_export">Exportar registros</string><string name="diag_last_error">Último error: %1$s</string><string name="diag_overrides">Overrides actualizadas: %1$s</string>
+<string name="logs_filter_all">Todos los registros</string><string name="logs_filter_errors">Errores</string><string name="logs_export">Exportar registros</string><string name="diag_last_error">Último error: %1$s</string><string name="diag_overrides">Overrides actualizadas: %1$s</string><string name="diag_service_mode">Servicio: %1$s</string>
   <string name="pref_app_theme_title">Tema</string>
   <string name="pref_app_theme_summary">Elige modo claro u oscuro</string>
   <string name="theme_entry_system">Predeterminado del sistema</string>

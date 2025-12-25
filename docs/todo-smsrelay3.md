@@ -74,16 +74,16 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - Diagnostics
   - Logs
   - Settings
-- Build status indicators:
-  - server connection state
-  - last RTT
-  - queue depth
-  - last successful send
-  - SIM summary
-  - reconciliation status
+- DONE: Build status indicators:
+  - DONE: server connection state
+  - DONE: last RTT
+  - DONE: queue depth
+  - DONE: last successful send
+  - DONE: SIM summary
+  - DONE: reconciliation status
 - Implement Diagnostics list:
   - permissions status
-  - service mode
+  - DONE: service mode
   - OEM guidance
   - last 20 events and errors
   - config version and overrides summary
@@ -92,8 +92,8 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 
 ## Services and lifecycle
 - Implement service modes:
-  - foreground service
-  - persistent background service
+  - DONE: foreground service
+  - DONE: persistent background service
   - best-effort (WorkManager)
 - Add boot receiver rehydration based on config.
 - Add OEM guidance UI and shortcuts (MIUI, Huawei, Samsung, Oppo/Vivo).
@@ -166,3 +166,5 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Tab icons + in-panel titles, logs clear action, and compact button styling.
 - DONE: Theme selector (system/dark/light) + light/dark palettes per Graphite Glass spec.
 - DONE: Permissions entry screen with required/optional checks and tab bar fixed-mode icons.
+- DONE: Theme accent picker (cyan/indigo/mint/amber/rose) + service mode diagnostics + logs ordering fixes.
+- DONE: Settings kill toggle for relay services + background relay service default start.

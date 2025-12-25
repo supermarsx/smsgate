@@ -133,7 +133,13 @@ class DiagnosticsFragment : Fragment() {
     private suspend fun buildServiceModeSummary(context: android.content.Context): String {
         val policy = com.smsrelay3.config.ConfigRepository(context).latestPolicy()
         val foreground = if (RelayForegroundService.isRunning) "running" else "stopped"
-        return "mode=${policy.realtimeMode} foreground=$foreground"
+        val backgroundMode = when (policy.realtimeMode) {
+            "persistent_background" -> "persistent"
+            "best_effort" -> "workmanager"
+            else -> "disabled"
+        }
+        val backgroundRunning = if (BackgroundRelayService.isRunning) "running" else "stopped"
+        return "mode=${policy.realtimeMode} foreground=$foreground background=$backgroundMode ($backgroundRunning)"
     }
 
     private fun flag(value: Boolean): String {

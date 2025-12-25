@@ -65,9 +65,11 @@
     <string name="status_header">Device status</string>
     <string name="status_device_id">Device ID: %1$s</string>
     <string name="status_queue_depth">Queue depth: %1$d</string>
+    <string name="status_connection">Server: %1$s</string>
     <string name="status_last_rtt">Last RTT (ms): %1$s</string>
     <string name="status_last_send">Last success send (ms): %1$s</string>
     <string name="status_sim_summary">SIM slots: %1$s</string>
+    <string name="status_reconcile">Reconcile: %1$s</string>
     <string name="diag_header">Diagnostics</string>
     <string name="diag_permissions">Permissions: %1$s</string>
     <string name="diag_pairing_status">Pairing: %1$s</string>
@@ -118,7 +120,7 @@
     <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
     <string name="sms_permission_open_settings">Open settings</string>
     <string name="sms_permission_retry">Try again</string>
-<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string>
+<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="settings_services_toggle">Relay services enabled</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string><string name="diag_service_mode">Service: %1$s</string>
 <string name="pref_app_theme_title">Theme</string>
 <string name="pref_app_theme_summary">Choose light or dark appearance</string>
 <string name="theme_entry_system">System default</string>

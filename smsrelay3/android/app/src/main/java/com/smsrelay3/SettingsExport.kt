@@ -38,12 +38,18 @@ object SettingsExport {
         provisioning.put("remoteConfigSignatureSecret", config.remoteConfigSignatureSecret)
         provisioning.put("discoveryPort", config.discoveryPort)
         json.put("provisioning", provisioning)
+        val ui = JSONObject()
+        ui.put("locale", ConfigStore.getString(context, ConfigStore.KEY_APP_LOCALE, "system"))
+        ui.put("theme", ConfigStore.getString(context, ConfigStore.KEY_APP_THEME, "system"))
+        ui.put("accent", ConfigStore.getString(context, ConfigStore.KEY_APP_ACCENT, "cyan"))
+        json.put("ui", ui)
         val features = JSONObject()
         features.put("enableListener", config.enableListener)
         features.put("enableForegroundService", config.enableForegroundService)
         features.put("enableBootReceiver", config.enableBootReceiver)
         features.put("enableSocketPresence", config.enableSocketPresence)
         features.put("notificationEnabled", config.notificationEnabled)
+        features.put("servicesEnabled", config.servicesEnabled)
         json.put("features", features)
         return json.toString(2)
     }
@@ -75,6 +81,17 @@ object SettingsExport {
             json.optJSONObject("overrides")?.let { overrides ->
                 runBlocking {
                     LocalOverridesRepository(context).setOverrides(overrides.toString())
+                }
+            }
+            json.optJSONObject("ui")?.let { ui ->
+                ui.optString("locale").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(context, ConfigStore.KEY_APP_LOCALE, it)
+                }
+                ui.optString("theme").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(context, ConfigStore.KEY_APP_THEME, it)
+                }
+                ui.optString("accent").takeIf { it.isNotBlank() }?.let {
+                    ConfigStore.setString(context, ConfigStore.KEY_APP_ACCENT, it)
                 }
             }
             ConfigEvents.notifyChanged()

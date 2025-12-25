@@ -21,9 +21,12 @@ class BootReceiver : BroadcastReceiver() {
             val policy = runBlocking {
                 ConfigRepository(context).latestPolicy()
             }
-            if (policy.realtimeMode == "foreground_service" && config.enableForegroundService) {
+            if (config.servicesEnabled && policy.realtimeMode == "foreground_service" && config.enableForegroundService) {
                 val serviceIntent = Intent(context, RelayForegroundService::class.java)
                 ForegroundServiceGuard.start(context, serviceIntent)
+            }
+            if (config.servicesEnabled) {
+                context.startService(Intent(context, BackgroundRelayService::class.java))
             }
         }
         SyncScheduler.enqueueNow(context)

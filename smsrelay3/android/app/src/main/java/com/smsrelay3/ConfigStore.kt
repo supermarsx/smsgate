@@ -29,7 +29,8 @@ data class AppConfig(
     val enableForegroundService: Boolean,
     val enableBootReceiver: Boolean,
     val enableSocketPresence: Boolean,
-    val notificationEnabled: Boolean
+    val notificationEnabled: Boolean,
+    val servicesEnabled: Boolean
 )
 
 object ConfigStore {
@@ -63,6 +64,7 @@ object ConfigStore {
     const val KEY_APP_LOCALE = "app_locale"
     const val KEY_APP_THEME = "app_theme"
     const val KEY_APP_ACCENT = "app_accent"
+    const val KEY_SERVICES_ENABLED = "services_enabled"
 
     private fun prefs(context: Context): SharedPreferences {
         return try {
@@ -107,7 +109,8 @@ object ConfigStore {
             enableForegroundService = prefs.getBoolean(KEY_ENABLE_FOREGROUND, true),
             enableBootReceiver = prefs.getBoolean(KEY_ENABLE_BOOT, true),
             enableSocketPresence = prefs.getBoolean(KEY_ENABLE_SOCKET, true),
-            notificationEnabled = prefs.getBoolean(KEY_NOTIFICATION_ENABLED, true)
+            notificationEnabled = prefs.getBoolean(KEY_NOTIFICATION_ENABLED, true),
+            servicesEnabled = prefs.getBoolean(KEY_SERVICES_ENABLED, true)
         )
     }
 
@@ -121,6 +124,10 @@ object ConfigStore {
 
     fun getString(context: Context, key: String, defaultValue: String): String {
         return prefs(context).getString(key, defaultValue) ?: defaultValue
+    }
+
+    fun getBoolean(context: Context, key: String, defaultValue: Boolean): Boolean {
+        return prefs(context).getBoolean(key, defaultValue)
     }
 
     fun defaultString(key: String): String {

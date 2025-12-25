@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.activity.result.contract.ActivityResultContracts
 import com.smsrelay3.util.OemSettings
@@ -50,6 +51,21 @@ class SettingsContainerFragment : Fragment() {
         val openAutostart = view.findViewById<Button>(R.id.open_autostart)
         val exportConfig = view.findViewById<Button>(R.id.export_config)
         val importConfig = view.findViewById<Button>(R.id.import_config)
+        val toggleServices = view.findViewById<SwitchCompat>(R.id.toggle_services)
+
+        toggleServices.isChecked = ConfigStore.getBoolean(
+            requireContext(),
+            ConfigStore.KEY_SERVICES_ENABLED,
+            true
+        )
+        toggleServices.setOnCheckedChangeListener { _, enabled ->
+            ConfigStore.setBoolean(requireContext(), ConfigStore.KEY_SERVICES_ENABLED, enabled)
+            if (enabled) {
+                startRelayServices()
+            } else {
+                stopRelayServices()
+            }
+        }
 
         openSettings.setOnClickListener {
             val intent = android.content.Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -94,6 +110,24 @@ class SettingsContainerFragment : Fragment() {
                 .replace(R.id.settings_container, SettingsFragment())
                 .commit()
         }
+    }
+
+    private fun startRelayServices() {
+        val config = ConfigStore.getConfig(requireContext())
+        if (config.enableForegroundService && !RelayForegroundService.isRunning) {
+            ForegroundServiceGuard.start(
+                requireContext(),
+                Intent(requireContext(), RelayForegroundService::class.java)
+            )
+        }
+        if (!BackgroundRelayService.isRunning) {
+            requireContext().startService(Intent(requireContext(), BackgroundRelayService::class.java))
+        }
+    }
+
+    private fun stopRelayServices() {
+        requireContext().stopService(Intent(requireContext(), RelayForegroundService::class.java))
+        requireContext().stopService(Intent(requireContext(), BackgroundRelayService::class.java))
     }
 
     private fun toast(message: String) {

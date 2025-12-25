@@ -69,6 +69,18 @@ class MainActivity : AppCompatActivity() {
             ReconcileScheduler.ensureScheduled(this)
             PruneScheduler.ensureScheduled(this)
             ContactsSyncScheduler.ensureScheduled(this)
+            startRelayServices()
+        }
+    }
+
+    private fun startRelayServices() {
+        val config = ConfigStore.getConfig(this)
+        if (!config.servicesEnabled) return
+        if (config.enableForegroundService && !RelayForegroundService.isRunning) {
+            ForegroundServiceGuard.start(this, Intent(this, RelayForegroundService::class.java))
+        }
+        if (!BackgroundRelayService.isRunning) {
+            startService(Intent(this, BackgroundRelayService::class.java))
         }
     }
 
@@ -80,6 +92,8 @@ class MainActivity : AppCompatActivity() {
         if (!PermissionGate.allRequiredGranted(this)) {
             startActivity(Intent(this, PermissionsActivity::class.java))
             finish()
+            return
         }
+        startRelayServices()
     }
 }

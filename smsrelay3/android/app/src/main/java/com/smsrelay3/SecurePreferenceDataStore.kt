@@ -28,6 +28,7 @@ class SecurePreferenceDataStore(private val context: Context) : PreferenceDataSt
             ConfigStore.KEY_ENABLE_BOOT -> prefsValue.enableBootReceiver
             ConfigStore.KEY_ENABLE_SOCKET -> prefsValue.enableSocketPresence
             ConfigStore.KEY_NOTIFICATION_ENABLED -> prefsValue.notificationEnabled
+            ConfigStore.KEY_SERVICES_ENABLED -> prefsValue.servicesEnabled
             else -> defValue
         }
     }

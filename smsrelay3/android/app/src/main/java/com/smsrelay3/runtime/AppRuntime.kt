@@ -8,6 +8,7 @@ object AppRuntime {
     private val wsState = AtomicReference("disconnected")
     private val lastSendAt = AtomicLong(0L)
     private val lastAckAt = AtomicLong(0L)
+    private val lastReconcileAt = AtomicLong(0L)
     private val foreground = AtomicBoolean(false)
 
     fun setWsState(state: String) {
@@ -27,6 +28,12 @@ object AppRuntime {
     fun lastSendAtMs(): Long = lastSendAt.get()
 
     fun lastAckAtMs(): Long = lastAckAt.get()
+
+    fun markReconcile(tsMs: Long) {
+        lastReconcileAt.set(tsMs)
+    }
+
+    fun lastReconcileAtMs(): Long = lastReconcileAt.get()
 
     fun setForeground(value: Boolean) {
         foreground.set(value)

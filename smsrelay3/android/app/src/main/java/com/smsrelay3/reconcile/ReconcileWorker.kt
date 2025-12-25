@@ -54,6 +54,7 @@ class ReconcileWorker(appContext: Context, params: WorkerParameters) : Coroutine
             )
         }
 
+        com.smsrelay3.runtime.AppRuntime.markReconcile(System.currentTimeMillis())
         ReconcileScheduler.scheduleNext(applicationContext, policy.reconcileIntervalMinutes.toLong())
         return Result.success()
     }

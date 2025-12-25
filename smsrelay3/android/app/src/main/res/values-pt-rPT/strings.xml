@@ -65,9 +65,11 @@
   <string name="status_header">Estado do dispositivo</string>
   <string name="status_device_id">ID do dispositivo: %1$s</string>
   <string name="status_queue_depth">Profundidade da fila: %1$d</string>
+  <string name="status_connection">Servidor: %1$s</string>
   <string name="status_last_rtt">Último RTT (ms): %1$s</string>
   <string name="status_last_send">Último envio com sucesso (ms): %1$s</string>
   <string name="status_sim_summary">Slots SIM: %1$s</string>
+  <string name="status_reconcile">Reconciliar: %1$s</string>
   <string name="diag_header">Diagnóstico</string>
   <string name="diag_permissions">Permissões: %1$s</string>
   <string name="diag_pairing_status">Emparelhamento: %1$s</string>
@@ -122,6 +124,7 @@
   <string name="pairing_header">Emparelhamento</string>
   <string name="pairing_status_unpaired">Sem emparelhamento</string>
   <string name="pairing_status_paired">Emparelhado: %1$s</string>
+  <string name="settings_services_toggle">Serviços de relay ativos</string>
   <string name="pairing_code_hint">Código de emparelhamento (opcional)</string>
   <string name="settings_header">Definições</string>
   <string name="open_notifications">Definições de notificações</string>
@@ -131,7 +134,7 @@
   <string name="export_diagnostics">Exportar diagnóstico</string>
   <string name="toast_export_diagnostics_done">Diagnóstico exportado</string>
   <string name="toast_export_diagnostics_failed">Falha ao exportar diagnóstico</string>
-<string name="logs_filter_all">Todos os registos</string><string name="logs_filter_errors">Erros</string><string name="logs_export">Exportar registos</string><string name="diag_last_error">Último erro: %1$s</string><string name="diag_overrides">Overrides atualizadas: %1$s</string>
+<string name="logs_filter_all">Todos os registos</string><string name="logs_filter_errors">Erros</string><string name="logs_export">Exportar registos</string><string name="diag_last_error">Último erro: %1$s</string><string name="diag_overrides">Overrides atualizadas: %1$s</string><string name="diag_service_mode">Serviço: %1$s</string>
   <string name="pref_app_theme_title">Tema</string>
   <string name="pref_app_theme_summary">Escolha o modo claro ou escuro</string>
   <string name="theme_entry_system">Padrão do sistema</string>
