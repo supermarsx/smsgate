@@ -99,13 +99,6 @@
     <string name="clear_logs">Clear logs</string>
     <string name="export_config">Export config</string>
     <string name="import_config">Import config</string>
-    <string name="toast_fg_started">Foreground service started</string>
-    <string name="toast_fg_stopped">Foreground service stopped</string>
-    <string name="toast_listener_started">Listener enabled</string>
-    <string name="toast_listener_stopped">Listener disabled</string>
-    <string name="toast_provisioning">Provisioning started</string>
-    <string name="toast_provisioning_ok">Provisioning applied</string>
-    <string name="toast_provisioning_failed">Provisioning failed</string>
     <string name="toast_discovery_started">Discovery started</string>
     <string name="toast_discovery_done">Discovery complete</string>
     <string name="toast_discovery_none">No servers found</string>

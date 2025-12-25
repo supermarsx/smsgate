@@ -148,3 +148,5 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Log persistence to Room + logs screen loads recent entries.
 - DONE: Pairing tab + Settings container (export/import + system shortcuts).
 - DONE: Removed legacy Configs fragment/layout and renamed tab to Settings.
+- DONE: OEM shortcuts (notifications/autostart) + diagnostics export.
+- DONE: Regenerated launcher icons from app-icon-concept.png.

@@ -93,13 +93,6 @@
   <string name="clear_logs">Limpar registos</string>
   <string name="export_config">Exportar configuração</string>
   <string name="import_config">Importar configuração</string>
-  <string name="toast_fg_started">Serviço em primeiro plano iniciado</string>
-  <string name="toast_fg_stopped">Serviço em primeiro plano parado</string>
-  <string name="toast_listener_started">Escuta ativada</string>
-  <string name="toast_listener_stopped">Escuta desativada</string>
-  <string name="toast_provisioning">Provisionamento iniciado</string>
-  <string name="toast_provisioning_ok">Provisionamento aplicado</string>
-  <string name="toast_provisioning_failed">Provisionamento falhou</string>
   <string name="toast_discovery_started">Descoberta iniciada</string>
   <string name="toast_discovery_done">Descoberta concluída</string>
   <string name="toast_discovery_none">Nenhum servidor encontrado</string>
