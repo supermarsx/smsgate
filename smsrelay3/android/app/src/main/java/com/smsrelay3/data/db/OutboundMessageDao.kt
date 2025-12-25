@@ -24,6 +24,9 @@ interface OutboundMessageDao {
     @Query("SELECT COUNT(*) FROM outbound_messages WHERE status = :status")
     suspend fun countByStatus(status: String): Int
 
+    @Query("SELECT COUNT(*) FROM outbound_messages WHERE contentHash = :hash AND smsReceivedAtMs BETWEEN :fromMs AND :toMs")
+    suspend fun countByHashBetween(hash: String, fromMs: Long, toMs: Long): Int
+
     @Query("DELETE FROM outbound_messages WHERE status = :status AND createdAtMs < :olderThanMs")
     suspend fun deleteByStatusOlderThan(status: String, olderThanMs: Long): Int
 

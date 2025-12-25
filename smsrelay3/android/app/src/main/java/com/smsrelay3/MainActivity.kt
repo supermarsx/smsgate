@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
@@ -13,6 +16,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.smsrelay3.config.ConfigScheduler
 import com.smsrelay3.presence.HeartbeatScheduler
+import com.smsrelay3.reconcile.ReconcileScheduler
 import com.smsrelay3.sim.SimScheduler
 import com.smsrelay3.sync.SyncScheduler
 
@@ -27,8 +31,9 @@ class MainActivity : AppCompatActivity() {
         pager.offscreenPageLimit = 1
         TabLayoutMediator(tabs, pager) { tab, position ->
             tab.text = when (position) {
-                0 -> getString(R.string.tab_logs)
-                1 -> getString(R.string.tab_controls)
+                0 -> getString(R.string.tab_status)
+                1 -> getString(R.string.tab_logs)
+                2 -> getString(R.string.tab_controls)
                 else -> getString(R.string.tab_configs)
             }
         }.attach()
@@ -40,6 +45,7 @@ class MainActivity : AppCompatActivity() {
             ConfigScheduler.ensureScheduled(this)
             HeartbeatScheduler.ensureScheduled(this)
             SimScheduler.ensureScheduled(this)
+            ReconcileScheduler.ensureScheduled(this)
         }
     }
 
@@ -53,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (missing.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), REQUEST_SMS_PERMISSIONS)
+            return
         }
     }
 
@@ -73,5 +80,41 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_SMS_PERMISSIONS = 100
         private const val REQUEST_NOTIFICATION_PERMISSIONS = 101
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != REQUEST_SMS_PERMISSIONS) return
+        val granted = permissions.indices.all { index ->
+            grantResults.getOrNull(index) == PackageManager.PERMISSION_GRANTED
+        }
+        if (!granted) {
+            showSmsPermissionRequiredDialog()
+        }
+    }
+
+    private fun showSmsPermissionRequiredDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.sms_permission_title))
+            .setMessage(getString(R.string.sms_permission_message))
+            .setPositiveButton(getString(R.string.sms_permission_open_settings)) { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.fromParts("package", packageName, null)
+                startActivity(intent)
+            }
+            .setNegativeButton(getString(R.string.sms_permission_retry)) { _, _ ->
+                requestSmsPermissions()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        requestSmsPermissions()
     }
 }

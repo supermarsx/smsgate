@@ -56,4 +56,8 @@
     <string name="toast_open_battery">Opening battery settings</string>
     <string name="toast_scan_qr_started">Opening QR scanner</string>
     <string name="toast_cleared">Logs cleared</string>
+    <string name="sms_permission_title">SMS permission required</string>
+    <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
+    <string name="sms_permission_open_settings">Open settings</string>
+    <string name="sms_permission_retry">Try again</string>
 </resources>

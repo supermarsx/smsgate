@@ -13,7 +13,11 @@ class ConfigRepository(private val context: Context) {
         if (raw.isNullOrBlank()) {
             return ConfigPolicy(
                 heartbeatIntervalS = ConfigDefaults.HEARTBEAT_INTERVAL_S,
-                simPollIntervalS = ConfigDefaults.SIM_POLL_INTERVAL_S
+                simPollIntervalS = ConfigDefaults.SIM_POLL_INTERVAL_S,
+                reconcileEnabled = ConfigDefaults.RECONCILE_ENABLED,
+                reconcileWindowMinutes = ConfigDefaults.RECONCILE_WINDOW_MINUTES,
+                reconcileIntervalMinutes = ConfigDefaults.RECONCILE_INTERVAL_MINUTES,
+                reconcileMaxScanCount = ConfigDefaults.RECONCILE_MAX_SCAN_COUNT
             )
         }
         return parsePolicy(raw)
@@ -24,6 +28,7 @@ class ConfigRepository(private val context: Context) {
             val json = JSONObject(raw)
             val heartbeat = json.optJSONObject("heartbeat")
             val sim = json.optJSONObject("sim")
+            val reconcile = json.optJSONObject("reconcile")
             val heartbeatInterval = heartbeat?.optLong("interval_s", ConfigDefaults.HEARTBEAT_INTERVAL_S)
                 ?: ConfigDefaults.HEARTBEAT_INTERVAL_S
             val poll = sim?.optJSONObject("poll")
@@ -31,14 +36,30 @@ class ConfigRepository(private val context: Context) {
                 ?: sim?.optLong("poll_interval_s", -1L).takeIf { it != -1L }
                 ?: sim?.optLong("pollIntervalS", ConfigDefaults.SIM_POLL_INTERVAL_S)
                 ?: ConfigDefaults.SIM_POLL_INTERVAL_S
+            val reconcileEnabled = reconcile?.optBoolean("enabled", ConfigDefaults.RECONCILE_ENABLED)
+                ?: ConfigDefaults.RECONCILE_ENABLED
+            val reconcileWindow = reconcile?.optInt("window_minutes", ConfigDefaults.RECONCILE_WINDOW_MINUTES)
+                ?: ConfigDefaults.RECONCILE_WINDOW_MINUTES
+            val reconcileInterval = reconcile?.optInt("interval_minutes", ConfigDefaults.RECONCILE_INTERVAL_MINUTES)
+                ?: ConfigDefaults.RECONCILE_INTERVAL_MINUTES
+            val reconcileMaxScan = reconcile?.optInt("max_scan_count", ConfigDefaults.RECONCILE_MAX_SCAN_COUNT)
+                ?: ConfigDefaults.RECONCILE_MAX_SCAN_COUNT
             ConfigPolicy(
                 heartbeatIntervalS = heartbeatInterval.coerceAtLeast(5L),
-                simPollIntervalS = simInterval.coerceAtLeast(10L)
+                simPollIntervalS = simInterval.coerceAtLeast(10L),
+                reconcileEnabled = reconcileEnabled,
+                reconcileWindowMinutes = reconcileWindow.coerceAtLeast(1),
+                reconcileIntervalMinutes = reconcileInterval.coerceAtLeast(1),
+                reconcileMaxScanCount = reconcileMaxScan.coerceAtLeast(10)
             )
         } catch (_: Exception) {
             ConfigPolicy(
                 heartbeatIntervalS = ConfigDefaults.HEARTBEAT_INTERVAL_S,
-                simPollIntervalS = ConfigDefaults.SIM_POLL_INTERVAL_S
+                simPollIntervalS = ConfigDefaults.SIM_POLL_INTERVAL_S,
+                reconcileEnabled = ConfigDefaults.RECONCILE_ENABLED,
+                reconcileWindowMinutes = ConfigDefaults.RECONCILE_WINDOW_MINUTES,
+                reconcileIntervalMinutes = ConfigDefaults.RECONCILE_INTERVAL_MINUTES,
+                reconcileMaxScanCount = ConfigDefaults.RECONCILE_MAX_SCAN_COUNT
             )
         }
     }

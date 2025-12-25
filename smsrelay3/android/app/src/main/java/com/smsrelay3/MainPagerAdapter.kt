@@ -5,12 +5,13 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class MainPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
-    override fun getItemCount(): Int = 3
+    override fun getItemCount(): Int = 4
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> LogsFragment()
-            1 -> ControlsFragment()
+            0 -> StatusFragment()
+            1 -> LogsFragment()
+            2 -> ControlsFragment()
             else -> ConfigsFragment()
         }
     }
