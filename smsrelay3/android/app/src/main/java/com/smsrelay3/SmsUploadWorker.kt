@@ -83,7 +83,7 @@ class SmsUploadWorker(appContext: Context, workerParams: WorkerParameters) :
             }
         }
 
-        HttpClient.instance.newWebSocket(request, listener)
+        HttpClient.get(applicationContext).newWebSocket(request, listener)
         val completed = latch.await(5, TimeUnit.SECONDS)
         return if (completed && success.get()) {
             if (messageId != null) {

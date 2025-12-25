@@ -1,5 +1,6 @@
 package com.smsrelay3
 
+import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater

@@ -160,3 +160,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Contacts sync worker (READ_CONTACTS gated).
 - DONE: TLS pinning support via config (pins applied to HttpClient).
 - DONE: Docs for permissions/config keys/OEM guide + readme update.
+- DONE: Added unit tests for ConfigRepository defaults and LogExport redaction.
