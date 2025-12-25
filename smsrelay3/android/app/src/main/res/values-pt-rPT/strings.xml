@@ -128,11 +128,11 @@
   <string name="pairing_status_paired">Emparelhado: %1$s</string>
   <string name="pairing_code_hint">Código de emparelhamento (opcional)</string>
   <string name="settings_header">Definições</string>
-  <string name="open_notifications">Definicoes de notificacoes</string>
-  <string name="open_autostart">Definicoes de arranque automatico</string>
-  <string name="toast_open_notifications">A abrir definicoes de notificacoes</string>
-  <string name="toast_open_autostart">A abrir definicoes de arranque automatico</string>
-  <string name="export_diagnostics">Exportar diagnostico</string>
-  <string name="toast_export_diagnostics_done">Diagnostico exportado</string>
-  <string name="toast_export_diagnostics_failed">Falha ao exportar diagnostico</string>
+  <string name="open_notifications">Definições de notificações</string>
+  <string name="open_autostart">Definições de arranque automático</string>
+  <string name="toast_open_notifications">A abrir definições de notificações</string>
+  <string name="toast_open_autostart">A abrir definições de arranque automático</string>
+  <string name="export_diagnostics">Exportar diagnóstico</string>
+  <string name="toast_export_diagnostics_done">Diagnóstico exportado</string>
+  <string name="toast_export_diagnostics_failed">Falha ao exportar diagnóstico</string>
 </resources>
