@@ -14,4 +14,44 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlayGlass</item>
     </style>
 
+    <style name="AppTheme.AccentCyan" parent="AppTheme">
+        <item name="colorPrimary">@color/accent_primary</item>
+        <item name="colorPrimaryVariant">@color/accent_primary</item>
+        <item name="colorSecondary">@color/accent_primary</item>
+        <item name="colorControlActivated">@color/accent_primary</item>
+        <item name="colorControlHighlight">@color/accent_primary</item>
+    </style>
+
+    <style name="AppTheme.AccentIndigo" parent="AppTheme">
+        <item name="colorPrimary">@color/accent_info</item>
+        <item name="colorPrimaryVariant">@color/accent_info</item>
+        <item name="colorSecondary">@color/accent_info</item>
+        <item name="colorControlActivated">@color/accent_info</item>
+        <item name="colorControlHighlight">@color/accent_info</item>
+    </style>
+
+    <style name="AppTheme.AccentMint" parent="AppTheme">
+        <item name="colorPrimary">@color/accent_success</item>
+        <item name="colorPrimaryVariant">@color/accent_success</item>
+        <item name="colorSecondary">@color/accent_success</item>
+        <item name="colorControlActivated">@color/accent_success</item>
+        <item name="colorControlHighlight">@color/accent_success</item>
+    </style>
+
+    <style name="AppTheme.AccentAmber" parent="AppTheme">
+        <item name="colorPrimary">@color/accent_warning</item>
+        <item name="colorPrimaryVariant">@color/accent_warning</item>
+        <item name="colorSecondary">@color/accent_warning</item>
+        <item name="colorControlActivated">@color/accent_warning</item>
+        <item name="colorControlHighlight">@color/accent_warning</item>
+    </style>
+
+    <style name="AppTheme.AccentRose" parent="AppTheme">
+        <item name="colorPrimary">@color/accent_danger</item>
+        <item name="colorPrimaryVariant">@color/accent_danger</item>
+        <item name="colorSecondary">@color/accent_danger</item>
+        <item name="colorControlActivated">@color/accent_danger</item>
+        <item name="colorControlHighlight">@color/accent_danger</item>
+    </style>
+
 </resources>

@@ -24,7 +24,8 @@ class PermissionsActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeManager.apply(this)
+        ThemeManager.applyMode(this)
+        ThemeManager.applyTheme(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permissions)
         requiredText = findViewById(R.id.permissions_required_list)

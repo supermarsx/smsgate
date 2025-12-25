@@ -22,4 +22,18 @@
         <item>dark</item>
         <item>light</item>
     </string-array>
+    <string-array name="accent_entries">
+        <item>@string/accent_entry_cyan</item>
+        <item>@string/accent_entry_indigo</item>
+        <item>@string/accent_entry_mint</item>
+        <item>@string/accent_entry_amber</item>
+        <item>@string/accent_entry_rose</item>
+    </string-array>
+    <string-array name="accent_values">
+        <item>cyan</item>
+        <item>indigo</item>
+        <item>mint</item>
+        <item>amber</item>
+        <item>rose</item>
+    </string-array>
 </resources>

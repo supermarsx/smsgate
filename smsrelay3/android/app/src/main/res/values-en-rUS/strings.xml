@@ -125,6 +125,13 @@
 <string name="theme_entry_dark">Dark</string>
 <string name="theme_entry_light">Light</string>
 <string name="logs_header">Logs</string>
+    <string name="pref_app_accent_title">Accent color</string>
+    <string name="pref_app_accent_summary">Choose the primary accent color</string>
+    <string name="accent_entry_cyan">Cyan</string>
+    <string name="accent_entry_indigo">Indigo</string>
+    <string name="accent_entry_mint">Mint</string>
+    <string name="accent_entry_amber">Amber</string>
+    <string name="accent_entry_rose">Rose</string>
     <string name="permissions_title">Permissions required</string>
     <string name="permissions_subtitle">smsrelay3 needs these permissions to relay SMS and show live status.</string>
     <string name="permissions_required_label">Required</string>

@@ -83,7 +83,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 activity?.recreate()
             }
             if (key == ConfigStore.KEY_APP_THEME) {
-                ThemeManager.apply(requireContext(), value)
+                ThemeManager.applyMode(requireContext(), value)
+                activity?.recreate()
+            }
+            if (key == ConfigStore.KEY_APP_ACCENT) {
+                ThemeManager.applyTheme(requireActivity(), value)
                 activity?.recreate()
             }
             true
@@ -109,6 +113,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     fun refreshSummaries() {
         setListSummary(ConfigStore.KEY_APP_LOCALE)
         setListSummary(ConfigStore.KEY_APP_THEME)
+        setListSummary(ConfigStore.KEY_APP_ACCENT)
         setSummary(ConfigStore.KEY_SERVER_URL)
         setSummary(ConfigStore.KEY_API_PATH)
         setSummary(ConfigStore.KEY_HTTP_METHOD)

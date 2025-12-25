@@ -138,6 +138,13 @@
   <string name="theme_entry_dark">Escuro</string>
   <string name="theme_entry_light">Claro</string>
   <string name="logs_header">Registos</string>
+  <string name="pref_app_accent_title">Cor de destaque</string>
+  <string name="pref_app_accent_summary">Escolha a cor de destaque principal</string>
+  <string name="accent_entry_cyan">Ciano</string>
+  <string name="accent_entry_indigo">Índigo</string>
+  <string name="accent_entry_mint">Menta</string>
+  <string name="accent_entry_amber">Âmbar</string>
+  <string name="accent_entry_rose">Rosa</string>
   <string name="permissions_title">Permissões necessárias</string>
   <string name="permissions_subtitle">smsrelay3 precisa destas permissões para reenviar SMS e mostrar estado em tempo real.</string>
   <string name="permissions_required_label">Obrigatórias</string>

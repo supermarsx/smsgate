@@ -62,6 +62,7 @@ object ConfigStore {
     const val KEY_NOTIFICATION_ENABLED = "notification_enabled"
     const val KEY_APP_LOCALE = "app_locale"
     const val KEY_APP_THEME = "app_theme"
+    const val KEY_APP_ACCENT = "app_accent"
 
     private fun prefs(context: Context): SharedPreferences {
         return try {
@@ -145,6 +146,7 @@ object ConfigStore {
             KEY_SALT -> "#SALT"
             KEY_APP_LOCALE -> "system"
             KEY_APP_THEME -> "system"
+            KEY_APP_ACCENT -> "cyan"
             else -> ""
         }
     }

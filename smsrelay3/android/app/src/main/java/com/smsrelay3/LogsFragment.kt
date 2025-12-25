@@ -88,7 +88,7 @@ class LogsFragment : Fragment() {
             } else {
                 dao.loadRecent(200)
             }
-            val lines = entries.reversed().map { "[${formatTs(it.tsMs)}] ${it.message}" }
+            val lines = entries.map { "[${formatTs(it.tsMs)}] ${it.message}" }
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
                 logsText?.text = if (lines.isEmpty()) {

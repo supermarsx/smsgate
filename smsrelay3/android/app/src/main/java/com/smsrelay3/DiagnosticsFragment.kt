@@ -21,6 +21,7 @@ class DiagnosticsFragment : Fragment() {
     private lateinit var lastHeartbeatText: TextView
     private lateinit var lastErrorText: TextView
     private lateinit var overridesText: TextView
+    private lateinit var serviceModeText: TextView
     private var exportButton: android.widget.Button? = null
 
     override fun onCreateView(
@@ -39,6 +40,7 @@ class DiagnosticsFragment : Fragment() {
         lastHeartbeatText = view.findViewById(R.id.diag_last_heartbeat)
         lastErrorText = view.findViewById(R.id.diag_last_error)
         overridesText = view.findViewById(R.id.diag_overrides)
+        serviceModeText = view.findViewById(R.id.diag_service_mode)
         exportButton = view.findViewById(R.id.export_diagnostics)
         exportButton?.setOnClickListener {
             exportLauncher.launch("smsrelay3-diagnostics.json")
@@ -60,6 +62,7 @@ class DiagnosticsFragment : Fragment() {
             val pairing = buildPairingSummary(context)
             val lastError = db.localLogDao().loadRecentByLevel("error", 1).firstOrNull()
             val overrides = db.localOverridesDao().latest()
+            val serviceMode = buildServiceModeSummary(context)
 
             withContext(Dispatchers.Main) {
                 permissionsText.text = getString(R.string.diag_permissions, permissions)
@@ -80,6 +83,7 @@ class DiagnosticsFragment : Fragment() {
                     R.string.diag_overrides,
                     overrides?.updatedAtMs?.toString() ?: "-"
                 )
+                serviceModeText.text = getString(R.string.diag_service_mode, serviceMode)
             }
         }
     }
@@ -124,6 +128,12 @@ class DiagnosticsFragment : Fragment() {
         } else {
             getString(R.string.pairing_status_paired, deviceId)
         }
+    }
+
+    private suspend fun buildServiceModeSummary(context: android.content.Context): String {
+        val policy = com.smsrelay3.config.ConfigRepository(context).latestPolicy()
+        val foreground = if (RelayForegroundService.isRunning) "running" else "stopped"
+        return "mode=${policy.realtimeMode} foreground=$foreground"
     }
 
     private fun flag(value: Boolean): String {

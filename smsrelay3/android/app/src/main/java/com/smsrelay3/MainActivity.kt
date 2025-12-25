@@ -25,8 +25,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.applyMode(this)
+        ThemeManager.applyTheme(this)
         super.onCreate(savedInstanceState)
-        ThemeManager.apply(this)
         LogStore.init(applicationContext)
         setContentView(R.layout.activity_main)
         if (!PermissionGate.allRequiredGranted(this)) {

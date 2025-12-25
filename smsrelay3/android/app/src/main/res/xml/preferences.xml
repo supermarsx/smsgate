@@ -16,6 +16,13 @@
             android:entries="@array/theme_entries"
             android:entryValues="@array/theme_values"
             android:defaultValue="system" />
+        <ListPreference
+            android:key="app_accent"
+            android:title="@string/pref_app_accent_title"
+            android:summary="@string/pref_app_accent_summary"
+            android:entries="@array/accent_entries"
+            android:entryValues="@array/accent_values"
+            android:defaultValue="cyan" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_category_server">

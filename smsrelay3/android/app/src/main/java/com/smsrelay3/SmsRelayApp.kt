@@ -6,6 +6,6 @@ import com.smsrelay3.util.ThemeManager
 class SmsRelayApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        ThemeManager.apply(this)
+        ThemeManager.applyMode(this)
     }
 }
