@@ -22,7 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/status_ready"
-                android:textColor="#F7F2FF"
+                android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -47,7 +47,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/start_service"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
 
                 <Button
                     android:id="@+id/stop_service"
@@ -57,7 +57,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/stop_service"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -73,7 +73,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/start_listener"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
 
                 <Button
                     android:id="@+id/stop_listener"
@@ -83,7 +83,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/stop_listener"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -99,7 +99,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/provision_now"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
 
                 <Button
                     android:id="@+id/open_battery"
@@ -109,7 +109,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/open_battery"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -124,7 +124,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/glass_button"
                     android:text="@string/open_settings"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -139,7 +139,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/glass_button"
                     android:text="@string/discover_server"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -154,7 +154,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/glass_button"
                     android:text="@string/scan_pairing_qr"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -170,7 +170,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/export_logs"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
 
                 <Button
                     android:id="@+id/clear_logs"
@@ -180,7 +180,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/clear_logs"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -196,7 +196,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/export_config"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
 
                 <Button
                     android:id="@+id/import_config"
@@ -206,7 +206,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/glass_button"
                     android:text="@string/import_config"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="@color/text_primary" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

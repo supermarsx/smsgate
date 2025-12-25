@@ -1,8 +1,20 @@
 <resources>
-    <color name="purple_primary">#6D2BFF</color>
-    <color name="purple_primary_variant">#2B0F52</color>
-    <color name="purple_secondary">#B289FF</color>
-    <color name="purple_surface">#1A0B2D</color>
-    <color name="purple_on_primary">#F6EEFF</color>
-    <color name="purple_on_surface">#F7F2FF</color>
+    <color name="graphite_bg">#07090C</color>
+    <color name="graphite_bg_2">#0B0F14</color>
+    <color name="graphite_panel">#9E101722</color>
+    <color name="graphite_panel_2">#B8161F2B</color>
+    <color name="graphite_panel_solid">#101722</color>
+
+    <color name="graphite_border">#14FFFFFF</color>
+    <color name="graphite_border_strong">#24FFFFFF</color>
+
+    <color name="text_primary">#E9EEF6</color>
+    <color name="text_secondary">#B9C4D6</color>
+    <color name="text_muted">#7E8CA4</color>
+
+    <color name="accent_primary">#4CC9FF</color>
+    <color name="accent_info">#6C7CFF</color>
+    <color name="accent_success">#39F0C0</color>
+    <color name="accent_warning">#FFCC66</color>
+    <color name="accent_danger">#FF5C7A</color>
 </resources>
