@@ -18,6 +18,7 @@ import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.LocaleManager
 import com.smsrelay3.util.ThemeManager
 import com.smsrelay3.util.PermissionGate
+import android.widget.LinearLayout
 
 class MainActivity : AppCompatActivity() {
     private val configListener: () -> Unit = {
@@ -63,6 +64,21 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         }.attach()
+
+        tabs.tabMode = TabLayout.MODE_FIXED
+        tabs.tabGravity = TabLayout.GRAVITY_FILL
+        val tabStrip = tabs.getChildAt(0) as? LinearLayout
+        if (tabStrip != null) {
+            for (i in 0 until tabStrip.childCount) {
+                val child = tabStrip.getChildAt(i)
+                val lp = child.layoutParams as? LinearLayout.LayoutParams ?: continue
+                lp.width = 0
+                lp.weight = 0.5f
+                child.layoutParams = lp
+                child.minimumWidth = 1
+                child.setPadding(0, child.paddingTop, 0, child.paddingBottom)
+            }
+        }
 
         Handler(Looper.getMainLooper()).post {
             SyncScheduler.enqueueNow(this)
