@@ -72,6 +72,8 @@ class DiagnosticsFragment : Fragment() {
             val oemGuidance = buildOemGuidance()
             val recentEvents = db.localLogDao().loadRecent(20)
             val recentErrors = db.localLogDao().loadRecentByLevel("error", 20)
+            val recentEventsTextValue = formatEntries(recentEvents)
+            val recentErrorsTextValue = formatEntries(recentErrors)
 
             withContext(Dispatchers.Main) {
                 permissionsText.text = getString(R.string.diag_permissions, permissions)
@@ -94,8 +96,8 @@ class DiagnosticsFragment : Fragment() {
                 )
                 serviceModeText.text = getString(R.string.diag_service_mode, serviceMode)
                 oemGuidanceText.text = oemGuidance
-                recentEventsText.text = formatEntries(recentEvents)
-                recentErrorsText.text = formatEntries(recentErrors)
+                recentEventsText.text = recentEventsTextValue
+                recentErrorsText.text = recentErrorsTextValue
             }
         }
     }
@@ -160,9 +162,9 @@ class DiagnosticsFragment : Fragment() {
 
     private fun formatEntries(entries: List<com.smsrelay3.data.entity.LocalLogEntry>): String {
         if (entries.isEmpty()) return "-"
+        val formatter = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
         return entries.joinToString("\n") { entry ->
-            val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
-                .format(java.util.Date(entry.tsMs))
+            val ts = formatter.format(java.util.Date(entry.tsMs))
             "[$ts] ${entry.message}"
         }
     }

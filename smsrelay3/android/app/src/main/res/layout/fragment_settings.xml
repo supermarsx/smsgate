@@ -95,6 +95,15 @@
                     android:text="@string/import_config"
                     android:textColor="@color/text_primary" />
             </LinearLayout>
+
+            <Button
+                android:id="@+id/flush_queue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/glass_button"
+                android:text="@string/flush_queue"
+                android:textColor="@color/text_primary" />
         </LinearLayout>
 
         <FrameLayout

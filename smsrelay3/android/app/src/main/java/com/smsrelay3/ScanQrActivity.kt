@@ -25,8 +25,14 @@ class ScanQrActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scan_qr)
         previewView = findViewById(R.id.qr_preview)
+        val errorText = findViewById<android.widget.TextView>(R.id.qr_error)
+        if (!packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)) {
+            errorText.text = getString(R.string.scan_error_no_camera)
+            errorText.visibility = android.view.View.VISIBLE
+            return
+        }
         cameraExecutor = Executors.newSingleThreadExecutor()
-        startCamera()
+        startCamera(errorText)
     }
 
     override fun onDestroy() {
@@ -34,26 +40,31 @@ class ScanQrActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun startCamera() {
+    private fun startCamera(errorText: android.widget.TextView) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val preview = androidx.camera.core.Preview.Builder().build().apply {
-                setSurfaceProvider(previewView.surfaceProvider)
-            }
-            val analysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-            analysis.setAnalyzer(cameraExecutor, QrAnalyzer { text ->
-                if (isHandled.compareAndSet(false, true)) {
-                    val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
-                    setResult(RESULT_OK, data)
-                    finish()
+            try {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = androidx.camera.core.Preview.Builder().build().apply {
+                    setSurfaceProvider(previewView.surfaceProvider)
                 }
-            })
-            val selector = CameraSelector.DEFAULT_BACK_CAMERA
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(this, selector, preview, analysis)
+                val analysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                analysis.setAnalyzer(cameraExecutor, QrAnalyzer { text ->
+                    if (isHandled.compareAndSet(false, true)) {
+                        val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
+                        setResult(RESULT_OK, data)
+                        finish()
+                    }
+                })
+                val selector = CameraSelector.DEFAULT_BACK_CAMERA
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(this, selector, preview, analysis)
+            } catch (_: Exception) {
+                errorText.text = getString(R.string.scan_error_start_failed)
+                errorText.visibility = android.view.View.VISIBLE
+            }
         }, ContextCompat.getMainExecutor(this))
     }
 

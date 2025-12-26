@@ -88,7 +88,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - DONE: last 20 events and errors
   - config version and overrides summary
 - Implement Logs view with filters + export + clear.
-- Implement Settings with config export/import and quick links.
+- DONE: Implement Settings with config export/import and quick links.
 
 ## Services and lifecycle
 - Implement service modes:
@@ -169,3 +169,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Theme accent picker (cyan/indigo/mint/amber/rose) + service mode diagnostics + logs ordering fixes.
 - DONE: Settings kill toggle for relay services + background relay service default start.
 - DONE: Switched QR scanning to CameraX + ML Kit with lazy-loaded scan activity.
+- DONE: QR scan overlay + camera error handling; tab preloading to reduce stalls.

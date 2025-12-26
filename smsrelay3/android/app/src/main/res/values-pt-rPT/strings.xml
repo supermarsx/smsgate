@@ -125,6 +125,7 @@
   <string name="pairing_status_unpaired">Sem emparelhamento</string>
   <string name="pairing_status_paired">Emparelhado: %1$s</string>
   <string name="settings_services_toggle">Serviços de relay ativos</string>
+  <string name="flush_queue">Forçar envio da fila</string>
   <string name="pairing_code_hint">Código de emparelhamento (opcional)</string>
   <string name="settings_header">Definições</string>
   <string name="open_notifications">Definições de notificações</string>
@@ -148,6 +149,7 @@
   <string name="accent_entry_mint">Menta</string>
   <string name="accent_entry_amber">Âmbar</string>
   <string name="accent_entry_rose">Rosa</string>
+  <string name="toast_flush_queue">Envio da fila agendado</string>
   <string name="permissions_title">Permissões necessárias</string>
   <string name="permissions_subtitle">smsrelay3 precisa destas permissões para reenviar SMS e mostrar estado em tempo real.</string>
   <string name="permissions_required_label">Obrigatórias</string>
@@ -156,4 +158,6 @@
   <string name="permissions_continue">Continuar</string>
   <string name="permissions_ready">Permissões obrigatórias concedidas.</string>
   <string name="permissions_missing">Faltam permissões obrigatórias.</string>
+  <string name="scan_error_no_camera">Não existe câmara disponível neste dispositivo.</string>
+  <string name="scan_error_start_failed">Não foi possível iniciar a câmara.</string>
 </resources>

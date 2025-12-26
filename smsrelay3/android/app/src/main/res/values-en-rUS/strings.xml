@@ -120,7 +120,7 @@
     <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
     <string name="sms_permission_open_settings">Open settings</string>
     <string name="sms_permission_retry">Try again</string>
-<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="settings_services_toggle">Relay services enabled</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string><string name="diag_service_mode">Service: %1$s</string><string name="diag_recent_events">Recent events</string><string name="diag_recent_errors">Recent errors</string><string name="diag_oem_guidance">OEM guidance</string>
+<string name="tab_pairing">Pairing</string><string name="pairing_header">Pairing</string><string name="pairing_status_unpaired">Unpaired</string><string name="pairing_status_paired">Paired: %1$s</string><string name="pairing_code_hint">Pairing code (optional)</string><string name="settings_header">Settings</string><string name="settings_services_toggle">Relay services enabled</string><string name="flush_queue">Flush queue now</string><string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string><string name="diag_service_mode">Service: %1$s</string><string name="diag_recent_events">Recent events</string><string name="diag_recent_errors">Recent errors</string><string name="diag_oem_guidance">OEM guidance</string>
 <string name="pref_app_theme_title">Theme</string>
 <string name="pref_app_theme_summary">Choose light or dark appearance</string>
 <string name="theme_entry_system">System default</string>
@@ -128,12 +128,13 @@
 <string name="theme_entry_light">Light</string>
 <string name="logs_header">Logs</string>
     <string name="pref_app_accent_title">Accent color</string>
-    <string name="pref_app_accent_summary">Choose the primary accent color</string>
-    <string name="accent_entry_cyan">Cyan</string>
-    <string name="accent_entry_indigo">Indigo</string>
-    <string name="accent_entry_mint">Mint</string>
-    <string name="accent_entry_amber">Amber</string>
-    <string name="accent_entry_rose">Rose</string>
+<string name="pref_app_accent_summary">Choose the primary accent color</string>
+<string name="accent_entry_cyan">Cyan</string>
+<string name="accent_entry_indigo">Indigo</string>
+<string name="accent_entry_mint">Mint</string>
+<string name="accent_entry_amber">Amber</string>
+<string name="accent_entry_rose">Rose</string>
+    <string name="toast_flush_queue">Queue flush scheduled</string>
     <string name="permissions_title">Permissions required</string>
     <string name="permissions_subtitle">smsrelay3 needs these permissions to relay SMS and show live status.</string>
     <string name="permissions_required_label">Required</string>
@@ -141,5 +142,7 @@
     <string name="permissions_grant">Grant permissions</string>
     <string name="permissions_continue">Continue</string>
     <string name="permissions_ready">All required permissions granted.</string>
-    <string name="permissions_missing">Missing required permissions.</string>
+<string name="permissions_missing">Missing required permissions.</string>
+    <string name="scan_error_no_camera">No camera available on this device.</string>
+    <string name="scan_error_start_failed">Unable to start camera.</string>
 </resources>

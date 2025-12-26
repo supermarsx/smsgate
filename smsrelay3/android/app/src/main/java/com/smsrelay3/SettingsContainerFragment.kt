@@ -51,6 +51,7 @@ class SettingsContainerFragment : Fragment() {
         val openAutostart = view.findViewById<Button>(R.id.open_autostart)
         val exportConfig = view.findViewById<Button>(R.id.export_config)
         val importConfig = view.findViewById<Button>(R.id.import_config)
+        val flushQueue = view.findViewById<Button>(R.id.flush_queue)
         val toggleServices = view.findViewById<SwitchCompat>(R.id.toggle_services)
 
         toggleServices.isChecked = ConfigStore.getBoolean(
@@ -99,6 +100,11 @@ class SettingsContainerFragment : Fragment() {
         importConfig.setOnClickListener {
             importConfigLauncher.launch(arrayOf("application/json"))
             toast(getString(R.string.toast_import_config_started))
+        }
+
+        flushQueue.setOnClickListener {
+            com.smsrelay3.sync.SyncScheduler.enqueueNow(requireContext())
+            toast(getString(R.string.toast_flush_queue))
         }
 
         if (childFragmentManager.findFragmentById(R.id.settings_container) == null) {

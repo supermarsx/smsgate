@@ -110,6 +110,7 @@
     <string name="pairing_code_hint">Pairing code (optional)</string>
     <string name="settings_header">Settings</string>
     <string name="settings_services_toggle">Relay services enabled</string>
+    <string name="flush_queue">Flush queue now</string>
     <string name="pairing_failed">Pairing failed</string>
     <string name="pairing_expired">Pairing expired</string>
     <string name="pairing_success">Pairing applied</string>
@@ -132,9 +133,12 @@
     <string name="toast_import_config_started">Importing config</string>
     <string name="toast_import_config_done">Config imported</string>
     <string name="toast_import_config_failed">Config import failed</string>
+    <string name="toast_flush_queue">Queue flush scheduled</string>
     <string name="toast_open_settings">Opening app settings</string>
     <string name="toast_open_battery">Opening battery settings</string>
     <string name="toast_scan_qr_started">Opening QR scanner</string>
+    <string name="scan_error_no_camera">No camera available on this device.</string>
+    <string name="scan_error_start_failed">Unable to start camera.</string>
     <string name="toast_cleared">Logs cleared</string>
     <string name="sms_permission_title">SMS permission required</string>
     <string name="sms_permission_message">smsrelay3 needs SMS permissions to receive and reconcile messages. Enable SMS permissions in settings to continue.</string>
