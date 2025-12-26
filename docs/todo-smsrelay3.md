@@ -134,6 +134,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - Confirm min/target SDK and foreground service type.
 - DONE: Add Proguard/R8 rules for Room + OkHttp.
 - DONE: 16 KB page size alignment for native libs (jniLibs packaging).
+- DONE: Bumped CameraX/ML Kit deps to 16 KB–aligned builds (Play Services barcode scanning).
 - Validate APK builds on CI.
 
 ## Progress

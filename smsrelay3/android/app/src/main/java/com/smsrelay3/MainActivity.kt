@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         val pager = findViewById<ViewPager2>(R.id.main_pager)
         val tabs = findViewById<TabLayout>(R.id.main_tabs)
         pager.adapter = MainPagerAdapter(this)
-        pager.offscreenPageLimit = 4
+        pager.offscreenPageLimit = 5
         TabLayoutMediator(tabs, pager) { tab, position ->
             val label = when (position) {
                 0 -> getString(R.string.tab_status)

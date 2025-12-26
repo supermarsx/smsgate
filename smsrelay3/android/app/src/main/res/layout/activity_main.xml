@@ -29,7 +29,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/glass_panel"
-        app:tabIndicatorColor="@color/accent_primary"
+        app:tabIndicatorColor="?attr/colorPrimary"
         app:tabIconTint="@color/tab_icon_tint"
         app:tabSelectedTextColor="@color/text_primary"
         app:tabTextColor="@color/text_secondary"

@@ -25,15 +25,24 @@ class SettingsFragment : PreferenceFragmentCompat() {
     ): View? {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         view?.setBackgroundColor(Color.TRANSPARENT)
-        view?.findViewById<RecyclerView>(androidx.preference.R.id.recycler_view)?.apply {
+        return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        (view.layoutParams as? android.view.ViewGroup.LayoutParams)?.let { params ->
+            params.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            params.height = android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            view.layoutParams = params
+        }
+        view.findViewById<RecyclerView>(androidx.preference.R.id.recycler_view)?.apply {
             setPadding(8, 0, 8, 0)
             clipToPadding = false
-            isNestedScrollingEnabled = false
             layoutParams = layoutParams?.apply {
-                height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                width = android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                height = android.view.ViewGroup.LayoutParams.MATCH_PARENT
             }
         }
-        return view
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
