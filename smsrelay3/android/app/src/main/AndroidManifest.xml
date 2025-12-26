@@ -37,6 +37,10 @@
             android:name=".MainActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".ScanQrActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".SmsReceiver"
             android:exported="true"

@@ -20,6 +20,9 @@ import com.smsrelay3.util.ThemeManager
 import com.smsrelay3.util.PermissionGate
 
 class MainActivity : AppCompatActivity() {
+    private val configListener: () -> Unit = {
+        ServiceModeController.apply(this)
+    }
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleManager.wrap(newBase))
     }
@@ -69,18 +72,7 @@ class MainActivity : AppCompatActivity() {
             ReconcileScheduler.ensureScheduled(this)
             PruneScheduler.ensureScheduled(this)
             ContactsSyncScheduler.ensureScheduled(this)
-            startRelayServices()
-        }
-    }
-
-    private fun startRelayServices() {
-        val config = ConfigStore.getConfig(this)
-        if (!config.servicesEnabled) return
-        if (config.enableForegroundService && !RelayForegroundService.isRunning) {
-            ForegroundServiceGuard.start(this, Intent(this, RelayForegroundService::class.java))
-        }
-        if (!BackgroundRelayService.isRunning) {
-            startService(Intent(this, BackgroundRelayService::class.java))
+            ServiceModeController.apply(this)
         }
     }
 
@@ -94,6 +86,12 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
-        startRelayServices()
+        ConfigEvents.register(configListener)
+        ServiceModeController.apply(this)
+    }
+
+    override fun onPause() {
+        ConfigEvents.unregister(configListener)
+        super.onPause()
     }
 }

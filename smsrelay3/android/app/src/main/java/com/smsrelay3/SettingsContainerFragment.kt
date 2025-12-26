@@ -60,11 +60,7 @@ class SettingsContainerFragment : Fragment() {
         )
         toggleServices.setOnCheckedChangeListener { _, enabled ->
             ConfigStore.setBoolean(requireContext(), ConfigStore.KEY_SERVICES_ENABLED, enabled)
-            if (enabled) {
-                startRelayServices()
-            } else {
-                stopRelayServices()
-            }
+            ServiceModeController.apply(requireContext())
         }
 
         openSettings.setOnClickListener {
@@ -110,24 +106,6 @@ class SettingsContainerFragment : Fragment() {
                 .replace(R.id.settings_container, SettingsFragment())
                 .commit()
         }
-    }
-
-    private fun startRelayServices() {
-        val config = ConfigStore.getConfig(requireContext())
-        if (config.enableForegroundService && !RelayForegroundService.isRunning) {
-            ForegroundServiceGuard.start(
-                requireContext(),
-                Intent(requireContext(), RelayForegroundService::class.java)
-            )
-        }
-        if (!BackgroundRelayService.isRunning) {
-            requireContext().startService(Intent(requireContext(), BackgroundRelayService::class.java))
-        }
-    }
-
-    private fun stopRelayServices() {
-        requireContext().stopService(Intent(requireContext(), RelayForegroundService::class.java))
-        requireContext().stopService(Intent(requireContext(), BackgroundRelayService::class.java))
     }
 
     private fun toast(message: String) {

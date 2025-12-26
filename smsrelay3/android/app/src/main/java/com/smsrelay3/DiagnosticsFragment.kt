@@ -22,6 +22,9 @@ class DiagnosticsFragment : Fragment() {
     private lateinit var lastErrorText: TextView
     private lateinit var overridesText: TextView
     private lateinit var serviceModeText: TextView
+    private lateinit var oemGuidanceText: TextView
+    private lateinit var recentEventsText: TextView
+    private lateinit var recentErrorsText: TextView
     private var exportButton: android.widget.Button? = null
 
     override fun onCreateView(
@@ -41,6 +44,9 @@ class DiagnosticsFragment : Fragment() {
         lastErrorText = view.findViewById(R.id.diag_last_error)
         overridesText = view.findViewById(R.id.diag_overrides)
         serviceModeText = view.findViewById(R.id.diag_service_mode)
+        oemGuidanceText = view.findViewById(R.id.diag_oem_guidance)
+        recentEventsText = view.findViewById(R.id.diag_recent_events)
+        recentErrorsText = view.findViewById(R.id.diag_recent_errors)
         exportButton = view.findViewById(R.id.export_diagnostics)
         exportButton?.setOnClickListener {
             exportLauncher.launch("smsrelay3-diagnostics.json")
@@ -63,6 +69,9 @@ class DiagnosticsFragment : Fragment() {
             val lastError = db.localLogDao().loadRecentByLevel("error", 1).firstOrNull()
             val overrides = db.localOverridesDao().latest()
             val serviceMode = buildServiceModeSummary(context)
+            val oemGuidance = buildOemGuidance()
+            val recentEvents = db.localLogDao().loadRecent(20)
+            val recentErrors = db.localLogDao().loadRecentByLevel("error", 20)
 
             withContext(Dispatchers.Main) {
                 permissionsText.text = getString(R.string.diag_permissions, permissions)
@@ -84,6 +93,9 @@ class DiagnosticsFragment : Fragment() {
                     overrides?.updatedAtMs?.toString() ?: "-"
                 )
                 serviceModeText.text = getString(R.string.diag_service_mode, serviceMode)
+                oemGuidanceText.text = oemGuidance
+                recentEventsText.text = formatEntries(recentEvents)
+                recentErrorsText.text = formatEntries(recentErrors)
             }
         }
     }
@@ -144,5 +156,32 @@ class DiagnosticsFragment : Fragment() {
 
     private fun flag(value: Boolean): String {
         return if (value) "ok" else "missing"
+    }
+
+    private fun formatEntries(entries: List<com.smsrelay3.data.entity.LocalLogEntry>): String {
+        if (entries.isEmpty()) return "-"
+        return entries.joinToString("\n") { entry ->
+            val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
+                .format(java.util.Date(entry.tsMs))
+            "[$ts] ${entry.message}"
+        }
+    }
+
+    private fun buildOemGuidance(): String {
+        val manufacturer = android.os.Build.MANUFACTURER.lowercase()
+        return when {
+            manufacturer.contains("xiaomi") || manufacturer.contains("redmi") || manufacturer.contains("miui") ->
+                "MIUI: enable autostart, disable battery optimization, allow background activity."
+            manufacturer.contains("huawei") || manufacturer.contains("honor") ->
+                "Huawei: add to protected apps, disable battery optimization, allow background activity."
+            manufacturer.contains("samsung") ->
+                "Samsung: disable deep sleep for smsrelay3, allow background activity."
+            manufacturer.contains("oppo") || manufacturer.contains("oneplus") ->
+                "Oppo/OnePlus: enable autostart, allow background activity, disable battery optimization."
+            manufacturer.contains("vivo") ->
+                "Vivo: enable autostart, allow background activity, disable battery optimization."
+            else ->
+                "Check battery optimization and background restriction settings for smsrelay3."
+        }
     }
 }

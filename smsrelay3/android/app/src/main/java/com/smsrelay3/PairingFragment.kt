@@ -15,8 +15,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import android.widget.EditText
 import android.widget.LinearLayout
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.pairing.PairingClient
 import com.smsrelay3.pairing.PairingClient.PairingResult
@@ -24,10 +22,16 @@ import kotlin.concurrent.thread
 
 class PairingFragment : Fragment() {
     private lateinit var statusText: TextView
-    private val scanLauncher = registerForActivityResult(ScanContract()) { result ->
-        val contents = result.contents
-        if (contents.isNullOrBlank()) {
+    private val scanLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != android.app.Activity.RESULT_OK) {
             LogStore.append("info", "pairing", "Pairing: QR scan cancelled")
+            return@registerForActivityResult
+        }
+        val contents = result.data?.getStringExtra(ScanQrActivity.EXTRA_QR_TEXT).orEmpty()
+        if (contents.isBlank()) {
+            LogStore.append("info", "pairing", "Pairing: QR scan empty")
             return@registerForActivityResult
         }
         LogStore.append("info", "pairing", "Pairing: QR scanned")
@@ -78,11 +82,8 @@ class PairingFragment : Fragment() {
                 requestCameraPermission()
                 return@setOnClickListener
             }
-            val options = ScanOptions()
-                .setPrompt("Scan pairing QR")
-                .setBeepEnabled(true)
-                .setOrientationLocked(false)
-            scanLauncher.launch(options)
+            val intent = android.content.Intent(requireContext(), ScanQrActivity::class.java)
+            scanLauncher.launch(intent)
             LogStore.append("info", "pairing", "Pairing: opening QR scanner")
             toast(getString(R.string.toast_scan_qr_started))
         }

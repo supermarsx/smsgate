@@ -24,7 +24,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 
 ## Remote configuration
 - Build config client:
-  - WS subscribe `DEVICE_SUBSCRIBE_CONFIG`.
+  - DONE: WS subscribe `DEVICE_SUBSCRIBE_CONFIG`.
   - Fallback periodic pull `GET /api/v1/device/config` with ETag.
 - Implement config validation + atomic apply:
   - Persist ConfigState row.
@@ -85,7 +85,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - permissions status
   - DONE: service mode
   - OEM guidance
-  - last 20 events and errors
+  - DONE: last 20 events and errors
   - config version and overrides summary
 - Implement Logs view with filters + export + clear.
 - Implement Settings with config export/import and quick links.
@@ -94,9 +94,9 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - Implement service modes:
   - DONE: foreground service
   - DONE: persistent background service
-  - best-effort (WorkManager)
+  - DONE: best-effort (WorkManager)
 - Add boot receiver rehydration based on config.
-- Add OEM guidance UI and shortcuts (MIUI, Huawei, Samsung, Oppo/Vivo).
+- DONE: Add OEM guidance UI and shortcuts (MIUI, Huawei, Samsung, Oppo/Vivo).
 
 ## Security
 - Store device token in Keystore-backed storage.
@@ -168,3 +168,4 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Permissions entry screen with required/optional checks and tab bar fixed-mode icons.
 - DONE: Theme accent picker (cyan/indigo/mint/amber/rose) + service mode diagnostics + logs ordering fixes.
 - DONE: Settings kill toggle for relay services + background relay service default start.
+- DONE: Switched QR scanning to CameraX + ML Kit with lazy-loaded scan activity.

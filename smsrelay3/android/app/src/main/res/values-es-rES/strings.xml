@@ -134,7 +134,7 @@
   <string name="export_diagnostics">Exportar diagnóstico</string>
   <string name="toast_export_diagnostics_done">Diagnóstico exportado</string>
   <string name="toast_export_diagnostics_failed">Error al exportar diagnóstico</string>
-<string name="logs_filter_all">Todos los registros</string><string name="logs_filter_errors">Errores</string><string name="logs_export">Exportar registros</string><string name="diag_last_error">Último error: %1$s</string><string name="diag_overrides">Overrides actualizadas: %1$s</string><string name="diag_service_mode">Servicio: %1$s</string>
+<string name="logs_filter_all">Todos los registros</string><string name="logs_filter_errors">Errores</string><string name="logs_export">Exportar registros</string><string name="diag_last_error">Último error: %1$s</string><string name="diag_overrides">Overrides actualizadas: %1$s</string><string name="diag_service_mode">Servicio: %1$s</string><string name="diag_recent_events">Eventos recientes</string><string name="diag_recent_errors">Errores recientes</string><string name="diag_oem_guidance">Guía OEM</string>
   <string name="pref_app_theme_title">Tema</string>
   <string name="pref_app_theme_summary">Elige modo claro u oscuro</string>
   <string name="theme_entry_system">Predeterminado del sistema</string>
