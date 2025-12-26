@@ -31,7 +31,8 @@ class SocketPresenceManagerTest {
             enableForegroundService = true,
             enableBootReceiver = true,
             enableSocketPresence = true,
-            notificationEnabled = true
+            notificationEnabled = true,
+            servicesEnabled = true
         )
 
         val message = SocketPresenceManager.buildAuthMessage(config, "token123")

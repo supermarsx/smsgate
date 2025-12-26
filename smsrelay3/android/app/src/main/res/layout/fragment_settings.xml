@@ -99,14 +99,17 @@
                 android:background="@drawable/glass_button"
                 android:text="@string/flush_queue"
                 android:textColor="@color/text_primary" />
+
+        <FrameLayout
+            android:id="@+id/settings_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_weight="1"
+            android:background="@drawable/glass_panel"
+            android:minHeight="0dp"
+            android:padding="4dp" />
+
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/settings_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_weight="1"
-        android:background="@drawable/glass_panel"
-        android:padding="4dp" />
 </LinearLayout>
