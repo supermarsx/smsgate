@@ -68,6 +68,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
             )
             db.configStateDao().upsert(state)
             com.smsrelay3.LogStore.append("info", "config", "Config sync: applied v$version")
+            com.smsrelay3.ServiceModeController.apply(applicationContext)
             scheduleFromPolicy()
             ConfigScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.success()

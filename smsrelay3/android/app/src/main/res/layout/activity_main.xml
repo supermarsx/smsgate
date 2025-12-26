@@ -39,7 +39,6 @@
         app:tabGravity="fill"
         app:tabTextAppearance="@style/TabTextGlass"
         app:tabMinWidth="0dp"
-        app:tabIconSize="18dp"
         app:tabPaddingStart="0dp"
         app:tabPaddingEnd="0dp"
         app:tabPaddingTop="6dp"

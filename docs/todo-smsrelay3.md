@@ -27,8 +27,8 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - DONE: WS subscribe `DEVICE_SUBSCRIBE_CONFIG`.
   - Fallback periodic pull `GET /api/v1/device/config` with ETag.
 - Implement config validation + atomic apply:
-  - Persist ConfigState row.
-  - Apply in-memory policy + notify services.
+  - DONE: Persist ConfigState row.
+  - DONE: Apply in-memory policy + notify services.
 - Implement local overrides (allowlist + admin PIN gating).
 - Implement config export/import (effective, remote-only, overrides).
 
