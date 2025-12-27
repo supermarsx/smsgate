@@ -35,6 +35,7 @@
         app:tabTextColor="@color/text_secondary"
         app:tabIndicatorHeight="1dp"
         app:tabIndicatorFullWidth="true"
+        app:tabMaxWidth="0dp"
         app:tabMode="fixed"
         app:tabGravity="fill"
         app:tabTextAppearance="@style/TabTextGlass"
