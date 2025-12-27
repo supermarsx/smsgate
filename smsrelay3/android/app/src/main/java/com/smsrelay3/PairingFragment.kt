@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.content.pm.PackageManager
 import android.widget.Toast
+import android.os.StrictMode
 import androidx.appcompat.app.AlertDialog
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -205,7 +206,12 @@ class PairingFragment : Fragment() {
     }
 
     private fun toast(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        val old = StrictMode.allowThreadDiskReads()
+        try {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        } finally {
+            StrictMode.setThreadPolicy(old)
+        }
     }
 
 

@@ -2,13 +2,18 @@ package com.smsrelay3
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -18,6 +23,7 @@ class ScanQrActivity : AppCompatActivity() {
     private lateinit var previewView: PreviewView
     private lateinit var cameraExecutor: ExecutorService
     private val isHandled = AtomicBoolean(false)
+    private var scanner: BarcodeScanner? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         com.smsrelay3.util.ThemeManager.applyMode(this)
@@ -32,15 +38,29 @@ class ScanQrActivity : AppCompatActivity() {
             return
         }
         cameraExecutor = Executors.newSingleThreadExecutor()
-        startCamera(errorText)
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val client = BarcodeScanning.getClient()
+                withContext(Dispatchers.Main) {
+                    scanner = client
+                    startCamera(errorText, client)
+                }
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    errorText.text = getString(R.string.scan_error_start_failed)
+                    errorText.visibility = android.view.View.VISIBLE
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
+        scanner?.close()
         cameraExecutor.shutdown()
         super.onDestroy()
     }
 
-    private fun startCamera(errorText: android.widget.TextView) {
+    private fun startCamera(errorText: android.widget.TextView, scanner: BarcodeScanner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             try {
@@ -51,7 +71,7 @@ class ScanQrActivity : AppCompatActivity() {
                 val analysis = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
-                analysis.setAnalyzer(cameraExecutor, QrAnalyzer { text ->
+                analysis.setAnalyzer(cameraExecutor, QrAnalyzer(scanner) { text ->
                     if (isHandled.compareAndSet(false, true)) {
                         val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
                         setResult(RESULT_OK, data)
@@ -69,10 +89,9 @@ class ScanQrActivity : AppCompatActivity() {
     }
 
     private class QrAnalyzer(
+        private val scanner: BarcodeScanner,
         private val onResult: (String) -> Unit
     ) : ImageAnalysis.Analyzer {
-        private val scanner = BarcodeScanning.getClient()
-
         override fun analyze(imageProxy: ImageProxy) {
             val mediaImage = imageProxy.image
             if (mediaImage == null) {
