@@ -114,7 +114,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - Unit tests:
   - DONE: SMS parsing, multipart handling.
   - queue state machine.
-  - backoff + retry.
+  - DONE: backoff + retry helper.
   - SIM diff logic.
   - DONE: pairing error parsing helper.
 - Integration tests:

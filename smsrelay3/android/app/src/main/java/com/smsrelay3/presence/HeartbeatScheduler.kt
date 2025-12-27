@@ -5,6 +5,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object HeartbeatScheduler {
     private const val WORK_NAME = "smsrelay3_heartbeat"
@@ -23,5 +25,11 @@ object HeartbeatScheduler {
             ExistingWorkPolicy.REPLACE,
             request
         )
+    }
+
+    suspend fun scheduleNextAsync(context: Context, delaySeconds: Long) {
+        withContext(Dispatchers.IO) {
+            scheduleNext(context, delaySeconds)
+        }
     }
 }
