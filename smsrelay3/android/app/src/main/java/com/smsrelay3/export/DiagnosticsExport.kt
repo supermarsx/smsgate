@@ -12,6 +12,8 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.OutputStreamWriter
+import java.security.MessageDigest
+import java.util.Locale
 
 object DiagnosticsExport {
     fun buildDiagnosticsJson(context: Context): String {
@@ -23,8 +25,8 @@ object DiagnosticsExport {
         val simSnapshots = runBlocking { db.simSnapshotDao().loadAll() }
 
         val json = JSONObject()
-        json.put("device_id", deviceId)
-        json.put("server_url", config.serverUrl)
+        json.put("device_id_hash", deviceId.safeHash())
+        json.put("server_host", config.serverUrl.safeHost())
         json.put("queue_depth", queueDepth)
         json.put("network_type", NetworkUtil.networkType(context))
         json.put("battery_percent", BatteryUtil.batteryPercent(context))
@@ -36,9 +38,9 @@ object DiagnosticsExport {
         simSnapshots.forEach { sim ->
             sims.put(JSONObject().apply {
                 put("slot_index", sim.slotIndex)
-                put("subscription_id", sim.subscriptionId)
-                put("iccid", sim.iccid)
-                put("msisdn", sim.msisdn)
+                put("subscription_id", sim.subscriptionId?.toString()?.safeHash())
+                put("iccid_hash", sim.iccid.safeHash())
+                put("msisdn_hash", sim.msisdn.safeHash())
                 put("carrier_name", sim.carrierName)
                 put("status", sim.status)
             })
@@ -60,4 +62,22 @@ object DiagnosticsExport {
         }
     }
 
+    private fun String?.safeHash(): String? {
+        if (this.isNullOrBlank()) return null
+        return try {
+            val digest = MessageDigest.getInstance("SHA-256").digest(this.toByteArray())
+            digest.joinToString("") { String.format(Locale.US, "%02x", it) }
+        } catch (_: Exception) {
+            "***"
+        }
+    }
+
+    private fun String.safeHost(): String? {
+        return try {
+            val uri = android.net.Uri.parse(this)
+            uri.host
+        } catch (_: Exception) {
+            null
+        }
+    }
 }

@@ -51,6 +51,13 @@ object SettingsExport {
         features.put("notificationEnabled", config.notificationEnabled)
         features.put("servicesEnabled", config.servicesEnabled)
         json.put("features", features)
+        LocalOverridesRepository(context).let { repo ->
+            val overrides = runBlocking { repo.getOverrides() }
+            if (!overrides.isNullOrBlank()) {
+                json.put("overrides", JSONObject(overrides))
+            }
+        }
+        json.put("effective", buildEffectiveConfig(config))
         return json.toString(2)
     }
 
@@ -130,5 +137,33 @@ object SettingsExport {
 
     private fun configDiscoveryPort(context: Context): Int {
         return ConfigStore.getConfig(context).discoveryPort
+    }
+
+    private fun buildEffectiveConfig(config: com.smsrelay3.Config): JSONObject {
+        val json = JSONObject()
+        json.put("server_url", config.serverUrl.safeRedact())
+        json.put("api_path", config.apiPath)
+        json.put("http_method", config.httpMethod)
+        json.put("client_id_header", config.clientIdHeader)
+        json.put("client_id_value", config.clientIdValue.safeRedact())
+        json.put("auth_header", config.authHeader)
+        json.put("auth_prefix", config.authPrefix)
+        json.put("accept_header", config.acceptHeader)
+        json.put("accept_value", config.acceptValue)
+        json.put("content_type_header", config.contentTypeHeader)
+        json.put("content_type_value", config.contentTypeValue)
+        json.put("features", JSONObject().apply {
+            put("enableListener", config.enableListener)
+            put("enableForegroundService", config.enableForegroundService)
+            put("enableBootReceiver", config.enableBootReceiver)
+            put("enableSocketPresence", config.enableSocketPresence)
+            put("notificationEnabled", config.notificationEnabled)
+            put("servicesEnabled", config.servicesEnabled)
+        })
+        return json
+    }
+
+    private fun String.safeRedact(): String {
+        return if (isBlank()) this else "***"
     }
 }

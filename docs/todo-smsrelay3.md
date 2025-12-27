@@ -30,7 +30,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - DONE: Persist ConfigState row.
   - DONE: Apply in-memory policy + notify services.
 - Implement local overrides (allowlist + admin PIN gating).
-- Implement config export/import (effective, remote-only, overrides).
+- DONE: Implement config export/import (effective, remote-only, overrides).
 
 ## SMS capture
 - Update BroadcastReceiver:
@@ -102,7 +102,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Store device token in Keystore-backed storage.
 - DONE: Add optional TLS pinning (configurable).
 - DONE: Redact SMS content in logs and exports by default.
-- Add diagnostics export redaction and secret stripping.
+- DONE: Add diagnostics export redaction and secret stripping.
 
 ## Telemetry and logging
 - Structured logging categories:
