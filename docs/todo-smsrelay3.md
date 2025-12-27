@@ -116,6 +116,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - queue state machine.
   - backoff + retry.
   - SIM diff logic.
+  - DONE: pairing error parsing helper.
 - Integration tests:
   - mock syncserver endpoints.
   - offline/online transitions.
@@ -172,3 +173,6 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Settings kill toggle for relay services + background relay service default start.
 - DONE: Switched QR scanning to CameraX + ML Kit with lazy-loaded scan activity.
 - DONE: QR scan overlay + camera error handling; tab preloading to reduce stalls.
+- DONE: App splash screen + centered loading, entry animations.
+- DONE: Multithreading sweeps (ServiceModeController async, pairing/discovery coroutines, scanner init off UI).
+- DONE: Launcher icons regenerated from concept with transparency.

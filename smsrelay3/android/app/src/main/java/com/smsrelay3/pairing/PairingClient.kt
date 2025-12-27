@@ -89,7 +89,7 @@ object PairingClient {
         return PairingResult(false, "Pairing failed", retryable = true)
     }
 
-    private fun parseErrorMessage(body: String): String? {
+    internal fun parseErrorMessage(body: String): String? {
         if (body.isBlank()) return null
         return try {
             val json = JSONObject(body)
