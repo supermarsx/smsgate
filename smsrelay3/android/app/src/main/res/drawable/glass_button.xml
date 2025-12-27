@@ -1,51 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="?attr/colorPrimary">
-    <!-- Mask keeps ripple inside the glass shape -->
+    <!-- Keep ripple clipped to the glass silhouette -->
     <item android:id="@android:id/mask">
         <shape android:shape="rectangle">
             <solid android:color="@color/glass_button_fill" />
-            <corners android:radius="6dp" />
+            <corners android:radius="8dp" />
         </shape>
     </item>
     <item>
         <layer-list>
-            <!-- Subtle outer glow -->
-            <item android:alpha="0.14">
+            <!-- Soft outer glow for the frosted edge -->
+            <item android:alpha="0.10">
                 <shape android:shape="rectangle">
                     <gradient
                         android:startColor="@color/glass_glow"
                         android:centerColor="@android:color/transparent"
                         android:endColor="@android:color/transparent"
                         android:angle="270" />
-                    <corners android:radius="8dp" />
+                    <corners android:radius="10dp" />
                 </shape>
             </item>
-            <!-- Base plate -->
+            <!-- Frosted glass plate -->
             <item>
                 <shape android:shape="rectangle">
                     <solid android:color="@color/glass_button_fill" />
                     <stroke
                         android:width="1dp"
                         android:color="@color/graphite_border_strong" />
-                    <corners android:radius="6dp" />
+                    <corners android:radius="8dp" />
                 </shape>
             </item>
-            <!-- Inner tint and depth -->
-            <item android:left="1dp" android:top="1dp" android:right="1dp" android:bottom="1dp">
+            <!-- Hazy overlay to keep tint while softening -->
+            <item android:left="1dp" android:top="1dp" android:right="1dp" android:bottom="1dp" android:alpha="0.18">
                 <shape android:shape="rectangle">
-                    <gradient
-                        android:startColor="@color/glass_button_highlight"
-                        android:centerColor="@color/glass_button_fill"
-                        android:endColor="@color/glass_button_fill"
-                        android:angle="270" />
-                    <stroke
-                        android:width="1dp"
-                        android:color="@color/glass_highlight" />
-                    <corners android:radius="5dp" />
+                    <solid android:color="@color/glass_highlight" />
+                    <corners android:radius="7dp" />
                 </shape>
             </item>
-            <!-- Top sheen -->
+            <!-- Subtle top sheen -->
             <item android:left="2dp" android:top="2dp" android:right="2dp">
                 <shape android:shape="rectangle">
                     <gradient
@@ -53,7 +46,7 @@
                         android:centerColor="@android:color/transparent"
                         android:endColor="@android:color/transparent"
                         android:angle="90" />
-                    <corners android:radius="5dp" />
+                    <corners android:radius="7dp" />
                 </shape>
             </item>
             <!-- Content padding -->
