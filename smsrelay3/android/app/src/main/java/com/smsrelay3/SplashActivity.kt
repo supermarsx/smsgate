@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
 import com.smsrelay3.util.ThemeManager
 import com.smsrelay3.util.LocaleManager
@@ -20,8 +21,14 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
 
         Handler(Looper.getMainLooper()).post {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            // Allow the short-lived disk/binder work from activity launch to avoid StrictMode spam.
+            val old = StrictMode.allowThreadDiskReads()
+            try {
+                startActivity(Intent(this, MainActivity::class.java))
+                finish()
+            } finally {
+                StrictMode.setThreadPolicy(old)
+            }
         }
     }
 }

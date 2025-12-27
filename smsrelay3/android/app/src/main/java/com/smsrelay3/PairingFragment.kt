@@ -13,6 +13,10 @@ import androidx.fragment.app.Fragment
 import android.content.pm.PackageManager
 import android.widget.Toast
 import android.os.StrictMode
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.appcompat.app.AlertDialog
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -58,10 +62,10 @@ class PairingFragment : Fragment() {
             LogStore.append("info", "pairing", "Discovery: scanning local network on port $port")
             toast(getString(R.string.toast_discovery_started))
             discoverServer.isEnabled = false
-            thread {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 val results = LocalServerDiscovery.scan(requireContext(), port)
-                requireActivity().runOnUiThread {
-                    if (!isAdded) return@runOnUiThread
+                withContext(Dispatchers.Main) {
+                    if (!isAdded) return@withContext
                     discoverServer.isEnabled = true
                     if (results.isEmpty()) {
                         LogStore.append("info", "pairing", "Discovery: no servers found")
@@ -165,17 +169,17 @@ class PairingFragment : Fragment() {
     private fun handlePairingPayload(payload: String) {
         val url = payload.trim()
         if (url.startsWith("http://") || url.startsWith("https://")) {
-            thread {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 val result = PairingClient.completeWithUrl(requireContext(), url)
-                requireActivity().runOnUiThread {
+                withContext(Dispatchers.Main) {
                     handlePairingResult(result, getString(R.string.pairing_header))
                 }
             }
             return
         }
-        thread {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val result = PairingClient.completeWithToken(requireContext(), url)
-            requireActivity().runOnUiThread {
+            withContext(Dispatchers.Main) {
                 handlePairingResult(result, getString(R.string.pairing_header))
             }
         }

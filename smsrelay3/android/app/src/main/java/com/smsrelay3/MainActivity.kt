@@ -88,41 +88,44 @@ class MainActivity : AppCompatActivity() {
         var lastAppliedCount = -1
         fun applyEvenTabWidths() {
             if (tabsSized) return
-            val tabStrip = tabs.getChildAt(0) as? LinearLayout ?: return
-            val count = tabStrip.childCount.takeIf { it > 0 } ?: return
-            val availableWidth = tabs.width - tabs.paddingLeft - tabs.paddingRight
-            val perTabWidth = (availableWidth / count).coerceAtLeast(0)
-            if (availableWidth == lastAppliedWidth && count == lastAppliedCount) return
-            lastAppliedWidth = availableWidth
-            lastAppliedCount = count
-            val inset = (perTabWidth / 4).coerceAtLeast(0)
-            val indicatorHeight = resources.displayMetrics.density.times(3f).toInt().coerceAtLeast(2)
-            val indicatorColor = MaterialColors.getColor(tabs, com.google.android.material.R.attr.colorPrimary)
-            val indicatorDrawable = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                setColor(indicatorColor)
-                cornerRadius = resources.displayMetrics.density * 2f
-                setSize(0, indicatorHeight)
+            tabs.post {
+                if (tabsSized) return@post
+                val tabStrip = tabs.getChildAt(0) as? LinearLayout ?: return@post
+                val count = tabStrip.childCount.takeIf { it > 0 } ?: return@post
+                val availableWidth = tabs.width - tabs.paddingLeft - tabs.paddingRight
+                val perTabWidth = (availableWidth / count).coerceAtLeast(0)
+                if (availableWidth == lastAppliedWidth && count == lastAppliedCount) return@post
+                lastAppliedWidth = availableWidth
+                lastAppliedCount = count
+                val inset = (perTabWidth / 4).coerceAtLeast(0)
+                val indicatorHeight = resources.displayMetrics.density.times(3f).toInt().coerceAtLeast(2)
+                val indicatorColor = MaterialColors.getColor(tabs, com.google.android.material.R.attr.colorPrimary)
+                val indicatorDrawable = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    setColor(indicatorColor)
+                    cornerRadius = resources.displayMetrics.density * 2f
+                    setSize(0, indicatorHeight)
+                }
+                tabs.setSelectedTabIndicator(InsetDrawable(indicatorDrawable, inset, 0, inset, 0))
+                tabStrip.layoutParams = tabStrip.layoutParams?.apply {
+                    width = LinearLayout.LayoutParams.MATCH_PARENT
+                }
+                tabStrip.weightSum = count.toFloat()
+                tabStrip.setPadding(0, 0, 0, 0)
+                tabStrip.clipToPadding = false
+                for (i in 0 until count) {
+                    val child = tabStrip.getChildAt(i)
+                    val lp = child.layoutParams as? LinearLayout.LayoutParams ?: continue
+                    val newWidth = perTabWidth
+                    if (lp.width == newWidth && lp.weight == 0f && child.minimumWidth == 0) continue
+                    lp.width = newWidth
+                    lp.weight = 0f
+                    child.layoutParams = lp
+                    child.minimumWidth = 0
+                    child.setPadding(0, child.paddingTop, 0, child.paddingBottom)
+                }
+                tabsSized = true
             }
-            tabs.setSelectedTabIndicator(InsetDrawable(indicatorDrawable, inset, 0, inset, 0))
-            tabStrip.layoutParams = tabStrip.layoutParams?.apply {
-                width = LinearLayout.LayoutParams.MATCH_PARENT
-            }
-            tabStrip.weightSum = count.toFloat()
-            tabStrip.setPadding(0, 0, 0, 0)
-            tabStrip.clipToPadding = false
-            for (i in 0 until count) {
-                val child = tabStrip.getChildAt(i)
-                val lp = child.layoutParams as? LinearLayout.LayoutParams ?: continue
-                val newWidth = perTabWidth
-                if (lp.width == newWidth && lp.weight == 0f && child.minimumWidth == 0) continue
-                lp.width = newWidth
-                lp.weight = 0f
-                child.layoutParams = lp
-                child.minimumWidth = 0
-                child.setPadding(0, child.paddingTop, 0, child.paddingBottom)
-            }
-            tabsSized = true
         }
         tabs.doOnLayout { applyEvenTabWidths() }
 
