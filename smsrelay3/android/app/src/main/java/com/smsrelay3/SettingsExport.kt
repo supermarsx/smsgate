@@ -86,8 +86,15 @@ object SettingsExport {
                     ?.let { ConfigStore.setString(context, ConfigStore.KEY_DISCOVERY_PORT, it.toString()) }
             }
             json.optJSONObject("overrides")?.let { overrides ->
-                runBlocking {
-                    LocalOverridesRepository(context).setOverrides(overrides.toString())
+                val requiredPin = ConfigStore.getConfig(context).pin
+                val providedPin = overrides.optString("pin")
+                if (requiredPin.isNotBlank() && providedPin != requiredPin) {
+                    LogStore.append("warn", "config", "Import: overrides rejected (pin mismatch)")
+                } else {
+                    overrides.remove("pin")
+                    runBlocking {
+                        LocalOverridesRepository(context).setOverrides(overrides.toString())
+                    }
                 }
             }
             json.optJSONObject("ui")?.let { ui ->

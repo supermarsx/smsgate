@@ -6,11 +6,13 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.BackoffPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
 object SyncScheduler {
     private const val WORK_NAME = "smsrelay3_sync_now"
+    private const val WORK_NAME_PERIODIC = "smsrelay3_sync_catchup"
 
     fun enqueueNow(context: Context) {
         val constraints = Constraints.Builder()
@@ -28,6 +30,24 @@ object SyncScheduler {
             WORK_NAME,
             ExistingWorkPolicy.KEEP,
             request
+        )
+    }
+
+    fun ensureCatchUp(context: Context) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val periodic = PeriodicWorkRequestBuilder<SyncWorker>(
+            15, TimeUnit.MINUTES,
+            5, TimeUnit.MINUTES
+        )
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
+            .build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            WORK_NAME_PERIODIC,
+            ExistingWorkPolicy.UPDATE,
+            periodic
         )
     }
 }

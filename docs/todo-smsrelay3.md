@@ -30,6 +30,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - DONE: Persist ConfigState row.
   - DONE: Apply in-memory policy + notify services.
 - Implement local overrides (allowlist + admin PIN gating).
+- DONE: Implement local overrides (allowlist + admin PIN gating).
 - DONE: Implement config export/import (effective, remote-only, overrides).
 
 ## SMS capture
@@ -49,7 +50,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - Support single-send and batch send modes.
 - Implement ACK processing and dedup reconciliation.
 - Add offline handling + immediate flush on reconnect.
-- Add WorkManager catch-up for best-effort mode.
+- DONE: Add WorkManager catch-up for best-effort mode.
 
 ## Presence and heartbeat
 - DONE: Add heartbeat scheduler (configurable interval):
