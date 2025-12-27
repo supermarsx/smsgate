@@ -13,6 +13,10 @@ class SimInventoryRepository(private val context: Context) {
         db.simSnapshotDao().insertAll(items)
     }
 
+    suspend fun loadAll(): List<SimSnapshot> {
+        return db.simSnapshotDao().loadAll()
+    }
+
     suspend fun computeSummaryHash(): String {
         val items = db.simSnapshotDao().loadAll()
         if (items.isEmpty()) return ""

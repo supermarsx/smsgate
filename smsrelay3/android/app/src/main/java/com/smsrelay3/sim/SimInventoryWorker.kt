@@ -32,14 +32,17 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
             return Result.retry()
         }
 
-        val snapshots = SimInventoryReader.readSnapshots(applicationContext)
         val repo = SimInventoryRepository(applicationContext)
+        val previous = repo.loadAll()
+        val snapshots = SimInventoryReader.readSnapshots(applicationContext)
         repo.saveSnapshots(snapshots)
         if (snapshots.isEmpty()) {
             val policy = ConfigRepository(applicationContext).latestPolicy()
             SimScheduler.scheduleNext(applicationContext, policy.simPollIntervalS)
             return Result.success()
         }
+        val diff = SimInventoryRepository.diff(previous, snapshots)
+        val hasChanges = diff.added.isNotEmpty() || diff.removed.isNotEmpty() || diff.moved.isNotEmpty()
 
         val sims = JSONArray()
         snapshots.forEach { item ->
@@ -56,6 +59,17 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
         payload.put("device_id", deviceId)
         payload.put("captured_at_ms", System.currentTimeMillis())
         payload.put("sims", sims)
+        payload.put("diff", JSONObject().apply {
+            put("added", JSONArray().apply { diff.added.forEach { put(it.iccid) } })
+            put("removed", JSONArray().apply { diff.removed.forEach { put(it.iccid) } })
+            put("moved", JSONArray().apply {
+                diff.moved.forEach { put(JSONObject().apply {
+                    put("iccid", it.iccid)
+                    put("slot_index", it.slotIndex)
+                    put("subscription_id", it.subscriptionId)
+                }) }
+            })
+        })
 
         val body = payload.toString().toRequestBody(JSON_MEDIA)
         val request = Request.Builder()
@@ -73,6 +87,8 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
         }
         if (!success) {
             com.smsrelay3.LogStore.append("error", "sim", "SIM: upload failed")
+        } else if (hasChanges) {
+            com.smsrelay3.LogStore.append("info", "sim", "SIM: inventory changed added=${diff.added.size} removed=${diff.removed.size} moved=${diff.moved.size}")
         }
 
         val policy = ConfigRepository(applicationContext).latestPolicy()

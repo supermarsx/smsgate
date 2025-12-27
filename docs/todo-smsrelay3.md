@@ -59,8 +59,8 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Update presence state based on heartbeat failures.
 
 ## SIM inventory
-- Implement SIM polling and change detection.
-- Send SIM inventory updates to syncserver.
+- DONE: Implement SIM polling and change detection.
+- DONE: Send SIM inventory updates to syncserver.
 - Store SimSnapshot history and expose in diagnostics.
 
 ## Contacts sync (optional)
@@ -132,8 +132,8 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Add troubleshooting guide for OEM battery restrictions.
 
 ## Build and release
-- Update app icons and branding assets.
-- Confirm min/target SDK and foreground service type.
+- DONE: Update app icons and branding assets.
+- DONE: Confirm min/target SDK and foreground service type.
 - DONE: Add Proguard/R8 rules for Room + OkHttp.
 - DONE: 16 KB page size alignment for native libs (jniLibs packaging).
 - DONE: Bumped CameraX/ML Kit deps to 16 KB–aligned builds (Play Services barcode scanning).
