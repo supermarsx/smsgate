@@ -7,8 +7,10 @@ import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import androidx.viewpager2.widget.ViewPager2
+import androidx.lifecycle.lifecycleScope
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
+import kotlinx.coroutines.launch
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -48,6 +50,8 @@ class MainActivity : AppCompatActivity() {
         val tabs = findViewById<TabLayout>(R.id.main_tabs)
         pager.adapter = MainPagerAdapter(this)
         pager.offscreenPageLimit = 5
+        val root = findViewById<android.view.View>(R.id.main_root)
+        val logo = findViewById<android.widget.TextView>(R.id.logo_text)
         tabs.isHorizontalScrollBarEnabled = false
         tabs.setPadding(0, 0, 0, 0)
         tabs.clipToPadding = true
@@ -75,11 +79,16 @@ class MainActivity : AppCompatActivity() {
 
         tabs.tabMode = TabLayout.MODE_FIXED
         tabs.tabGravity = TabLayout.GRAVITY_FILL
+        var lastAppliedWidth = -1
+        var lastAppliedCount = -1
         fun applyEvenTabWidths() {
             val tabStrip = tabs.getChildAt(0) as? LinearLayout ?: return
             val count = tabStrip.childCount.takeIf { it > 0 } ?: return
             val availableWidth = tabs.width - tabs.paddingLeft - tabs.paddingRight
             val perTabWidth = (availableWidth / count).coerceAtLeast(0)
+            if (availableWidth == lastAppliedWidth && count == lastAppliedCount) return
+            lastAppliedWidth = availableWidth
+            lastAppliedCount = count
             val inset = (perTabWidth / 4).coerceAtLeast(0)
             val indicatorHeight = resources.displayMetrics.density.times(3f).toInt().coerceAtLeast(2)
             val indicatorColor = MaterialColors.getColor(tabs, com.google.android.material.R.attr.colorPrimary)
@@ -99,16 +108,30 @@ class MainActivity : AppCompatActivity() {
             for (i in 0 until count) {
                 val child = tabStrip.getChildAt(i)
                 val lp = child.layoutParams as? LinearLayout.LayoutParams ?: continue
-                lp.width = perTabWidth
+                val newWidth = perTabWidth
+                if (lp.width == newWidth && lp.weight == 0f && child.minimumWidth == 0) continue
+                lp.width = newWidth
                 lp.weight = 0f
                 child.layoutParams = lp
                 child.minimumWidth = 0
                 child.setPadding(0, child.paddingTop, 0, child.paddingBottom)
             }
-            tabStrip.requestLayout()
         }
         tabs.doOnLayout { applyEvenTabWidths() }
-        tabs.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyEvenTabWidths() }
+        tabs.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            val changed = (right - left) != (oldRight - oldLeft) || (bottom - top) != (oldBottom - oldTop)
+            if (changed) applyEvenTabWidths()
+        }
+
+        // Intro animations on first load
+        root.alpha = 0f
+        root.translationY = resources.displayMetrics.density * 12
+        logo.alpha = 0f
+        logo.translationY = resources.displayMetrics.density * -8
+        root.post {
+            logo.animate().alpha(1f).translationY(0f).setDuration(220).start()
+            root.animate().alpha(1f).translationY(0f).setDuration(260).setStartDelay(40).start()
+        }
 
         Handler(Looper.getMainLooper()).post {
             SyncScheduler.enqueueNow(this)
@@ -133,7 +156,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
         ConfigEvents.register(configListener)
-        ServiceModeController.apply(this)
+        lifecycleScope.launch {
+            ServiceModeController.applyAsync(this@MainActivity)
+        }
     }
 
     override fun onPause() {

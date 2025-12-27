@@ -9,7 +9,13 @@ class SmsRelayApp : Application() {
     override fun onCreate() {
         super.onCreate()
         enableStrictModeForDebug()
-        ThemeManager.applyMode(this)
+        // Apply quickly but allow the initial disk read for stored prefs.
+        val oldPolicy = StrictMode.allowThreadDiskReads()
+        try {
+            ThemeManager.applyMode(this)
+        } finally {
+            StrictMode.setThreadPolicy(oldPolicy)
+        }
     }
 
     private fun enableStrictModeForDebug() {

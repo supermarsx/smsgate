@@ -4,21 +4,28 @@ import android.content.Context
 import android.content.Intent
 import com.smsrelay3.config.ConfigRepository
 import com.smsrelay3.config.ConfigWebSocketManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
 
 object ServiceModeController {
     fun apply(context: Context) {
-        val config = ConfigStore.getConfig(context)
+        runBlocking { applyAsync(context) }
+    }
+
+    suspend fun applyAsync(context: Context) {
+        val config = withContext(Dispatchers.IO) { ConfigStore.getConfig(context) }
         if (!config.servicesEnabled) {
             stopAll(context)
             return
         }
         if (config.enableSocketPresence) {
-            ConfigWebSocketManager.connect(context)
+            // Connect may touch disk (device token); keep it off main.
+            withContext(Dispatchers.IO) { ConfigWebSocketManager.connect(context) }
         } else {
             ConfigWebSocketManager.disconnect()
         }
-        val policy = runBlocking { ConfigRepository(context).latestPolicy() }
+        val policy = withContext(Dispatchers.IO) { ConfigRepository(context).latestPolicy() }
         when (policy.realtimeMode) {
             "best_effort" -> stopAll(context)
             "persistent_background" -> {
