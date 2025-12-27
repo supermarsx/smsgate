@@ -50,7 +50,8 @@ class ReconcileWorker(appContext: Context, params: WorkerParameters) : Coroutine
                 subscriptionId = sms.subscriptionId,
                 iccid = null,
                 msisdn = null,
-                source = "reconcile"
+                source = "reconcile",
+                contentHash = fingerprint
             )
         }
 

@@ -174,7 +174,14 @@ class MainActivity : AppCompatActivity() {
         val targets = listOf(logo, tabs, pager)
         targets.forEach { view ->
             view.visibility = View.VISIBLE
-            view.animate().alpha(1f).setDuration(250).start()
+            view.alpha = 0f
+            view.translationY = resources.displayMetrics.density * 10
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(280)
+                .setStartDelay(60)
+                .start()
         }
         overlay?.animate()?.alpha(0f)?.setDuration(180)?.withEndAction {
             overlay.visibility = View.GONE

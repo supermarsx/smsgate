@@ -34,14 +34,14 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Implement config export/import (effective, remote-only, overrides).
 
 ## SMS capture
-- Update BroadcastReceiver:
-  - Parse multipart PDUs.
-  - Capture subscription ID, SIM slot, ICCID, MSISDN if available.
-  - Enqueue to Room and signal sync engine.
-- Implement optional SMS provider reconciliation:
-  - Fingerprint window scan.
-  - Enqueue missing messages as `source=reconcile`.
-  - Respect allowlist/denylist.
+- DONE: Update BroadcastReceiver:
+  - DONE: Parse multipart PDUs.
+  - DONE: Capture subscription ID, SIM slot, ICCID, MSISDN if available.
+  - DONE: Enqueue to Room and signal sync engine.
+- DONE: Implement optional SMS provider reconciliation:
+  - DONE: Fingerprint window scan.
+  - DONE: Enqueue missing messages as `source=reconcile`.
+  - DONE: Respect allowlist/denylist.
 
 ## Sync engine (perpetual sync)
 - DONE: Implement queue state machine:
@@ -108,8 +108,8 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 ## Telemetry and logging
 - Structured logging categories:
   - pairing, sms_capture, sync_send, ack, retry, heartbeat, sim, config, reconcile, oem.
-- Persist logs to Room + ring buffer in memory.
-- Add log export with redaction.
+- DONE: Persist logs to Room + ring buffer in memory.
+- DONE: Add log export with redaction.
 
 ## Testing
 - Unit tests:
@@ -119,11 +119,11 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - DONE: SIM diff logic.
   - DONE: pairing error parsing helper.
 - Integration tests:
-  - mock syncserver endpoints.
-  - offline/online transitions.
-  - WS config updates.
+  - DONE: mock syncserver endpoints.
+  - DONE: offline/online transitions.
+  - DONE: WS config updates.
 - End-to-end:
-  - pairing -> ingest -> dashboard visibility.
+  - DONE: pairing -> ingest -> dashboard visibility.
 
 ## Docs and ops
 - DONE: Update `readme.md` with smsrelay3 build/run steps.
@@ -137,7 +137,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Add Proguard/R8 rules for Room + OkHttp.
 - DONE: 16 KB page size alignment for native libs (jniLibs packaging).
 - DONE: Bumped CameraX/ML Kit deps to 16 KB–aligned builds (Play Services barcode scanning).
-- Validate APK builds on CI.
+- DONE: Validate APK builds on CI.
 
 ## Progress
 - DONE: Room entities/DAOs scaffolding + database provider.

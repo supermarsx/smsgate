@@ -8,6 +8,7 @@ import android.telephony.SmsMessage
 import com.smsrelay3.data.OutboundMessageRepository
 import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.SimInfoResolver
+import com.smsrelay3.util.SmsParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,18 +29,27 @@ class SmsReceiver : BroadcastReceiver() {
         val result = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             val repository = OutboundMessageRepository(context)
-            messages.forEach { sms ->
-                val subId = resolveSubscriptionId(sms)
+            val grouped = messages.groupBy { sms ->
+                Pair(sms.originatingAddress ?: "", sms.timestampMillis)
+            }.values
+            grouped.forEach { group ->
+                val ordered = group.sortedBy { it.timestampMillis }
+                val first = ordered.first()
+                val sender = first.originatingAddress ?: ""
+                val subId = resolveSubscriptionId(first)
                 val simInfo = SimInfoResolver.resolve(context, subId)
+                val body = SmsParser.stitch(ordered.mapNotNull { it.messageBody })
+                val hash = SmsParser.contentHash(sender, simInfo.iccid ?: simInfo.subscriptionId?.toString(), body)
                 repository.enqueueSms(
-                    sender = sms.originatingAddress ?: "",
-                    content = sms.messageBody ?: "",
+                    sender = sender,
+                    content = body,
                     receivedAtMs = System.currentTimeMillis(),
                     simSlotIndex = simInfo.slotIndex,
                     subscriptionId = simInfo.subscriptionId,
                     iccid = simInfo.iccid,
                     msisdn = simInfo.msisdn,
-                    source = "broadcast"
+                    source = "broadcast",
+                    contentHash = hash
                 )
             }
             SyncScheduler.enqueueNow(context)

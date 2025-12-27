@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.smsrelay3.data.db.DatabaseProvider
 import com.smsrelay3.export.DiagnosticsExport
+import com.smsrelay3.data.SimInventoryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,6 +65,7 @@ class DiagnosticsFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             val context = requireContext()
             val db = DatabaseProvider.get(context)
+            val repo = SimInventoryRepository(context)
             val config = db.configStateDao().latest()
             val heartbeat = db.heartbeatDao().latest()
             val permissions = buildPermissionsSummary(context)

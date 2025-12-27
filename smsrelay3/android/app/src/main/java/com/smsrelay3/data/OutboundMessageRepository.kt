@@ -17,12 +17,13 @@ class OutboundMessageRepository(private val context: Context) {
         subscriptionId: Int?,
         iccid: String?,
         msisdn: String?,
-        source: String
+        source: String,
+        contentHash: String? = null
     ): OutboundMessage {
         val deviceId = DeviceAuthStore.getDeviceId(context) ?: "unpaired"
         val seq = DeviceSequenceStore.nextSeq(context)
         val createdAt = System.currentTimeMillis()
-        val hashSeed = "$sender|$content|$receivedAtMs|$simSlotIndex|$subscriptionId"
+        val hashSeed = contentHash ?: "$sender|$content|$receivedAtMs|$simSlotIndex|$subscriptionId"
         val message = OutboundMessage(
             id = UUID.randomUUID().toString(),
             deviceId = deviceId,
