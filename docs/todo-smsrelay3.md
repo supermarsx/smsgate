@@ -61,7 +61,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 ## SIM inventory
 - DONE: Implement SIM polling and change detection.
 - DONE: Send SIM inventory updates to syncserver.
-- Store SimSnapshot history and expose in diagnostics.
+- DONE: Store SimSnapshot history and expose in diagnostics.
 
 ## Contacts sync (optional)
 - Implement READ_CONTACTS gated flow.

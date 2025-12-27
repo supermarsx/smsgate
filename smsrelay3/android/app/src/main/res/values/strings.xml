@@ -167,6 +167,8 @@
     <string name="diag_service_mode">Service: %1$s</string>
     <string name="diag_recent_events">Recent events</string>
     <string name="diag_recent_errors">Recent errors</string>
+    <string name="diag_sim_summary">SIM summary</string>
+    <string name="diag_sim_summary_value">Carriers: %1$s\nSlots: %2$s\nStatus: %3$s</string>
     <string name="diag_oem_guidance">OEM guidance</string>
     <string name="splash_loading">Warming up services…</string>
 </resources>

@@ -22,6 +22,7 @@ class DiagnosticsFragment : Fragment() {
     private lateinit var lastErrorText: TextView
     private lateinit var overridesText: TextView
     private lateinit var serviceModeText: TextView
+    private lateinit var simSummaryText: TextView
     private lateinit var oemGuidanceText: TextView
     private lateinit var recentEventsText: TextView
     private lateinit var recentErrorsText: TextView
@@ -44,6 +45,7 @@ class DiagnosticsFragment : Fragment() {
         lastErrorText = view.findViewById(R.id.diag_last_error)
         overridesText = view.findViewById(R.id.diag_overrides)
         serviceModeText = view.findViewById(R.id.diag_service_mode)
+        simSummaryText = view.findViewById(R.id.diag_sim_summary)
         oemGuidanceText = view.findViewById(R.id.diag_oem_guidance)
         recentEventsText = view.findViewById(R.id.diag_recent_events)
         recentErrorsText = view.findViewById(R.id.diag_recent_errors)
@@ -74,6 +76,7 @@ class DiagnosticsFragment : Fragment() {
             val recentErrors = db.localLogDao().loadRecentByLevel("error", 20)
             val recentEventsTextValue = formatEntries(recentEvents)
             val recentErrorsTextValue = formatEntries(recentErrors)
+            val simSummary = buildSimSummary(repo.loadAll())
 
             withContext(Dispatchers.Main) {
                 permissionsText.text = getString(R.string.diag_permissions, permissions)
@@ -95,6 +98,7 @@ class DiagnosticsFragment : Fragment() {
                     overrides?.updatedAtMs?.toString() ?: "-"
                 )
                 serviceModeText.text = getString(R.string.diag_service_mode, serviceMode)
+                simSummaryText.text = simSummary
                 oemGuidanceText.text = oemGuidance
                 recentEventsText.text = recentEventsTextValue
                 recentErrorsText.text = recentErrorsTextValue
@@ -154,6 +158,14 @@ class DiagnosticsFragment : Fragment() {
         }
         val backgroundRunning = if (BackgroundRelayService.isRunning) "running" else "stopped"
         return "mode=${policy.realtimeMode} foreground=$foreground background=$backgroundMode ($backgroundRunning)"
+    }
+
+    private fun buildSimSummary(sims: List<com.smsrelay3.data.entity.SimSnapshot>): String {
+        if (sims.isEmpty()) return getString(R.string.diag_sim_summary_value, "-", "-", "-")
+        val newest = sims.maxByOrNull { it.createdAtMs }
+        val carriers = sims.mapNotNull { it.carrierName }.distinct().joinToString(",").ifBlank { "-" }
+        val slots = sims.joinToString(",") { "${it.slotIndex}:${it.iccid ?: "?"}" }
+        return getString(R.string.diag_sim_summary_value, carriers, slots, newest?.status ?: "-")
     }
 
     private fun flag(value: Boolean): String {
