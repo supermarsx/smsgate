@@ -9,6 +9,7 @@ import androidx.core.view.doOnLayout
 import androidx.viewpager2.widget.ViewPager2
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.smsrelay3.config.ConfigScheduler
@@ -81,9 +82,10 @@ class MainActivity : AppCompatActivity() {
             val perTabWidth = (availableWidth / count).coerceAtLeast(0)
             val inset = (perTabWidth / 4).coerceAtLeast(0)
             val indicatorHeight = resources.displayMetrics.density.times(3f).toInt().coerceAtLeast(2)
+            val indicatorColor = MaterialColors.getColor(tabs, com.google.android.material.R.attr.colorPrimary)
             val indicatorDrawable = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                setColor(tabs.tabIndicatorColor)
+                setColor(indicatorColor)
                 cornerRadius = resources.displayMetrics.density * 2f
                 setSize(0, indicatorHeight)
             }
