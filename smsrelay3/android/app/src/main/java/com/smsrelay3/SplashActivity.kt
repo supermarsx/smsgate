@@ -19,7 +19,6 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        // Quick handoff to main once the app is ready; keeps splash responsive.
         Handler(Looper.getMainLooper()).post {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
