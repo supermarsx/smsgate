@@ -11,6 +11,10 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.smsrelay3.util.LocaleManager
 import com.smsrelay3.util.ThemeManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val changeListener: () -> Unit = changeListener@{
@@ -93,13 +97,17 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             if (key == ConfigStore.KEY_APP_THEME) {
                 (activity as? MainActivity)?.showThemeChangeOverlay()
-                ThemeManager.applyMode(requireContext(), value)
-                activity?.recreate()
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    ThemeManager.applyMode(requireContext(), value)
+                    withContext(Dispatchers.Main) { activity?.recreate() }
+                }
             }
             if (key == ConfigStore.KEY_APP_ACCENT) {
                 (activity as? MainActivity)?.showThemeChangeOverlay()
-                ThemeManager.applyTheme(requireActivity(), value)
-                activity?.recreate()
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    ThemeManager.applyTheme(requireActivity(), value)
+                    withContext(Dispatchers.Main) { activity?.recreate() }
+                }
             }
             true
         }
