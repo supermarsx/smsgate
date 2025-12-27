@@ -48,7 +48,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - queued -> sending -> acked/failed.
   - Retry with backoff + jitter. (WorkManager backoff wired)
 - Support single-send and batch send modes.
-- Implement ACK processing and dedup reconciliation.
+- DONE: Implement ACK processing and dedup reconciliation.
 - DONE: Add offline handling + immediate flush on reconnect.
 - DONE: Add WorkManager catch-up for best-effort mode.
 
@@ -126,10 +126,10 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - pairing -> ingest -> dashboard visibility.
 
 ## Docs and ops
-- Update `readme.md` with smsrelay3 build/run steps.
-- Document required permissions and optional permissions.
-- Document configuration keys and defaults.
-- Add troubleshooting guide for OEM battery restrictions.
+- DONE: Update `readme.md` with smsrelay3 build/run steps.
+- DONE: Document required permissions and optional permissions.
+- DONE: Document configuration keys and defaults.
+- DONE: Add troubleshooting guide for OEM battery restrictions.
 
 ## Build and release
 - Update app icons and branding assets.

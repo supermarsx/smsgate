@@ -8,6 +8,7 @@ import androidx.work.BackoffPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.ExistingPeriodicWorkPolicy
 import java.util.concurrent.TimeUnit
 
 object SyncScheduler {
@@ -46,7 +47,7 @@ object SyncScheduler {
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WORK_NAME_PERIODIC,
-            ExistingWorkPolicy.UPDATE,
+            ExistingPeriodicWorkPolicy.UPDATE,
             periodic
         )
     }

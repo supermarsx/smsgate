@@ -78,6 +78,23 @@ Programmatic settings (in-app):
 - Enable boot receiver.
 - Enable WebSocket presence if you want a persistent online indicator.
 
+## Permissions (Android app)
+- Required: `RECEIVE_SMS`, `READ_SMS`, `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`.
+- Optional but recommended: `RECEIVE_BOOT_COMPLETED` (rehydrate on boot), `POST_NOTIFICATIONS` (foreground relay banner), `READ_PHONE_STATE` (SIM metadata), `CAMERA` (QR pairing), `READ_CONTACTS` (optional contact upload), `ACCESS_WIFI_STATE` (network diagnostics).
+- The app requests required permissions on first launch and will surface a blocking entry page if missing.
+
+## Configuration keys (defaults)
+- Server: `server_url=https://syncserver.local`, `api_path=/api/v1/ingest`, `http_method=POST`.
+- Auth: `client_id_header=x-clientid`, `client_id_value=#XCLIENTID1`, `auth_header=Authorization`, `auth_prefix=Bearer`, `pin=#PIN1`, `salt=#SALT`.
+- Remote config (optional): `remote_config_url`, `remote_config_auth_header/value`, `remote_config_signature_header/secret`, `discovery_port=3000`.
+- UI: `app_locale=system`, `app_theme=system`, `app_accent=cyan`.
+- Features: `enableListener=true`, `enableForegroundService=true`, `enableBootReceiver=true`, `enableSocketPresence=true`, `notificationEnabled=true`, `servicesEnabled=true`.
+
+## Troubleshooting (Android)
+- Missed SMS on OEM devices: disable battery optimizations and allow auto-start; keep foreground relay enabled.
+- Sync stalls after network loss: app auto-enqueues a catch-up sync when connectivity returns; you can also tap the Status tab's refresh.
+- QR scan jank: camera is lazy-loaded; if issues persist, force-close and reopen Scan tab to re-init camera.
+
 Samsung (One UI):
 - Settings > Apps > smsrelay3 > Battery: set to Unrestricted.
 - Settings > Battery and device care > Battery > Background usage limits: add smsrelay3 to Never sleeping apps.

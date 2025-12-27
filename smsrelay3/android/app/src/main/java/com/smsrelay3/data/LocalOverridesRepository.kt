@@ -16,4 +16,8 @@ class LocalOverridesRepository(private val context: Context) {
         )
         db.localOverridesDao().upsert(entry)
     }
+
+    suspend fun getOverrides(): String? {
+        return db.localOverridesDao().latest()?.rawJson
+    }
 }

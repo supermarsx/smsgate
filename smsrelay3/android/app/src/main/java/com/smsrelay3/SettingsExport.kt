@@ -51,11 +51,9 @@ object SettingsExport {
         features.put("notificationEnabled", config.notificationEnabled)
         features.put("servicesEnabled", config.servicesEnabled)
         json.put("features", features)
-        LocalOverridesRepository(context).let { repo ->
-            val overrides = runBlocking { repo.getOverrides() }
-            if (!overrides.isNullOrBlank()) {
-                json.put("overrides", JSONObject(overrides))
-            }
+        val overrides = runBlocking { LocalOverridesRepository(context).getOverrides() }
+        if (!overrides.isNullOrBlank()) {
+            json.put("overrides", JSONObject(overrides))
         }
         json.put("effective", buildEffectiveConfig(config))
         return json.toString(2)
@@ -146,7 +144,7 @@ object SettingsExport {
         return ConfigStore.getConfig(context).discoveryPort
     }
 
-    private fun buildEffectiveConfig(config: com.smsrelay3.Config): JSONObject {
+    private fun buildEffectiveConfig(config: AppConfig): JSONObject {
         val json = JSONObject()
         json.put("server_url", config.serverUrl.safeRedact())
         json.put("api_path", config.apiPath)

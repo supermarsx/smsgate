@@ -40,6 +40,16 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
         var hadFailure = false
         for (message in pending) {
+            val alreadyAcked = dao.countStatusByHashBetween(
+                OutboundMessageStatus.ACKED,
+                message.contentHash,
+                message.smsReceivedAtMs - DEDUP_WINDOW_MS,
+                message.smsReceivedAtMs + DEDUP_WINDOW_MS
+            ) > 0
+            if (alreadyAcked) {
+                dao.update(message.copy(status = OutboundMessageStatus.ACKED, lastAttemptAtMs = System.currentTimeMillis()))
+                continue
+            }
             val sending = onSendStart(message, System.currentTimeMillis())
             dao.update(sending)
             val success = sendMessage(baseUrl, config.apiPath, deviceToken, sending)
@@ -100,6 +110,7 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     companion object {
         private const val DEFAULT_BATCH_SIZE = 10
         private const val DEFAULT_MAX_ATTEMPTS = 5
+        private const val DEDUP_WINDOW_MS = 5 * 60 * 1000
         private val JSON_MEDIA = "application/json".toMediaType()
     }
 }
