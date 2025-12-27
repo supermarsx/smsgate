@@ -4,13 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.view.View
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import androidx.viewpager2.widget.ViewPager2
 import androidx.lifecycle.lifecycleScope
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.InsetDrawable
 import kotlinx.coroutines.launch
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.tabs.TabLayout
@@ -25,7 +26,6 @@ import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.LocaleManager
 import com.smsrelay3.util.ThemeManager
 import com.smsrelay3.util.PermissionGate
-import android.widget.LinearLayout
 
 class MainActivity : AppCompatActivity() {
     private val configListener: () -> Unit = {

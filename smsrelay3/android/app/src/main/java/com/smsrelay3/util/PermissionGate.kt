@@ -9,11 +9,11 @@ import androidx.core.content.ContextCompat
 object PermissionGate {
     val requiredPermissions: List<String> = listOf(
         Manifest.permission.RECEIVE_SMS,
-        Manifest.permission.READ_SMS
+        Manifest.permission.READ_SMS,
+        Manifest.permission.READ_PHONE_STATE
     )
 
     val optionalPermissions: List<String> = listOfNotNull(
-        Manifest.permission.READ_PHONE_STATE,
         Manifest.permission.READ_CONTACTS,
         Manifest.permission.CAMERA,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

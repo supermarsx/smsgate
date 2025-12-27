@@ -35,6 +35,7 @@ data class AppConfig(
 
 object ConfigStore {
     private const val PREFS_NAME = "smsrelay3_secure_prefs"
+    private val inMemoryCache: MutableMap<String, String> = mutableMapOf()
 
     const val KEY_SERVER_URL = "server_url"
     const val KEY_API_PATH = "api_path"
@@ -115,6 +116,7 @@ object ConfigStore {
     }
 
     fun setString(context: Context, key: String, value: String) {
+        inMemoryCache[key] = value
         prefs(context).edit().putString(key, value).apply()
     }
 
@@ -123,7 +125,10 @@ object ConfigStore {
     }
 
     fun getString(context: Context, key: String, defaultValue: String): String {
-        return prefs(context).getString(key, defaultValue) ?: defaultValue
+        inMemoryCache[key]?.let { return it }
+        val value = prefs(context).getString(key, defaultValue) ?: defaultValue
+        inMemoryCache[key] = value
+        return value
     }
 
     fun getBoolean(context: Context, key: String, defaultValue: Boolean): Boolean {
