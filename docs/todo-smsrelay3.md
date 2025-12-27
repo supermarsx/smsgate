@@ -49,7 +49,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - Retry with backoff + jitter. (WorkManager backoff wired)
 - Support single-send and batch send modes.
 - Implement ACK processing and dedup reconciliation.
-- Add offline handling + immediate flush on reconnect.
+- DONE: Add offline handling + immediate flush on reconnect.
 - DONE: Add WorkManager catch-up for best-effort mode.
 
 ## Presence and heartbeat
