@@ -164,7 +164,7 @@ class DiagnosticsFragment : Fragment() {
 
     private fun buildSimSummary(sims: List<com.smsrelay3.data.entity.SimSnapshot>): String {
         if (sims.isEmpty()) return getString(R.string.diag_sim_summary_value, "-", "-", "-")
-        val newest = sims.maxByOrNull { it.createdAtMs }
+        val newest = sims.maxByOrNull { it.capturedAtMs }
         val carriers = sims.mapNotNull { it.carrierName }.distinct().joinToString(",").ifBlank { "-" }
         val slots = sims.joinToString(",") { "${it.slotIndex}:${it.iccid ?: "?"}" }
         return getString(R.string.diag_sim_summary_value, carriers, slots, newest?.status ?: "-")
