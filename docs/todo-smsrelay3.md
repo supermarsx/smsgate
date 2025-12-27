@@ -25,7 +25,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 ## Remote configuration
 - Build config client:
   - DONE: WS subscribe `DEVICE_SUBSCRIBE_CONFIG`.
-  - Fallback periodic pull `GET /api/v1/device/config` with ETag.
+  - DONE: Fallback periodic pull `GET /api/v1/device/config` with ETag.
 - Implement config validation + atomic apply:
   - DONE: Persist ConfigState row.
   - DONE: Apply in-memory policy + notify services.
@@ -43,19 +43,19 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - Respect allowlist/denylist.
 
 ## Sync engine (perpetual sync)
-- Implement queue state machine:
+- DONE: Implement queue state machine:
   - queued -> sending -> acked/failed.
-  - Retry with backoff + jitter.
+  - Retry with backoff + jitter. (WorkManager backoff wired)
 - Support single-send and batch send modes.
 - Implement ACK processing and dedup reconciliation.
 - Add offline handling + immediate flush on reconnect.
 - Add WorkManager catch-up for best-effort mode.
 
 ## Presence and heartbeat
-- Add heartbeat scheduler (configurable interval):
+- DONE: Add heartbeat scheduler (configurable interval):
   - queue depth, RTT, ws state, network type, battery.
-- Implement RTT measurement via heartbeat and WS ping.
-- Update presence state based on heartbeat failures.
+- DONE: Implement RTT measurement via heartbeat and WS ping.
+- DONE: Update presence state based on heartbeat failures.
 
 ## SIM inventory
 - Implement SIM polling and change detection.
@@ -95,13 +95,13 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
   - DONE: foreground service
   - DONE: persistent background service
   - DONE: best-effort (WorkManager)
-- Add boot receiver rehydration based on config.
+- DONE: Add boot receiver rehydration based on config.
 - DONE: Add OEM guidance UI and shortcuts (MIUI, Huawei, Samsung, Oppo/Vivo).
 
 ## Security
-- Store device token in Keystore-backed storage.
-- Add optional TLS pinning (configurable).
-- Redact SMS content in logs and exports by default.
+- DONE: Store device token in Keystore-backed storage.
+- DONE: Add optional TLS pinning (configurable).
+- DONE: Redact SMS content in logs and exports by default.
 - Add diagnostics export redaction and secret stripping.
 
 ## Telemetry and logging
@@ -113,7 +113,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 ## Testing
 - Unit tests:
   - DONE: SMS parsing, multipart handling.
-  - queue state machine.
+  - DONE: queue state machine.
   - DONE: backoff + retry helper.
   - DONE: SIM diff logic.
   - DONE: pairing error parsing helper.

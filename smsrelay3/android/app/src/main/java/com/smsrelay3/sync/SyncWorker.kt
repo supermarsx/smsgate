@@ -10,6 +10,9 @@ import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.OutboundMessageStatus
 import com.smsrelay3.data.db.DatabaseProvider
 import com.smsrelay3.data.entity.OutboundMessage
+import com.smsrelay3.sync.QueueStateMachine.onSendFailure
+import com.smsrelay3.sync.QueueStateMachine.onSendStart
+import com.smsrelay3.sync.QueueStateMachine.onSendSuccess
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -37,28 +40,15 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
         var hadFailure = false
         for (message in pending) {
-            val sending = message.copy(
-                status = OutboundMessageStatus.SENDING,
-                lastAttemptAtMs = System.currentTimeMillis()
-            )
+            val sending = onSendStart(message, System.currentTimeMillis())
             dao.update(sending)
             val success = sendMessage(baseUrl, config.apiPath, deviceToken, sending)
             if (success) {
-                dao.update(sending.copy(status = OutboundMessageStatus.ACKED))
+                dao.update(onSendSuccess(sending))
             } else {
                 com.smsrelay3.LogStore.append("error", "sync", "Sync: send failed ${message.id}")
-                val attempts = sending.retryCount + 1
-                val status = if (attempts >= DEFAULT_MAX_ATTEMPTS) {
-                    OutboundMessageStatus.FAILED
-                } else {
-                    OutboundMessageStatus.QUEUED
-                }
-                dao.update(
-                    sending.copy(
-                        status = status,
-                        retryCount = attempts
-                    )
-                )
+                val failure = onSendFailure(sending)
+                dao.update(failure.message)
                 hadFailure = true
             }
         }

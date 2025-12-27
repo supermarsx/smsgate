@@ -30,11 +30,12 @@ object LogStore {
 
     fun append(level: String, category: String, message: String) {
         val timestamp = formatter.format(Date())
-        lines.add("[$timestamp] $message")
+        val redacted = redact(message)
+        lines.add("[$timestamp] $redacted")
         while (lines.size > MAX_LINES) {
             lines.removeAt(0)
         }
-        persist(level, category, message)
+        persist(level, category, redacted)
         notifyListeners()
     }
 
@@ -74,5 +75,14 @@ object LogStore {
             )
             DatabaseProvider.get(context).localLogDao().insert(entry)
         }
+    }
+
+    private fun redact(raw: String): String {
+        val digits = Regex("\\b\\d{4,}\\b")
+        val maskedDigits = digits.replace(raw) { "*".repeat(it.value.length) }
+        // Keep log lines concise to reduce accidental payload leakage.
+        return if (maskedDigits.length > 200) {
+            maskedDigits.take(120) + " …[redacted]…"
+        } else maskedDigits
     }
 }
