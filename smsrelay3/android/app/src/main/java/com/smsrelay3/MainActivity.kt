@@ -67,15 +67,17 @@ class MainActivity : AppCompatActivity() {
 
         tabs.tabMode = TabLayout.MODE_FIXED
         tabs.tabGravity = TabLayout.GRAVITY_FILL
-        val tabStrip = tabs.getChildAt(0) as? LinearLayout
-        if (tabStrip != null) {
-            for (i in 0 until tabStrip.childCount) {
+        tabs.post {
+            val tabStrip = tabs.getChildAt(0) as? LinearLayout ?: return@post
+            val count = tabStrip.childCount.takeIf { it > 0 } ?: return@post
+            val tabWidth = tabs.width / count
+            for (i in 0 until count) {
                 val child = tabStrip.getChildAt(i)
                 val lp = child.layoutParams as? LinearLayout.LayoutParams ?: continue
-                lp.width = 0
-                lp.weight = 0.5f
+                lp.width = tabWidth
+                lp.weight = 0f
                 child.layoutParams = lp
-                child.minimumWidth = 1
+                child.minimumWidth = 0
                 child.setPadding(0, child.paddingTop, 0, child.paddingBottom)
             }
         }

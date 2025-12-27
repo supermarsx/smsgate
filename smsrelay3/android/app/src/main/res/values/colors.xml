@@ -9,8 +9,8 @@
     <color name="graphite_border_strong">#29121826</color>
     <color name="glass_highlight">#33FFFFFF</color>
     <color name="glass_glow">#1F1FA7E6</color>
-    <color name="glass_button_fill">#B3FFFFFF</color>
-    <color name="glass_button_highlight">#66FFFFFF</color>
+    <color name="glass_button_fill">#CC2B3E55</color>
+    <color name="glass_button_highlight">#33FFFFFF</color>
 
     <color name="text_primary">#121826</color>
     <color name="text_secondary">#3A455A</color>

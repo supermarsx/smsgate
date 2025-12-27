@@ -11,6 +11,7 @@
         <item name="colorOnSurface">@color/text_primary</item>
         <item name="colorControlActivated">@color/accent_primary</item>
         <item name="colorControlHighlight">@color/accent_primary</item>
+        <item name="materialButtonStyle">@style/GlassButton</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlayGlass</item>
     </style>
 

@@ -11,6 +11,7 @@
         <item name="colorOnSurface">@color/text_primary</item>
         <item name="colorControlActivated">@color/accent_primary</item>
         <item name="colorControlHighlight">@color/accent_primary</item>
+        <item name="materialButtonStyle">@style/GlassButton</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlayGlass</item>
     </style>
 
@@ -65,7 +66,18 @@
         <item name="android:textSize">11sp</item>
     </style>
 
-    <style name="ButtonSmallGlass" parent="Widget.MaterialComponents.Button">
+    <style name="GlassButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/glass_button</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="backgroundTint">@null</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="ButtonSmallGlass" parent="GlassButton">
         <item name="android:minHeight">36dp</item>
         <item name="android:textSize">12sp</item>
     </style>
