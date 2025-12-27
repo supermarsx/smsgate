@@ -141,6 +141,7 @@ class MainActivity : AppCompatActivity() {
 
         Handler(Looper.getMainLooper()).post {
             SyncScheduler.enqueueNow(this)
+            SyncScheduler.ensureCatchUp(this)
             ConfigScheduler.ensureScheduled(this)
             HeartbeatScheduler.ensureScheduled(this)
             SimScheduler.ensureScheduled(this)

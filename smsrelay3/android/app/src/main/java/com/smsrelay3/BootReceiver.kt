@@ -16,6 +16,7 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
         ServiceModeController.applyFromBoot(context)
         SyncScheduler.enqueueNow(context)
+        SyncScheduler.ensureCatchUp(context)
         ConfigScheduler.ensureScheduled(context)
         HeartbeatScheduler.ensureScheduled(context)
         SimScheduler.ensureScheduled(context)
