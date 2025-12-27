@@ -92,10 +92,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 activity?.recreate()
             }
             if (key == ConfigStore.KEY_APP_THEME) {
+                (activity as? MainActivity)?.showThemeChangeOverlay()
                 ThemeManager.applyMode(requireContext(), value)
                 activity?.recreate()
             }
             if (key == ConfigStore.KEY_APP_ACCENT) {
+                (activity as? MainActivity)?.showThemeChangeOverlay()
                 ThemeManager.applyTheme(requireActivity(), value)
                 activity?.recreate()
             }

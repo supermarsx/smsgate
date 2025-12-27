@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
 import androidx.viewpager2.widget.ViewPager2
@@ -30,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private val configListener: () -> Unit = {
         ServiceModeController.apply(this)
     }
+    private var tabsSized = false
+    private var themeOverlay: View? = null
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleManager.wrap(newBase))
     }
@@ -48,6 +51,8 @@ class MainActivity : AppCompatActivity() {
 
         val pager = findViewById<ViewPager2>(R.id.main_pager)
         val tabs = findViewById<TabLayout>(R.id.main_tabs)
+        themeOverlay = findViewById(R.id.theme_loading_overlay)
+        themeOverlay?.visibility = View.GONE
         pager.adapter = MainPagerAdapter(this)
         pager.offscreenPageLimit = 5
         val root = findViewById<android.view.View>(R.id.main_root)
@@ -82,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         var lastAppliedWidth = -1
         var lastAppliedCount = -1
         fun applyEvenTabWidths() {
+            if (tabsSized) return
             val tabStrip = tabs.getChildAt(0) as? LinearLayout ?: return
             val count = tabStrip.childCount.takeIf { it > 0 } ?: return
             val availableWidth = tabs.width - tabs.paddingLeft - tabs.paddingRight
@@ -116,12 +122,9 @@ class MainActivity : AppCompatActivity() {
                 child.minimumWidth = 0
                 child.setPadding(0, child.paddingTop, 0, child.paddingBottom)
             }
+            tabsSized = true
         }
         tabs.doOnLayout { applyEvenTabWidths() }
-        tabs.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-            val changed = (right - left) != (oldRight - oldLeft) || (bottom - top) != (oldBottom - oldTop)
-            if (changed) applyEvenTabWidths()
-        }
 
         // Intro animations on first load
         root.alpha = 0f
@@ -158,6 +161,14 @@ class MainActivity : AppCompatActivity() {
         ConfigEvents.register(configListener)
         lifecycleScope.launch {
             ServiceModeController.applyAsync(this@MainActivity)
+        }
+    }
+
+    fun showThemeChangeOverlay() {
+        themeOverlay?.let { overlay ->
+            overlay.visibility = View.VISIBLE
+            overlay.alpha = 0f
+            overlay.animate().alpha(1f).setDuration(120).start()
         }
     }
 
