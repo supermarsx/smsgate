@@ -1,36 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="?attr/colorPrimary">
+    <!-- Mask keeps ripple inside the glass shape -->
     <item android:id="@android:id/mask">
         <shape android:shape="rectangle">
             <solid android:color="@color/glass_button_fill" />
-            <corners android:radius="5dp" />
+            <corners android:radius="6dp" />
         </shape>
     </item>
     <item>
         <layer-list>
-            <item android:alpha="0.35">
+            <!-- Subtle outer glow -->
+            <item android:alpha="0.14">
                 <shape android:shape="rectangle">
+                    <gradient
+                        android:startColor="@color/glass_glow"
+                        android:centerColor="@android:color/transparent"
+                        android:endColor="@android:color/transparent"
+                        android:angle="270" />
+                    <corners android:radius="8dp" />
+                </shape>
+            </item>
+            <!-- Base plate -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/glass_button_fill" />
                     <stroke
                         android:width="1dp"
                         android:color="@color/graphite_border_strong" />
-                    <corners android:radius="5dp" />
+                    <corners android:radius="6dp" />
                 </shape>
             </item>
+            <!-- Inner tint and depth -->
             <item android:left="1dp" android:top="1dp" android:right="1dp" android:bottom="1dp">
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/glass_button_fill" />
                     <gradient
                         android:startColor="@color/glass_button_highlight"
                         android:centerColor="@color/glass_button_fill"
-                        android:endColor="@android:color/transparent"
+                        android:endColor="@color/glass_button_fill"
                         android:angle="270" />
                     <stroke
                         android:width="1dp"
-                        android:color="@color/graphite_border_strong" />
-                    <corners android:radius="4dp" />
+                        android:color="@color/glass_highlight" />
+                    <corners android:radius="5dp" />
                 </shape>
             </item>
+            <!-- Top sheen -->
+            <item android:left="2dp" android:top="2dp" android:right="2dp">
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:startColor="@color/glass_highlight"
+                        android:centerColor="@android:color/transparent"
+                        android:endColor="@android:color/transparent"
+                        android:angle="90" />
+                    <corners android:radius="5dp" />
+                </shape>
+            </item>
+            <!-- Content padding -->
             <item>
                 <shape android:shape="rectangle">
                     <padding
