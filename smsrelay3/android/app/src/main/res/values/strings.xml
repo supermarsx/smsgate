@@ -152,4 +152,21 @@
     <string name="permissions_continue">Continue</string>
     <string name="permissions_ready">All required permissions granted.</string>
     <string name="permissions_missing">Missing required permissions.</string>
-<string name="open_notifications">Notification settings</string><string name="open_autostart">Autostart settings</string><string name="toast_open_notifications">Opening notification settings</string><string name="toast_open_autostart">Opening autostart settings</string><string name="export_diagnostics">Export diagnostics</string><string name="toast_export_diagnostics_done">Diagnostics exported</string><string name="toast_export_diagnostics_failed">Diagnostics export failed</string><string name="logs_filter_all">All logs</string><string name="logs_filter_errors">Errors</string><string name="logs_export">Export logs</string><string name="diag_last_error">Last error: %1$s</string><string name="diag_overrides">Overrides updated: %1$s</string><string name="diag_service_mode">Service: %1$s</string><string name="diag_recent_events">Recent events</string><string name="diag_recent_errors">Recent errors</string><string name="diag_oem_guidance">OEM guidance</string></resources>
+    <string name="open_notifications">Notification settings</string>
+    <string name="open_autostart">Autostart settings</string>
+    <string name="toast_open_notifications">Opening notification settings</string>
+    <string name="toast_open_autostart">Opening autostart settings</string>
+    <string name="export_diagnostics">Export diagnostics</string>
+    <string name="toast_export_diagnostics_done">Diagnostics exported</string>
+    <string name="toast_export_diagnostics_failed">Diagnostics export failed</string>
+    <string name="logs_filter_all">All logs</string>
+    <string name="logs_filter_errors">Errors</string>
+    <string name="logs_export">Export logs</string>
+    <string name="diag_last_error">Last error: %1$s</string>
+    <string name="diag_overrides">Overrides updated: %1$s</string>
+    <string name="diag_service_mode">Service: %1$s</string>
+    <string name="diag_recent_events">Recent events</string>
+    <string name="diag_recent_errors">Recent errors</string>
+    <string name="diag_oem_guidance">OEM guidance</string>
+    <string name="splash_loading">Warming up services…</string>
+</resources>
