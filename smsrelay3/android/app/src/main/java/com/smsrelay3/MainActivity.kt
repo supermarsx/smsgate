@@ -52,11 +52,10 @@ class MainActivity : AppCompatActivity() {
         val pager = findViewById<ViewPager2>(R.id.main_pager)
         val tabs = findViewById<TabLayout>(R.id.main_tabs)
         themeOverlay = findViewById(R.id.theme_loading_overlay)
-        themeOverlay?.visibility = View.GONE
+        themeOverlay?.visibility = View.VISIBLE
+        themeOverlay?.alpha = 1f
         pager.adapter = MainPagerAdapter(this)
         pager.offscreenPageLimit = 5
-        val root = findViewById<android.view.View>(R.id.main_root)
-        val logo = findViewById<android.widget.TextView>(R.id.logo_text)
         tabs.isHorizontalScrollBarEnabled = false
         tabs.setPadding(0, 0, 0, 0)
         tabs.clipToPadding = true
@@ -129,16 +128,6 @@ class MainActivity : AppCompatActivity() {
         }
         tabs.doOnLayout { applyEvenTabWidths() }
 
-        // Intro animations on first load
-        root.alpha = 0f
-        root.translationY = resources.displayMetrics.density * 12
-        logo.alpha = 0f
-        logo.translationY = resources.displayMetrics.density * -8
-        root.post {
-            logo.animate().alpha(1f).translationY(0f).setDuration(220).start()
-            root.animate().alpha(1f).translationY(0f).setDuration(260).setStartDelay(40).start()
-        }
-
         Handler(Looper.getMainLooper()).post {
             SyncScheduler.enqueueNow(this)
             SyncScheduler.ensureCatchUp(this)
@@ -149,6 +138,7 @@ class MainActivity : AppCompatActivity() {
             PruneScheduler.ensureScheduled(this)
             ContactsSyncScheduler.ensureScheduled(this)
             ServiceModeController.apply(this)
+            fadeInContent()
         }
     }
 
@@ -174,6 +164,21 @@ class MainActivity : AppCompatActivity() {
             overlay.alpha = 0f
             overlay.animate().alpha(1f).setDuration(120).start()
         }
+    }
+
+    private fun fadeInContent() {
+        val logo = findViewById<View>(R.id.logo_text)
+        val tabs = findViewById<View>(R.id.main_tabs)
+        val pager = findViewById<View>(R.id.main_pager)
+        val overlay = themeOverlay
+        val targets = listOf(logo, tabs, pager)
+        targets.forEach { view ->
+            view.visibility = View.VISIBLE
+            view.animate().alpha(1f).setDuration(250).start()
+        }
+        overlay?.animate()?.alpha(0f)?.setDuration(180)?.withEndAction {
+            overlay.visibility = View.GONE
+        }?.start()
     }
 
     override fun onPause() {

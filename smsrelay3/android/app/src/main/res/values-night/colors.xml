@@ -21,4 +21,5 @@
     <color name="accent_success">#39F0C0</color>
     <color name="accent_warning">#FFCC66</color>
     <color name="accent_danger">#FF5C7A</color>
+    <color name="primary_glass">#804CC9FF</color>
 </resources>

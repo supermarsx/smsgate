@@ -47,7 +47,7 @@ object SyncScheduler {
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WORK_NAME_PERIODIC,
-            ExistingPeriodicWorkPolicy.UPDATE,
+            ExistingPeriodicWorkPolicy.KEEP,
             periodic
         )
     }

@@ -18,6 +18,8 @@
         android:letterSpacing="0.05"
         android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
+        android:alpha="0"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -33,6 +35,8 @@
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
         android:background="@drawable/glass_panel"
+        android:alpha="0"
+        android:visibility="invisible"
         app:tabIndicatorColor="?attr/colorPrimary"
         app:tabIconTint="@color/tab_icon_tint"
         app:tabSelectedTextColor="@color/text_primary"
@@ -58,6 +62,8 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"
+        android:alpha="0"
+        android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@id/main_tabs"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -70,7 +76,7 @@
         android:background="#99000000"
         android:clickable="true"
         android:focusable="true"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -85,11 +91,19 @@
             android:gravity="center"
             android:layout_gravity="center">
 
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@mipmap/ic_launcher"
+                android:alpha="0.9"
+                android:contentDescription="@string/app_name" />
+
             <ProgressBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
                 android:indeterminate="true"
-                android:indeterminateTint="?attr/colorPrimary" />
+                android:indeterminateDrawable="@drawable/progress_glass" />
 
             <TextView
                 android:layout_width="wrap_content"

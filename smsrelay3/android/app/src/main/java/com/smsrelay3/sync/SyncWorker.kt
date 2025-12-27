@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.smsrelay3.ConfigStore
 import com.smsrelay3.HttpClient
+import com.smsrelay3.LogStore
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.OutboundMessageStatus
 import com.smsrelay3.data.db.DatabaseProvider
@@ -16,6 +17,7 @@ import com.smsrelay3.sync.QueueStateMachine.onSendSuccess
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
 import org.json.JSONObject
 
 class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
@@ -37,6 +39,15 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         val dao = db.outboundMessageDao()
         val pending = dao.loadByStatus(OutboundMessageStatus.QUEUED, DEFAULT_BATCH_SIZE)
         if (pending.isEmpty()) return Result.success()
+
+        if (pending.size > 1 && tryBatchSend(baseUrl, config.apiPath, deviceToken, pending)) {
+            val now = System.currentTimeMillis()
+            pending.forEach { msg ->
+                dao.update(onSendSuccess(onSendStart(msg, now)))
+            }
+            LogStore.append("info", "sync", "Batch sent ${pending.size} messages")
+            return Result.success()
+        }
 
         var hadFailure = false
         for (message in pending) {
@@ -72,24 +83,7 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         deviceToken: String,
         message: OutboundMessage
     ): Boolean {
-        val json = JSONObject()
-        json.put("device_id", message.deviceId)
-        json.put("device_seq", message.seq)
-        json.put("received_at_device_ms", message.smsReceivedAtMs)
-        json.put("sender", message.sender)
-        json.put("content", message.content)
-        json.put("content_hash", message.contentHash)
-        json.put("sim_slot_index", message.simSlotIndex)
-        json.put("subscription_id", message.subscriptionId)
-        json.put("iccid", message.iccid)
-        json.put("msisdn", message.msisdn)
-        json.put("source", "android_sms")
-        val metadata = JSONObject()
-        metadata.put("manufacturer", Build.MANUFACTURER)
-        metadata.put("model", Build.MODEL)
-        metadata.put("sdk_int", Build.VERSION.SDK_INT)
-        json.put("metadata", metadata)
-
+        val json = buildMessageJson(message)
         val body = json.toString().toRequestBody(JSON_MEDIA)
         val path = apiPath.trim().ifBlank { "/api/v1/ingest" }
         val request = Request.Builder()
@@ -104,6 +98,54 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             }
         } catch (_: Exception) {
             false
+        }
+    }
+
+    private fun tryBatchSend(
+        baseUrl: String,
+        apiPath: String,
+        deviceToken: String,
+        messages: List<OutboundMessage>
+    ): Boolean {
+        return try {
+            val path = apiPath.trim().ifBlank { "/api/v1/ingest" }
+            val batchPath = if (path.endsWith("/ingest")) "$path/batch" else "$path/batch"
+            val array = JSONArray()
+            messages.forEach { array.put(buildMessageJson(it)) }
+            val body = JSONObject().apply { put("messages", array) }
+                .toString()
+                .toRequestBody(JSON_MEDIA)
+            val request = Request.Builder()
+                .url("$baseUrl$batchPath")
+                .addHeader("Authorization", "Bearer $deviceToken")
+                .post(body)
+                .build()
+            HttpClient.get(applicationContext).newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun buildMessageJson(message: OutboundMessage): JSONObject {
+        return JSONObject().apply {
+            put("device_id", message.deviceId)
+            put("device_seq", message.seq)
+            put("received_at_device_ms", message.smsReceivedAtMs)
+            put("sender", message.sender)
+            put("content", message.content)
+            put("content_hash", message.contentHash)
+            put("sim_slot_index", message.simSlotIndex)
+            put("subscription_id", message.subscriptionId)
+            put("iccid", message.iccid)
+            put("msisdn", message.msisdn)
+            put("source", message.source)
+            put("metadata", JSONObject().apply {
+                put("manufacturer", Build.MANUFACTURER)
+                put("model", Build.MODEL)
+                put("sdk_int", Build.VERSION.SDK_INT)
+            })
         }
     }
 

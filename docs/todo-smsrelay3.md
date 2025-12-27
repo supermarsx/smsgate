@@ -47,7 +47,7 @@ This list is scoped to the Android app refactor to match `docs/spec-smsrelay3.md
 - DONE: Implement queue state machine:
   - queued -> sending -> acked/failed.
   - Retry with backoff + jitter. (WorkManager backoff wired)
-- Support single-send and batch send modes.
+- DONE: Support single-send and batch send modes.
 - DONE: Implement ACK processing and dedup reconciliation.
 - DONE: Add offline handling + immediate flush on reconnect.
 - DONE: Add WorkManager catch-up for best-effort mode.
