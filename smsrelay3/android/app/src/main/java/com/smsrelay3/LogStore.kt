@@ -33,6 +33,7 @@ object LogStore {
     fun append(level: String, category: String, message: String) {
         val policy = currentPolicy()
         if (policy?.loggingEnabled == false) return
+        if (!isLevelAllowed(level, policy?.loggingLevel)) return
         val timestamp = formatter.format(Date())
         val redacted = redact(message, policy?.loggingRedactSmsContent != false)
         lines.add("[$timestamp] $redacted")
@@ -96,5 +97,12 @@ object LogStore {
     private fun currentPolicy(): com.smsrelay3.config.ConfigPolicy? {
         val context = appContext ?: return null
         return runBlocking { ConfigRepository(context).latestPolicy() }
+    }
+
+    private fun isLevelAllowed(level: String, threshold: String?): Boolean {
+        val order = listOf("error", "warn", "info", "debug")
+        val idxLevel = order.indexOf(level.lowercase().trim()).takeIf { it >= 0 } ?: order.lastIndex
+        val idxThreshold = order.indexOf(threshold?.lowercase()?.trim()).takeIf { it >= 0 } ?: 0
+        return idxLevel <= idxThreshold
     }
 }

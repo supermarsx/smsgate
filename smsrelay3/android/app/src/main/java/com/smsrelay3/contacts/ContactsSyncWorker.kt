@@ -42,6 +42,7 @@ class ContactsSyncWorker(appContext: Context, params: WorkerParameters) : Corout
         val hash = hashContacts(contacts)
         val prefs = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val lastHash = prefs.getString(KEY_LAST_HASH, null)
+        val lastSnapshot = prefs.getString(KEY_LAST_SNAPSHOT, null)?.let { decodeSnapshot(it) } ?: emptyMap()
         if (hash == lastHash) {
             ContactsSyncScheduler.scheduleNext(applicationContext, policy.contactsSyncIntervalS)
             return Result.success()
@@ -49,14 +50,18 @@ class ContactsSyncWorker(appContext: Context, params: WorkerParameters) : Corout
 
         val payload = JSONObject()
         payload.put("device_id", deviceId)
+        val currentMap = contacts.associate { it.number to it.name }
+        val addedOrUpdated = currentMap.filter { (number, name) -> lastSnapshot[number] != name }
+        val removed = lastSnapshot.keys.filterNot { currentMap.containsKey(it) }
         val arr = JSONArray()
-        contacts.forEach { entry ->
+        addedOrUpdated.forEach { (number, name) ->
             val obj = JSONObject()
-            obj.put("number", entry.number)
-            obj.put("name", entry.name)
+            obj.put("number", number)
+            obj.put("name", name)
             arr.put(obj)
         }
         payload.put("contacts", arr)
+        payload.put("removed", JSONArray().apply { removed.forEach { put(it) } })
         val body = payload.toString().toRequestBody(JSON_MEDIA)
         val request = Request.Builder()
             .url("$baseUrl/api/v1/device/contacts")
@@ -72,7 +77,10 @@ class ContactsSyncWorker(appContext: Context, params: WorkerParameters) : Corout
             false
         }
         if (success) {
-            prefs.edit().putString(KEY_LAST_HASH, hash).apply()
+            prefs.edit()
+                .putString(KEY_LAST_HASH, hash)
+                .putString(KEY_LAST_SNAPSHOT, encodeSnapshot(currentMap))
+                .apply()
             LogStore.append("info", "contacts", "Contacts: sync applied")
         } else {
             LogStore.append("error", "contacts", "Contacts: sync failed")
@@ -120,11 +128,27 @@ class ContactsSyncWorker(appContext: Context, params: WorkerParameters) : Corout
         return sb.toString()
     }
 
+    private fun encodeSnapshot(map: Map<String, String>): String {
+        val obj = JSONObject()
+        map.forEach { (k, v) -> obj.put(k, v) }
+        return obj.toString()
+    }
+
+    private fun decodeSnapshot(raw: String): Map<String, String> {
+        return try {
+            val obj = JSONObject(raw)
+            obj.keys().asSequence().associateWith { key -> obj.optString(key) }
+        } catch (_: Exception) {
+            emptyMap()
+        }
+    }
+
     data class ContactEntry(val number: String, val name: String)
 
     companion object {
         private const val PREFS_NAME = "smsrelay3_contacts_sync"
         private const val KEY_LAST_HASH = "last_hash"
+        private const val KEY_LAST_SNAPSHOT = "last_snapshot"
         private val JSON_MEDIA = "application/json".toMediaType()
     }
 }

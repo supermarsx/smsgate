@@ -80,6 +80,46 @@
                 android:layout_marginTop="8dp"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/status_open_settings"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass_button"
+                    style="@style/ButtonSmallGlass"
+                    android:text="@string/status_action_app_settings"
+                    android:textColor="@color/text_primary" />
+
+                <Button
+                    android:id="@+id/status_open_notifications"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/glass_button"
+                    style="@style/ButtonSmallGlass"
+                    android:text="@string/status_action_notifications"
+                    android:textColor="@color/text_primary" />
+
+                <Button
+                    android:id="@+id/status_open_battery"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/glass_button"
+                    style="@style/ButtonSmallGlass"
+                    android:text="@string/status_action_battery"
+                    android:textColor="@color/text_primary" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

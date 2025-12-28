@@ -25,25 +25,8 @@ class OutboundMessageRepository(private val context: Context) {
         val policy = ConfigRepository(context).latestPolicy()
         val queuedCount = db.outboundMessageDao().countByStatus(OutboundMessageStatus.QUEUED)
         if (queuedCount >= policy.syncQueueMaxDepth) {
-            LogStore.append("warn", "sync", "Queue depth limit reached (${policy.syncQueueMaxDepth}), dropping newest message")
-            return OutboundMessage(
-                id = UUID.randomUUID().toString(),
-                deviceId = DeviceAuthStore.getDeviceId(context) ?: "unpaired",
-                seq = -1,
-                createdAtMs = System.currentTimeMillis(),
-                smsReceivedAtMs = receivedAtMs,
-                sender = sender,
-                content = content,
-                contentHash = contentHash ?: HashUtil.sha256(content),
-                simSlotIndex = simSlotIndex,
-                subscriptionId = subscriptionId,
-                iccid = iccid,
-                msisdn = msisdn,
-                status = OutboundMessageStatus.FAILED,
-                retryCount = 0,
-                lastAttemptAtMs = System.currentTimeMillis(),
-                source = source
-            )
+            db.outboundMessageDao().deleteOldestByStatus(OutboundMessageStatus.QUEUED)
+            LogStore.append("warn", "sync", "Queue depth limit reached; evicted oldest queued to admit new")
         }
         val deviceId = DeviceAuthStore.getDeviceId(context) ?: "unpaired"
         val seq = DeviceSequenceStore.nextSeq(context)

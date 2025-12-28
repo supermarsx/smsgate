@@ -70,6 +70,9 @@
   <string name="status_last_send">Último envio com sucesso (ms): %1$s</string>
   <string name="status_sim_summary">Slots SIM: %1$s</string>
   <string name="status_reconcile">Reconciliar: %1$s</string>
+  <string name="status_action_app_settings">Definições da app</string>
+  <string name="status_action_notifications">Notificações</string>
+  <string name="status_action_battery">Bateria</string>
   <string name="diag_header">Diagnóstico</string>
   <string name="diag_permissions">Permissões: %1$s</string>
   <string name="diag_pairing_status">Emparelhamento: %1$s</string>

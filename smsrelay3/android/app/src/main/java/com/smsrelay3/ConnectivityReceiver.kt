@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import com.smsrelay3.config.ConfigRepository
 import com.smsrelay3.sync.SyncScheduler
+import kotlinx.coroutines.runBlocking
 
 /**
  * Triggers a catch-up sync when connectivity returns to help flush queued messages.
@@ -18,7 +20,10 @@ class ConnectivityReceiver : BroadcastReceiver() {
         val caps = cm.getNetworkCapabilities(network) ?: return
         val connected = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         if (connected) {
-            SyncScheduler.enqueueNow(context)
+            val policy = runBlocking { ConfigRepository(context).latestPolicy() }
+            if (policy.syncFlushOnConnect) {
+                SyncScheduler.enqueueNow(context)
+            }
         }
     }
 }

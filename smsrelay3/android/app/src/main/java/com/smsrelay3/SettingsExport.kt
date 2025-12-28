@@ -85,6 +85,11 @@ object SettingsExport {
             }
             json.optJSONObject("overrides")?.let { overrides ->
                 val requiredPin = ConfigStore.getConfig(context).pin
+                val policy = kotlinx.coroutines.runBlocking { com.smsrelay3.config.ConfigRepository(context).latestPolicy() }
+                if (!policy.overridesEnabled) {
+                    LogStore.append("warn", "config", "Import: overrides rejected (disabled)")
+                    return@let
+                }
                 val providedPin = overrides.optString("pin")
                 if (requiredPin.isNotBlank() && providedPin != requiredPin) {
                     LogStore.append("warn", "config", "Import: overrides rejected (pin mismatch)")

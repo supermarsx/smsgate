@@ -5,6 +5,7 @@ import android.database.Cursor
 import android.provider.Telephony
 
 data class ProviderSms(
+    val id: Long?,
     val sender: String,
     val body: String,
     val receivedAtMs: Long,
@@ -16,6 +17,7 @@ object SmsProviderReader {
         val resolver = context.contentResolver
         val uri = Telephony.Sms.Inbox.CONTENT_URI
         val projection = arrayOf(
+            Telephony.Sms._ID,
             Telephony.Sms.ADDRESS,
             Telephony.Sms.BODY,
             Telephony.Sms.DATE,
@@ -27,16 +29,18 @@ object SmsProviderReader {
         val results = mutableListOf<ProviderSms>()
         val cursor = resolver.query(uri, projection, selection, selectionArgs, sort) ?: return results
         cursor.use {
+            val idIndex = it.getColumnIndex(Telephony.Sms._ID)
             val senderIndex = it.getColumnIndex(Telephony.Sms.ADDRESS)
             val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
             val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
             val subIdIndex = it.getColumnIndex(Telephony.Sms.SUBSCRIPTION_ID)
             while (it.moveToNext()) {
+                val id = it.getLongOrNull(idIndex)
                 val sender = it.getStringOrNull(senderIndex).orEmpty()
                 val body = it.getStringOrNull(bodyIndex).orEmpty()
                 val date = it.getLongOrNull(dateIndex) ?: continue
                 val subId = it.getIntOrNull(subIdIndex)
-                results.add(ProviderSms(sender, body, date, subId))
+                results.add(ProviderSms(id, sender, body, date, subId))
             }
         }
         return results

@@ -1,12 +1,16 @@
 package com.smsrelay3.config
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.smsrelay3.ConfigEvents
 import com.smsrelay3.ConfigStore
 import com.smsrelay3.HttpClient
 import com.smsrelay3.LogStore
 import com.smsrelay3.ServiceModeController
 import com.smsrelay3.config.ConfigRuntime
+import com.smsrelay3.config.ConfigRepository
+import com.smsrelay3.runtime.AppRuntime
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.db.DatabaseProvider
 import com.smsrelay3.data.entity.ConfigState
@@ -15,9 +19,14 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.json.JSONObject
+import kotlin.math.pow
+import kotlinx.coroutines.runBlocking
 
 object ConfigWebSocketManager {
     private var socket: WebSocket? = null
+    private val handler = Handler(Looper.getMainLooper())
+    @Volatile
+    private var reconnectAttempts: Int = 0
 
     fun connect(context: Context) {
         if (socket != null) return
@@ -42,6 +51,8 @@ object ConfigWebSocketManager {
                     payload.put("device_token", deviceToken)
                     webSocket.send(payload.toString())
                     LogStore.append("info", "config", "Config WS: subscribed")
+                    AppRuntime.setWsState("connected")
+                    reconnectAttempts = 0
                 }
 
                 override fun onMessage(webSocket: WebSocket, text: String) {
@@ -51,10 +62,14 @@ object ConfigWebSocketManager {
                 override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                     LogStore.append("error", "config", "Config WS: failed (${t.javaClass.simpleName})")
                     socket = null
+                    AppRuntime.setWsState("offline")
+                    scheduleReconnect(context)
                 }
 
                 override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                     socket = null
+                    AppRuntime.setWsState("offline")
+                    scheduleReconnect(context)
                 }
             }
         )
@@ -63,6 +78,9 @@ object ConfigWebSocketManager {
     fun disconnect() {
         socket?.close(1000, "client disconnect")
         socket = null
+        handler.removeCallbacksAndMessages(null)
+        reconnectAttempts = 0
+        AppRuntime.setWsState("disconnected")
     }
 
     private fun handleMessage(context: Context, text: String) {
@@ -92,5 +110,14 @@ object ConfigWebSocketManager {
         } catch (_: Exception) {
             LogStore.append("error", "config", "Config WS: invalid payload")
         }
+    }
+
+    private fun scheduleReconnect(context: Context) {
+        val policy = runBlocking { ConfigRepository(context).latestPolicy() }
+        val base = policy.wsReconnectBaseMs.coerceAtLeast(500L)
+        val max = policy.wsReconnectMaxMs.coerceAtLeast(base)
+        val delay = (base * 2.0.pow(reconnectAttempts.toDouble())).toLong().coerceAtMost(max)
+        reconnectAttempts += 1
+        handler.postDelayed({ connect(context) }, delay)
     }
 }

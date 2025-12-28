@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import java.net.URI
+import java.util.concurrent.TimeUnit
 
 object HttpClient {
     @Volatile
@@ -20,6 +21,9 @@ object HttpClient {
             return client!!
         }
         val builder = OkHttpClient.Builder()
+        if (policy.wsKeepaliveS > 0) {
+            builder.pingInterval(policy.wsKeepaliveS, TimeUnit.SECONDS)
+        }
         val host = serverHost(context)
         if (host != null && pins.isNotEmpty()) {
             val pinnerBuilder = CertificatePinner.Builder()

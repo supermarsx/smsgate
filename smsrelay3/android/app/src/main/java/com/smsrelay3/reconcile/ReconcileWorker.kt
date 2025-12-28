@@ -34,6 +34,7 @@ class ReconcileWorker(appContext: Context, params: WorkerParameters) : Coroutine
         }
 
         val dao = DatabaseProvider.get(applicationContext).outboundMessageDao()
+        val rawDao = DatabaseProvider.get(applicationContext).smsRawStoreDao()
         val repo = OutboundMessageRepository(applicationContext)
         for (sms in providerMessages) {
             if (policy.reconcileIgnoreSenders.any { ignore -> ignore.equals(sms.sender, ignoreCase = true) }) {
@@ -55,6 +56,19 @@ class ReconcileWorker(appContext: Context, params: WorkerParameters) : Coroutine
                 msisdn = null,
                 source = "reconcile",
                 contentHash = fingerprint
+            )
+            rawDao.insert(
+                com.smsrelay3.data.entity.SmsRawStore(
+                    id = java.util.UUID.randomUUID().toString(),
+                    capturedAtMs = System.currentTimeMillis(),
+                    providerId = sms.id?.toString(),
+                    sender = sms.sender,
+                    contentHash = fingerprint,
+                    length = sms.body.length,
+                    simSlotIndex = null,
+                    subscriptionId = sms.subscriptionId,
+                    deliveryPath = "reconcile"
+                )
             )
         }
 

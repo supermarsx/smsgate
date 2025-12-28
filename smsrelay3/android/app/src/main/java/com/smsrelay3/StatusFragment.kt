@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Button
 import androidx.fragment.app.Fragment
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.OutboundMessageStatus
@@ -12,6 +13,8 @@ import com.smsrelay3.data.db.DatabaseProvider
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.provider.Settings
+import android.content.Intent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +28,9 @@ class StatusFragment : Fragment() {
     private lateinit var lastSendText: TextView
     private lateinit var simSummaryText: TextView
     private lateinit var reconcileText: TextView
+    private var openSettingsButton: Button? = null
+    private var openNotificationsButton: Button? = null
+    private var openBatteryButton: Button? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,6 +49,21 @@ class StatusFragment : Fragment() {
         lastSendText = view.findViewById(R.id.status_last_send)
         simSummaryText = view.findViewById(R.id.status_sim_summary)
         reconcileText = view.findViewById(R.id.status_reconcile)
+        openSettingsButton = view.findViewById(R.id.status_open_settings)
+        openNotificationsButton = view.findViewById(R.id.status_open_notifications)
+        openBatteryButton = view.findViewById(R.id.status_open_battery)
+
+        openSettingsButton?.setOnClickListener {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+            startActivity(intent)
+        }
+        openNotificationsButton?.setOnClickListener {
+            com.smsrelay3.util.OemSettings.openNotificationSettings(requireContext())
+        }
+        openBatteryButton?.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        }
     }
 
     override fun onResume() {
