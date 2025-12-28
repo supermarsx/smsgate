@@ -208,11 +208,24 @@ body {
   gap: 18px;
 }
 
+.shell.nav-open {
+  grid-template-columns: 1fr;
+}
+
 .shell-nav {
   background: var(--gg-surface);
   border: 1px solid var(--gg-border);
   border-radius: 16px;
   padding: 16px;
+  position: sticky;
+  top: 16px;
+}
+
+.nav-brand-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
 .nav-brand {
@@ -252,6 +265,14 @@ body {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.nav-toggle {
+  display: none;
+}
+
+.topbar-select {
+  min-width: 120px;
 }
 
 .pill {
@@ -397,4 +418,22 @@ body {
 .presence-row .actions {
   display: flex;
   gap: 6px;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .shell-nav {
+    position: relative;
+  }
+
+  .nav-toggle {
+    display: inline-block;
+  }
+
+  .nav-link {
+    padding: 10px 8px;
+  }
 }
