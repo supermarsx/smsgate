@@ -1,0 +1,74 @@
+# smsgate → smsgate2 Migration TODO
+
+## Current state (gap check)
+- Legacy smsgate lives in `smsgate/` with token-only auth, single-page UI (`/` + `/messages`), and a basic WS (`auth`, `sms`, `sourceStatus`, `baseMessages`, `syncHash`); no smsgate2-specific app exists.
+- No syncserver client or server implementation in the repo; REST/WS contracts from `docs/spec-smsgate2.md` and `docs/spec-syncserver.md` are unused.
+- No RBAC, OAuth/OIDC, domain login, session handling, or admin/config UI; no device/number/user/audit screens; no Bulma glass theme or Graphite Glass design tokens applied.
+
+## Foundations
+- [x] Scaffold `smsgate2/` Next.js 14+ TypeScript app with Bulma + Graphite Glass theme tokens and env-driven config (API base, WS path, auth modes).
+- [x] Define shared typed contracts for syncserver REST/WS payloads (events, presence, config, users, devices, numbers, audit, login-events, contacts).
+- [x] Wire i18n layer (en-US, pt-PT, es-ES) with language detection, persistence, and runtime switching.
+- [x] Add lint/typecheck/test/format/CI baseline plus env schema validation and secrets handling (bun scripts, env defaults, contracts, i18n ready for tests/CI to plug in).
+
+## Auth & session
+- [ ] Render login entry that only shows enabled auth modes from config (`oauth`, `simple_signin`, `domain_signin`).
+- [ ] Implement OAuth/OIDC with PKCE, token refresh, session persistence, and logout; surface issuer/audience errors.
+- [ ] Implement simple_signin and domain_signin forms with lockout/error messaging; honor server-disabled mode responses.
+- [ ] Enforce role-based routing and nav visibility; display user + effective role in top bar; persist session across reloads.
+- [ ] Add admin 2FA enrollment + step-up prompts; support password reset email flow for simple_signin.
+
+## Realtime client (WS-first)
+- [ ] Build WS client for `/api/v1/ws` with reconnect/backoff, ping/pong, resume cursors, and visibility-aware throttling.
+- [ ] Handle server messages: `WELCOME`, `SNAPSHOT`, `EVENT_NEW`, `EVENT_UPDATE`, `EVENT_PAGE`, `PRESENCE_UPDATE`, `METRICS_UPDATE`, `CONTACT_UPDATE`, `CONFIG_UPDATE`, `ERROR`.
+- [ ] Handle client messages: `SUBSCRIBE`, `PAGE` (before/limit), `PING`; respect assignment-based auto-subscription.
+- [ ] Implement paging/backfill over WS with infinite scroll on dashboard; REST fallback when WS degrades.
+- [ ] Capture latency metrics (client<->server RTT, device RTT, ingest->render) and feed the status bar.
+
+## REST integration
+- [ ] Create typed client for `/api/v1/*` resources: pairing, devices, numbers, users, audit, login-events, events, config.
+- [ ] Add error normalization (disabled mode, permission denied, validation errors) and CSRF/cookie handling where applicable.
+- [ ] Support ETag/versioned config fetches and caching for tables; auto-refresh on `CONFIG_UPDATE`.
+
+## UI shell & theming
+- [ ] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).
+- [ ] Apply glass theme (translucent panels, blur, subtle borders/shadows) with light/dark auto mode and user override; align with `docs/spec-design-system.md`.
+- [ ] Add locale/theme/account menus with persisted preferences and mobile-responsive nav.
+
+## Screens
+- Dashboard:
+  - [ ] Phone mockup message feed with filters/stats; default last 10; infinite scroll/backfill.
+  - [ ] Claim/verify/reject actions with optimistic UI + server ack; grey claimed items.
+  - [ ] Show assigned numbers, device health, latency metrics, and contact names where available.
+- Devices:
+  - [ ] List devices with presence state, RTT, SIM inventory (multi-SIM), heartbeat freshness; degraded/offline badges.
+  - [ ] Actions: enable/disable, rotate token, rename, view diagnostics.
+  - [ ] Pairing flow: `POST /api/v1/pairing/session` -> QR render -> status watcher; show expiry/errors.
+- Numbers:
+  - [ ] CRUD numbers; assign/unassign to users/devices; surface conflicts and validation.
+- Users:
+  - [ ] List users with roles/auth mode; edit roles; force logout; unlock; view group mappings (read from config).
+- Audit/Logins:
+  - [ ] Tables with filters (time, actor, action, device, number, auth mode); pagination/export.
+- Config:
+  - [ ] Render syncserver/smsgate2/smsrelay3 config sections with validation, tooltips, and change diffs.
+  - [ ] Respect role: admin edit vs manager read-only; persist via PATCH; react to `CONFIG_UPDATE`.
+- Contacts (optional):
+  - [ ] Toggle contact sync; show last import, conflicts, and export/download of mappings.
+
+## Observability & resilience
+- [ ] Surface degraded modes (WS down, Redis fallback) with guidance banners and retry controls.
+- [ ] Instrument client telemetry (WS errors, reconnects, latency) with correlation ids; add structured console/debug overlay.
+- [ ] Provide offline caching/rehydration for last snapshot to avoid blank dashboard during reconnect.
+
+## Testing
+- [ ] Unit tests for auth flows, WS state machine, reducers, formatters, and config validation.
+- [ ] Integration tests against mock syncserver for REST + WS (paging, presence updates, config updates, claim flow).
+- [ ] E2E (Playwright) for login -> dashboard -> claim -> config edit, plus offline/reconnect scenarios.
+- [ ] Load test WS fanout/pagination with synthetic data to validate UI handling.
+
+## Ops & release
+- [ ] Dockerfile/compose covering smsgate2 + syncserver + Redis + DB (SQLite/Postgres) for dev/test.
+- [ ] CI: lint, typecheck, tests, build, artifact publish; basic vulnerability scanning.
+- [ ] Security hardening: CSP, rate limits, cookie flags, secret management docs.
+- [ ] Cutover plan from legacy `smsgate/`: redirects or link to new UI, config migration notes, and deprecation timeline.

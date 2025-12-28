@@ -2,11 +2,12 @@
   "name": "smsgate",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "bun@1.1.30",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development ts-node server.ts",
-    "build": "next build",
-    "start": "cross-env NODE_ENV=production ts-node server.ts",
-    "lint": "next lint"
+    "dev": "cross-env NODE_ENV=development bun --bun server.ts",
+    "build": "bun --bun next build",
+    "start": "cross-env NODE_ENV=production bun --bun server.ts",
+    "lint": "bun --bun next lint"
   },
   "dependencies": {
     "crypto-js": "^4.2.0",

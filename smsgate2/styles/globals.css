@@ -1,0 +1,117 @@
+:root {
+  --gg-bg: #0e1118;
+  --gg-surface: rgba(255, 255, 255, 0.06);
+  --gg-border: rgba(255, 255, 255, 0.14);
+  --gg-text: #f5f7fb;
+  --gg-muted: #a5adba;
+  --gg-accent: #5dd1ff;
+  --gg-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(93, 209, 255, 0.18), transparent 25%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.07), transparent 30%),
+    var(--gg-bg);
+  color: var(--gg-text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+.gg-body {
+  min-height: 100vh;
+}
+
+.gg-shell {
+  padding: 64px 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.gg-panel {
+  background: var(--gg-surface);
+  border: 1px solid var(--gg-border);
+  border-radius: 18px;
+  padding: 28px 32px;
+  box-shadow: var(--gg-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.gg-panel__header {
+  display: grid;
+  gap: 8px;
+}
+
+.gg-title {
+  margin: 0;
+  font-size: 32px;
+}
+
+.gg-subtitle {
+  margin: 0;
+  color: var(--gg-muted);
+  line-height: 1.6;
+}
+
+.gg-section {
+  margin-top: 24px;
+}
+
+.gg-section__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  letter-spacing: 0.01em;
+}
+
+.gg-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--gg-muted);
+}
+
+.gg-pill {
+  justify-self: start;
+  background: rgba(93, 209, 255, 0.15);
+  color: var(--gg-accent);
+  border: 1px solid rgba(93, 209, 255, 0.35);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.gg-config__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px 14px;
+}
+
+.gg-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gg-muted);
+}
+
+.gg-value {
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.gg-select {
+  margin-top: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--gg-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gg-text);
+  outline: none;
+}

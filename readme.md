@@ -4,6 +4,8 @@ smsgate is a small time, two piece portal software to receive messages from your
 
 smsgate is divided in two parts: `smsgate` the Next.js + WebSocket server and `smsrelay3` the native Android (Kotlin) application. The Android app listens for SMS in the background and foreground, forwards messages to syncserver, and maintains heartbeat + SIM inventory updates. The server interfaces with the browser client using WebSockets so connected users see incoming messages in real time.
 
+A new smsgate2 Next.js 14 scaffold (app router, bun-first) lives in `./smsgate2` to begin the migration described in `docs/spec-smsgate2.md`.
+
 ## Visual Demo
 
 1. Base scenario (failed login, valid login, message reception, close session, login with messages, saved session, invalid token redirect)
@@ -37,7 +39,7 @@ $ git clone https://github.com/supermarsx/smsgate
 
 Install smsgate dependencies
 $ cd ./smsgate/smsgate
-$ npm install
+$ bun install
 
 Open the Android app in Android Studio
 $ cd ../smsrelay3/android
@@ -140,14 +142,14 @@ NEXT_PUBLIC_SMS_SOUND_PATH, NEXT_PUBLIC_SMS_SOUND_EXT
 To run the smsgate server:
 
 ```
-$ npm run dev
+$ bun run dev
 ```
 
 To build for production:
 
 ```
-$ npm run build
-$ npm run start
+$ bun run build
+$ bun run start
 ```
 
 ## Considerations

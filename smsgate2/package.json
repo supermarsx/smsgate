@@ -1,0 +1,27 @@
+{
+  "name": "smsgate2",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "bun@1.1.30",
+  "scripts": {
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
+    "lint": "bun --bun next lint",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "dependencies": {
+    "bulma": "^0.9.4",
+    "next": "^14.2.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.2.70",
+    "@types/react-dom": "^18.2.23",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.5",
+    "typescript": "^5.4.5"
+  }
+}
