@@ -81,6 +81,26 @@ export async function fetchDiagnostics(session: Session, deviceId: string): Prom
   return http<any>(session, `/devices/${deviceId}/diagnostics`, { method: "GET" });
 }
 
+export async function fetchContacts(session: Session): Promise<any[]> {
+  return http<any[]>(session, "/contacts", { method: "GET" });
+}
+
+export async function toggleContactSync(session: Session, enabled: boolean): Promise<void> {
+  await http<void>(session, "/contacts/toggle", { method: "POST", body: JSON.stringify({ enabled }) });
+}
+
+export async function exportContacts(session: Session): Promise<Blob> {
+  const res = await fetch(`${appConfig.apiBaseUrl}/contacts/export`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`
+    },
+    credentials: "include"
+  });
+  if (!res.ok) throw new Error("Failed to export contacts");
+  return await res.blob();
+}
+
 export async function getAudit(session: Session): Promise<any[]> {
   return http<any[]>(session, "/audit", { method: "GET" });
 }

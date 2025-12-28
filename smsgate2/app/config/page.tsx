@@ -6,12 +6,15 @@ import { hasAtLeast } from "../../lib/roles";
 import { useConfig } from "../../components/config-provider";
 import { updateConfig } from "../../lib/rest";
 import { useState } from "react";
+import { fetchContacts, exportContacts, toggleContactSync } from "../../lib/rest";
 
 export default function ConfigPage() {
   const { session } = useSession();
   const { config, etag, refresh, loading, error } = useConfig();
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<string>("");
+  const [contacts, setContacts] = useState<any[] | null>(null);
+  const [contactsError, setContactsError] = useState<string | null>(null);
   if (!session) return null;
 
   const canEdit = hasAtLeast(session.user.role, "admin");
@@ -72,6 +75,65 @@ export default function ConfigPage() {
               <div className="muted">
                 Last import: {config?.data?.contacts?.lastImport ?? "—"}
               </div>
+              <div className="actions">
+                <button
+                  className="ghost"
+                  disabled={loading}
+                  onClick={async () => {
+                    if (!session) return;
+                    try {
+                      await toggleContactSync(session, !config?.data?.contacts?.enabled);
+                      await refresh();
+                    } catch (err) {
+                      setContactsError((err as Error).message);
+                    }
+                  }}
+                >
+                  Toggle
+                </button>
+                <button
+                  className="ghost"
+                  onClick={async () => {
+                    if (!session) return;
+                    setContactsError(null);
+                    try {
+                      const data = await fetchContacts(session);
+                      setContacts(data);
+                    } catch (err) {
+                      setContactsError((err as Error).message);
+                    }
+                  }}
+                >
+                  Refresh contacts
+                </button>
+                <button
+                  className="ghost"
+                  onClick={async () => {
+                    if (!session) return;
+                    setContactsError(null);
+                    try {
+                      const blob = await exportContacts(session);
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = "contacts.json";
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    } catch (err) {
+                      setContactsError((err as Error).message);
+                    }
+                  }}
+                >
+                  Export contacts
+                </button>
+              </div>
+              {contactsError && <div className="login-error">Contacts: {contactsError}</div>}
+              {contacts && (
+                <details className="diag-block">
+                  <summary className="gg-label">Contacts preview ({contacts.length})</summary>
+                  <pre className="pairing-pre">{JSON.stringify(contacts.slice(0, 5), null, 2)}</pre>
+                </details>
+              )}
             </div>
             <div>
               <div className="gg-label">Presence thresholds</div>
