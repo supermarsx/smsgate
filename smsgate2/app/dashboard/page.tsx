@@ -19,18 +19,19 @@ export default function DashboardPage() {
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
   const [latency, setLatency] = useState<string>("—");
   const [clientRtt, setClientRtt] = useState<string>("—");
-  const [deviceRtt, setDeviceRtt] = useState<string>("—");
-  const [connected, setConnected] = useState(false);
-  const [lastError, setLastError] = useState<string | undefined>();
-  const [loadingPage, setLoadingPage] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const clientRef = useRef<WsClient | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+const [deviceRtt, setDeviceRtt] = useState<string>("—");
+const [connected, setConnected] = useState(false);
+const [lastError, setLastError] = useState<string | undefined>();
+const [loadingPage, setLoadingPage] = useState(false);
+const [hasMore, setHasMore] = useState(true);
+const clientRef = useRef<WsClient | null>(null);
+const scrollRef = useRef<HTMLDivElement | null>(null);
+const SNAPSHOT_KEY = "smsgate2_snapshot";
 
-  const orderedEvents = useMemo(() => events.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)), [events]);
+const orderedEvents = useMemo(() => events.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)), [events]);
 
-  useEffect(() => {
-    if (!session) return;
+useEffect(() => {
+  if (!session) return;
     const client = new WsClient(session, {
       numbers: session.user.numbers,
       onConfigUpdate: () => refreshConfig()
@@ -63,6 +64,29 @@ export default function DashboardPage() {
       client.disconnect();
     };
   }, [session]);
+
+  // Load cached snapshot for offline/boot without WS
+  useEffect(() => {
+    if (events.length || presence && Object.keys(presence).length) return;
+    try {
+      const raw = window.localStorage.getItem(SNAPSHOT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { events?: Event[]; presence?: Record<string, PresenceUpdate> };
+      if (parsed.events?.length) setEvents(parsed.events);
+      if (parsed.presence) setPresence(parsed.presence);
+    } catch {
+      // ignore cache errors
+    }
+  }, [events.length, presence]);
+
+  // Persist snapshot for offline view
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ events, presence }));
+    } catch {
+      // ignore
+    }
+  }, [events, presence]);
 
   useEffect(() => {
     const el = scrollRef.current;

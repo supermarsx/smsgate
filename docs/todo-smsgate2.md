@@ -57,9 +57,9 @@
   - [ ] Toggle contact sync; show last import, conflicts, and export/download of mappings.
 
 ## Observability & resilience
-- [ ] Surface degraded modes (WS down, Redis fallback) with guidance banners and retry controls.
-- [ ] Instrument client telemetry (WS errors, reconnects, latency) with correlation ids; add structured console/debug overlay.
-- [ ] Provide offline caching/rehydration for last snapshot to avoid blank dashboard during reconnect.
+- [x] Surface degraded WS mode with banner and cached snapshot fallback; Redis fallback banner pending backend signal.
+- [ ] Instrument client telemetry (WS errors, reconnects, latency) with correlation ids; add structured console/debug overlay (pending).
+- [x] Provide offline caching/rehydration for last snapshot to avoid blank dashboard during reconnect (localStorage snapshot).
 
 ## Testing
 - [ ] Unit tests for auth flows, WS state machine, reducers, formatters, and config validation.
