@@ -434,6 +434,19 @@ body {
   gap: 6px;
 }
 
+.account-chip {
+  display: grid;
+  gap: 2px;
+}
+
+.debug-overlay {
+  border: 1px solid var(--gg-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  margin: 10px 0;
+}
+
 .filter-row {
   display: grid;
   gap: 6px;

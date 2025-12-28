@@ -65,6 +65,15 @@ export default function ConfigPage() {
               </div>
             </div>
             <div>
+              <div className="gg-label">Contact sync</div>
+              <div className="gg-value">
+                {config?.data?.contacts?.enabled ? "Enabled" : "Disabled"}
+              </div>
+              <div className="muted">
+                Last import: {config?.data?.contacts?.lastImport ?? "—"}
+              </div>
+            </div>
+            <div>
               <div className="gg-label">Presence thresholds</div>
               <div className="gg-value">
                 {config?.data?.presence ? JSON.stringify(config.data.presence) : "—"}

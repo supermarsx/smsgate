@@ -33,7 +33,7 @@
 ## UI shell & theming
 - [x] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).
 - [x] Apply glass theme (translucent panels, blur, subtle borders/shadows) with light/dark toggle; full design-system polish still pending.
-- [ ] Add locale menu + account details and mobile-responsive nav; theme toggle persisted.
+- [x] Add locale menu, account details, and mobile-responsive nav; theme toggle persisted.
 
 ## Screens
 - Dashboard:
@@ -42,14 +42,14 @@
   - [x] Show assigned numbers filter, latency metrics, and contact names where available.
 - Devices:
   - [x] List devices with presence state, RTT, SIM inventory (multi-SIM), heartbeat freshness; degraded/offline badges (basic).
-  - [x] Actions: enable/disable, rotate token, rename, view diagnostics (actions wired; rename/diagnostics pending).
+  - [x] Actions: enable/disable, rotate token, rename, view diagnostics (actions wired; rename/diagnostics UI pending).
   - [x] Pairing flow: `POST /api/v1/pairing/session` -> session output (QR render/status watcher pending).
 - Numbers:
   - [x] CRUD/assign skeleton with listing; assign/unassign wired; validation pending.
 - Users:
   - [x] List users with roles/auth mode + group mappings (read-only); role edit/force logout/unlock wired; advanced controls pending.
 - Audit/Logins:
-  - [x] Tables with filters (time, actor, action, device, number, auth mode) and client-side pagination; export done (JSON); CSV pending.
+  - [x] Tables with filters (time, actor, action, device, number, auth mode) and client-side pagination; export done (JSON); CSV done for audit/login; CSV pending for other tables.
 - Config:
   - [x] Render config sections (raw JSON + key summaries); validation/tooltips/diffs pending.
   - [x] Respect role: admin edit vs manager read-only; persist via PATCH; react to `CONFIG_UPDATE`.
@@ -58,7 +58,7 @@
 
 ## Observability & resilience
 - [x] Surface degraded WS mode with banner and cached snapshot fallback; Redis fallback banner pending backend signal.
-- [ ] Instrument client telemetry (WS errors, reconnects, latency) with correlation ids; add structured console/debug overlay (pending).
+- [x] Add structured debug overlay (status snapshot); telemetry/correlation ids pending.
 - [x] Provide offline caching/rehydration for last snapshot to avoid blank dashboard during reconnect (localStorage snapshot).
 
 ## Testing

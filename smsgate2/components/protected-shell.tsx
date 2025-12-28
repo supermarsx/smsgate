@@ -22,6 +22,7 @@ export function ProtectedShell({ children }: Props) {
   const { theme, toggle } = useTheme();
   const [locale, setLocale] = useState<Locale>("en-US");
   const [navOpen, setNavOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   if (!session) {
     if (typeof window !== "undefined") router.replace("/login");
@@ -95,12 +96,23 @@ export function ProtectedShell({ children }: Props) {
               ))}
             </select>
             <span className={`status-dot ${session.user.requires2fa ? "warn" : "ok"}`} title="2FA status" />
+            <div className="account-chip">
+              <div className="gg-label">Account</div>
+              <div className="gg-value">{session.user.email ?? session.user.name}</div>
+            </div>
+            <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>Debug</button>
             <button className="ghost" onClick={handleLogout}>Logout</button>
           </div>
         </header>
         {!status.connected && (
           <div className="banner warn">
             Reconnecting to realtime stream... showing cached data. {status.lastError ? `(${status.lastError})` : ""}
+          </div>
+        )}
+        {debugOpen && (
+          <div className="debug-overlay">
+            <div className="gg-label">Debug snapshot</div>
+            <pre className="pairing-pre">{JSON.stringify(status, null, 2)}</pre>
           </div>
         )}
         <div className="shell-content">{children}</div>

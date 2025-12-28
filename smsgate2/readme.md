@@ -9,6 +9,11 @@ bun install
 bun run dev
 ```
 
+For Turbopack (experimental, fastest reloads):
+```
+bun run dev:turbo
+```
+
 ## Notes
 - Bulma and Graphite Glass styling hooks are available in `styles/globals.css`.
 - Auth entry lives at `/login` with config-driven auth modes (SSO/local/domain), PKCE scaffold, and session persistence; root `/` redirects based on session.

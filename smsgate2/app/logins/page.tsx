@@ -12,6 +12,7 @@ export default function LoginsPage() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
+  const [csvUrl, setCsvUrl] = useState<string | null>(null);
   if (!session) return null;
 
   useEffect(() => {
@@ -32,6 +33,31 @@ export default function LoginsPage() {
   }, [rows, filter]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
+
+  function exportCsv(items: any[]) {
+    const header = ["user", "status", "ip", "timestamp"];
+    const body = items.map((r) =>
+      header
+        .map((h) => {
+          const val = r[h] ?? "";
+          const str = String(val).replace(/"/g, '""');
+          return `"${str}"`;
+        })
+        .join(",")
+    );
+    const csv = [header.join(","), ...body].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    setCsvUrl(url);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "login-events.csv";
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      setCsvUrl(null);
+    }, 1000);
+  }
 
   return (
     <ProtectedShell>
@@ -92,6 +118,7 @@ export default function LoginsPage() {
           >
             Export JSON
           </button>
+          <button className="ghost" onClick={() => exportCsv(filtered)}>Export CSV</button>
         </div>
       </div>
     </ProtectedShell>

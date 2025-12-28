@@ -16,6 +16,10 @@ export default function NumbersPage() {
   const [assignForm, setAssignForm] = useState({ e164: "", userId: "", deviceId: "" });
   if (!session) return null;
 
+  function validateE164(value: string): boolean {
+    return /^\+?[1-9]\d{6,15}$/.test(value.trim());
+  }
+
   useEffect(() => {
     if (!session) return;
     setLoading(true);
@@ -70,6 +74,10 @@ export default function NumbersPage() {
               disabled={creating}
               onClick={async () => {
                 if (!session) return;
+                if (!validateE164(form.e164)) {
+                  setError("Enter a valid E.164 number");
+                  return;
+                }
                 setCreating(true);
                 setError(null);
                 try {
@@ -120,6 +128,10 @@ export default function NumbersPage() {
                 disabled={assigning}
                 onClick={async () => {
                   if (!session) return;
+                  if (!validateE164(assignForm.e164)) {
+                    setError("Enter a valid E.164 number to assign");
+                    return;
+                  }
                   setAssigning(true);
                   setError(null);
                   try {
