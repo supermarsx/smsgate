@@ -16,6 +16,8 @@ export type StreamState = {
 
 type Listener = (state: StreamState) => void;
 
+type LogFn = (type: string, detail?: string) => void;
+
 export class WsClient {
   private ws: WebSocket | null = null;
   private listeners = new Set<Listener>();
@@ -33,11 +35,13 @@ export class WsClient {
   private onConfigUpdate?: () => void;
   private wsErrors = 0;
   private reconnects = 0;
+  private log?: LogFn;
 
-  constructor(session: Session, opts?: { numbers?: string[]; onConfigUpdate?: () => void }) {
+  constructor(session: Session, opts?: { numbers?: string[]; onConfigUpdate?: () => void; log?: LogFn }) {
     this.session = session;
     this.subscribedNumbers = opts?.numbers;
     this.onConfigUpdate = opts?.onConfigUpdate;
+    this.log = opts?.log;
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", this.handleVisibilityChange);
     }
@@ -67,6 +71,7 @@ export class WsClient {
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
       this.emit({ connected: true, lastError: undefined });
+      this.log?.("ws_open");
       this.send({ type: "SUBSCRIBE", payload: { numbers: this.subscribedNumbers } });
       this.startPing();
     };
@@ -82,12 +87,14 @@ export class WsClient {
         }
       } catch (err) {
         this.wsErrors += 1;
+        this.log?.("ws_message_error", (err as Error).message);
         this.emit({ lastError: (err as Error).message, wsErrors: this.wsErrors });
       }
     };
 
     this.ws.onerror = () => {
       this.wsErrors += 1;
+      this.log?.("ws_error");
       this.emit({ lastError: "WebSocket error", wsErrors: this.wsErrors });
     };
 
@@ -95,6 +102,7 @@ export class WsClient {
       this.emit({ connected: false });
       if (this.pingTimer) window.clearInterval(this.pingTimer);
       this.reconnects += 1;
+      this.log?.("ws_close");
       this.emit({ reconnects: this.reconnects });
       this.scheduleReconnect();
     };
@@ -192,6 +200,7 @@ export class WsClient {
     this.reconnectAttempts += 1;
     const backoff = Math.min(30_000, 1000 * 2 ** this.reconnectAttempts);
     window.setTimeout(() => this.connect(), backoff);
+    this.log?.("ws_reconnect", `attempt=${this.reconnectAttempts}`);
     this.emit({ reconnects: this.reconnects });
   }
 

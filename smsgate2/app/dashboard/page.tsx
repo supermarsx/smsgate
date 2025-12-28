@@ -12,7 +12,7 @@ import { useStatus } from "../../components/status-context";
 export default function DashboardPage() {
   const { session } = useSession();
   const { refresh: refreshConfig } = useConfig();
-  const { setStatus } = useStatus();
+  const { setStatus, addLog } = useStatus();
   const [events, setEvents] = useState<Event[]>([]);
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
   const [latency, setLatency] = useState<string>("—");
@@ -38,7 +38,8 @@ useEffect(() => {
   if (!session) return;
     const client = new WsClient(session, {
       numbers: session.user.numbers,
-      onConfigUpdate: () => refreshConfig()
+      onConfigUpdate: () => refreshConfig(),
+      log: (type, detail) => addLog({ ts: Date.now(), type, detail })
     });
     clientRef.current = client;
     const unsubscribe = client.subscribe((state) => {

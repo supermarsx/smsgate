@@ -8,11 +8,13 @@ export type HttpError = {
 };
 
 export async function http<T>(session: Session, path: string, init: RequestInit = {}): Promise<T> {
+  const traceId = crypto.randomUUID();
   const res = await fetch(`${appConfig.apiBaseUrl}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
+      "x-correlation-id": traceId,
       ...(init.headers ?? {})
     },
     credentials: "include"
@@ -20,8 +22,11 @@ export async function http<T>(session: Session, path: string, init: RequestInit 
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    const err: HttpError = { status: res.status, message: text || res.statusText };
-    // normalize a few common server error bodies
+    const err: HttpError = {
+      status: res.status,
+      message: text || res.statusText,
+      code: res.headers.get("x-error-code") ?? undefined
+    };
     try {
       const json = text ? JSON.parse(text) : null;
       if (json?.code) err.code = json.code;

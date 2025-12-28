@@ -34,6 +34,7 @@
 - [x] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).
 - [x] Apply glass theme (translucent panels, blur, subtle borders/shadows) with light/dark toggle; full design-system polish still pending.
 - [x] Add locale menu, account details, and mobile-responsive nav; theme toggle persisted.
+- [ ] Align visual system to `docs/spec-design-system.md` (Graphite Glass tokens, typography, motion); add Bulma overrides and status bar chips per spec.
 
 ## Screens
 - Dashboard:
@@ -44,6 +45,8 @@
   - [x] List devices with presence state, RTT, SIM inventory (multi-SIM), heartbeat freshness; degraded/offline badges (basic).
   - [x] Actions: enable/disable, rotate token, rename, view diagnostics (actions wired; rename/diagnostics UI pending).
   - [x] Pairing flow: `POST /api/v1/pairing/session` -> session output (QR render/status watcher pending).
+  - [ ] Pairing status watcher and expiry/error states per spec.
+  - [ ] Device diagnostics UI as structured cards; degraded/offline badges per thresholds.
 - Numbers:
   - [x] CRUD/assign skeleton with listing; assign/unassign wired; validation pending.
 - Users:
@@ -53,12 +56,13 @@
 - Config:
   - [x] Render config sections (raw JSON + key summaries); validation/tooltips/diffs pending.
   - [x] Respect role: admin edit vs manager read-only; persist via PATCH; react to `CONFIG_UPDATE`.
+  - [ ] Contacts conflict surfacing and export/download UX beyond preview; expose enable/disable toggle in Settings per spec.
 - Contacts (optional):
   - [ ] Toggle contact sync; show last import, conflicts, and export/download of mappings.
 
 ## Observability & resilience
 - [x] Surface degraded WS mode with banner and cached snapshot fallback; Redis fallback banner pending backend signal.
-- [x] Add structured debug overlay (status snapshot); telemetry/correlation ids pending.
+- [x] Add structured debug overlay (status snapshot); telemetry events tracked (ws errors/reconnects) + debug overlay; correlation ids added to HTTP requests.
 - [x] Provide offline caching/rehydration for last snapshot to avoid blank dashboard during reconnect (localStorage snapshot).
 
 ## Testing
