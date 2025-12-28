@@ -31,9 +31,9 @@
 - [x] Support ETag/versioned config fetches and caching for tables; auto-refresh placeholder on `CONFIG_UPDATE`.
 
 ## UI shell & theming
-- [ ] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).
-- [ ] Apply glass theme (translucent panels, blur, subtle borders/shadows) with light/dark auto mode and user override; align with `docs/spec-design-system.md`.
-- [ ] Add locale/theme/account menus with persisted preferences and mobile-responsive nav.
+- [x] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).
+- [x] Apply glass theme (translucent panels, blur, subtle borders/shadows) with light/dark toggle; full design-system polish still pending.
+- [ ] Add locale menu + account details and mobile-responsive nav; theme toggle persisted.
 
 ## Screens
 - Dashboard:

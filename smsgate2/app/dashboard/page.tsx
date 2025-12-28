@@ -9,10 +9,12 @@ import { formatLatency, WsClient } from "../../lib/ws";
 import type { Event, PresenceUpdate } from "../../lib/contracts";
 import { listEvents } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
+import { useStatus } from "../../components/status-context";
 
 export default function DashboardPage() {
   const { session } = useSession();
   const { refresh: refreshConfig } = useConfig();
+  const { setStatus } = useStatus();
   const [events, setEvents] = useState<Event[]>([]);
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
   const [latency, setLatency] = useState<string>("—");
@@ -46,6 +48,14 @@ export default function DashboardPage() {
       setConnected(state.connected);
       setLastError(state.lastError);
       setHasMore(true);
+      setStatus({
+        connected: state.connected,
+        ingestLatency: formatLatency(state.metrics),
+        clientRtt: state.clientRttMs ? `${state.clientRttMs} ms` : "—",
+        deviceRtt: deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "—",
+        devicesOnline: Object.values(state.presence).filter((p) => p.state === "online").length,
+        lastError: state.lastError
+      });
     });
     client.connect();
     return () => {

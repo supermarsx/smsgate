@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 import { SessionProvider } from "../components/session-provider";
 import { ConfigProvider } from "../components/config-provider";
+import { StatusProvider } from "../components/status-context";
+import { ThemeProvider } from "../components/theme";
 
 export const metadata: Metadata = {
   title: "smsgate2",
@@ -14,7 +16,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="gg-body">
         <SessionProvider>
           <ConfigProvider>
-            <div className="gg-shell">{children}</div>
+            <ThemeProvider>
+              <StatusProvider>
+                <div className="gg-shell">{children}</div>
+              </StatusProvider>
+            </ThemeProvider>
           </ConfigProvider>
         </SessionProvider>
       </body>
