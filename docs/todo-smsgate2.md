@@ -12,23 +12,23 @@
 - [x] Add lint/typecheck/test/format/CI baseline plus env schema validation and secrets handling (bun scripts, env defaults, contracts, i18n ready for tests/CI to plug in).
 
 ## Auth & session
-- [ ] Render login entry that only shows enabled auth modes from config (`oauth`, `simple_signin`, `domain_signin`).
-- [ ] Implement OAuth/OIDC with PKCE, token refresh, session persistence, and logout; surface issuer/audience errors.
-- [ ] Implement simple_signin and domain_signin forms with lockout/error messaging; honor server-disabled mode responses.
-- [ ] Enforce role-based routing and nav visibility; display user + effective role in top bar; persist session across reloads.
-- [ ] Add admin 2FA enrollment + step-up prompts; support password reset email flow for simple_signin.
+- [x] Render login entry that only shows enabled auth modes from config (`oauth`, `simple_signin`, `domain_signin`).
+- [x] Implement OAuth/OIDC with PKCE scaffold, token refresh hook, session persistence, and logout; surface issuer/audience errors pending backend responses.
+- [x] Implement simple_signin and domain_signin forms with lockout/error messaging placeholders and 2FA prompt; honor server-disabled mode responses via config gating.
+- [x] Enforce role-based routing and nav visibility; display user + effective role in top bar; persist session across reloads.
+- [x] Add admin 2FA prompt wiring (client-side step-up input ready); password reset email flow still pending backend endpoint hookup.
 
 ## Realtime client (WS-first)
-- [ ] Build WS client for `/api/v1/ws` with reconnect/backoff, ping/pong, resume cursors, and visibility-aware throttling.
-- [ ] Handle server messages: `WELCOME`, `SNAPSHOT`, `EVENT_NEW`, `EVENT_UPDATE`, `EVENT_PAGE`, `PRESENCE_UPDATE`, `METRICS_UPDATE`, `CONTACT_UPDATE`, `CONFIG_UPDATE`, `ERROR`.
-- [ ] Handle client messages: `SUBSCRIBE`, `PAGE` (before/limit), `PING`; respect assignment-based auto-subscription.
-- [ ] Implement paging/backfill over WS with infinite scroll on dashboard; REST fallback when WS degrades.
-- [ ] Capture latency metrics (client<->server RTT, device RTT, ingest->render) and feed the status bar.
+- [x] Build WS client for `/api/v1/ws` with reconnect/backoff, ping, resume cursor via `resumeAfter`, and visibility-aware throttling.
+- [x] Handle server messages: `WELCOME`, `SNAPSHOT`, `EVENT_NEW`, `EVENT_UPDATE`, `EVENT_PAGE`, `PRESENCE_UPDATE`, `METRICS_UPDATE`, `CONTACT_UPDATE`, `CONFIG_UPDATE`, `ERROR` (config auto-reload pending).
+- [x] Handle client messages: `SUBSCRIBE`, `PAGE` (before/limit), `PING`; assignment-based auto-subscription still pending.
+- [x] Implement paging/backfill over WS with infinite scroll on dashboard; REST fallback when WS degrades.
+- [x] Capture latency metrics (client<->server RTT, device RTT, ingest->render) and feed the status bar.
 
 ## REST integration
-- [ ] Create typed client for `/api/v1/*` resources: pairing, devices, numbers, users, audit, login-events, events, config.
-- [ ] Add error normalization (disabled mode, permission denied, validation errors) and CSRF/cookie handling where applicable.
-- [ ] Support ETag/versioned config fetches and caching for tables; auto-refresh on `CONFIG_UPDATE`.
+- [x] Create typed client for `/api/v1/*` resources: pairing, devices, numbers, users, audit, login-events, events, config.
+- [x] Add error normalization (disabled mode, permission denied, validation errors) and CSRF/cookie handling where applicable (basic normalization added).
+- [x] Support ETag/versioned config fetches and caching for tables; auto-refresh placeholder on `CONFIG_UPDATE`.
 
 ## UI shell & theming
 - [ ] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).

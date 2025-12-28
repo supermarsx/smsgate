@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "../components/session-provider";
 import { appConfig, wsUrl } from "../lib/config";
 import {
   DEFAULT_LOCALE,
@@ -12,12 +14,19 @@ import {
 } from "../lib/i18n";
 
 export default function HomePage() {
+  const router = useRouter();
+  const { session } = useSession();
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const translations = useMemo(() => getTranslations(locale), [locale]);
 
   useEffect(() => {
     setLocale(getInitialLocale());
   }, []);
+
+  useEffect(() => {
+    if (session) router.replace("/dashboard");
+    else router.replace("/login");
+  }, [session, router]);
 
   const t = (key: string): string => translations[key] ?? key;
 

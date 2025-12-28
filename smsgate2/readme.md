@@ -11,6 +11,7 @@ bun run dev
 
 ## Notes
 - Bulma and Graphite Glass styling hooks are available in `styles/globals.css`.
-- `app/page.tsx` loads env-driven config, locale switching, and basic copy for next steps.
+- Auth entry lives at `/login` with config-driven auth modes (SSO/local/domain), PKCE scaffold, and session persistence; root `/` redirects based on session.
+- Protected shell with role-aware nav/topbar is scaffolded under `/dashboard` and other routes.
 - See `docs/spec-smsgate2.md` and `docs/spec-syncserver.md` for contract details.
 - Copy `.env.example` to `.env.local` and tweak `NEXT_PUBLIC_*` values to match your syncserver endpoint.

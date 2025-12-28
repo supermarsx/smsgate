@@ -115,3 +115,251 @@ body {
   color: var(--gg-text);
   outline: none;
 }
+
+.login-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.login-panel__modes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.login-mode {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--gg-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--gg-text);
+  cursor: pointer;
+}
+
+.login-mode.is-active {
+  border-color: var(--gg-accent);
+  box-shadow: 0 0 0 1px rgba(93, 209, 255, 0.35);
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+}
+
+.form-row {
+  display: grid;
+  gap: 6px;
+}
+
+.form-row input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--gg-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gg-text);
+}
+
+.login-submit {
+  padding: 12px 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #5dd1ff, #7cf5d2);
+  color: #071018;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-help {
+  font-size: 14px;
+  color: var(--gg-muted);
+  display: grid;
+  gap: 6px;
+}
+
+.login-foot {
+  display: flex;
+  justify-content: space-between;
+  color: var(--gg-muted);
+  font-size: 12px;
+}
+
+.login-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff9a9a;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 18px;
+}
+
+.shell-nav {
+  background: var(--gg-surface);
+  border: 1px solid var(--gg-border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.nav-brand {
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.nav-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--gg-text);
+  text-decoration: none;
+}
+
+.nav-link.is-active {
+  background: rgba(93, 209, 255, 0.12);
+  border: 1px solid rgba(93, 209, 255, 0.3);
+}
+
+.shell-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.topbar-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--gg-border);
+}
+
+.pill-muted {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--gg-muted);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4ade80;
+}
+
+.status-dot.warn {
+  background: #fbbf24;
+}
+
+.ghost {
+  background: transparent;
+  border: 1px solid var(--gg-border);
+  color: var(--gg-text);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.shell-content {
+  margin-top: 10px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.feed {
+  display: grid;
+  gap: 12px;
+}
+
+.feed-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.phone-mock {
+  border: 1px solid var(--gg-border);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.phone-mock__screen {
+  max-height: 480px;
+  overflow: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.msg-row {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.msg-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--gg-muted);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.msg-body {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.msg-pill {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(93, 209, 255, 0.18);
+  border: 1px solid rgba(93, 209, 255, 0.35);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.side {
+  display: grid;
+  gap: 12px;
+}
+
+.metric-card {
+  border: 1px solid var(--gg-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.presence-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.presence-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
