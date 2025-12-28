@@ -7,7 +7,7 @@ import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { formatLatency, WsClient } from "../../lib/ws";
 import type { Event, PresenceUpdate } from "../../lib/contracts";
-import { listEvents } from "../../lib/rest";
+import { listEvents, updateEventState } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
 import { useStatus } from "../../components/status-context";
 
@@ -19,16 +19,22 @@ export default function DashboardPage() {
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
   const [latency, setLatency] = useState<string>("—");
   const [clientRtt, setClientRtt] = useState<string>("—");
-const [deviceRtt, setDeviceRtt] = useState<string>("—");
-const [connected, setConnected] = useState(false);
-const [lastError, setLastError] = useState<string | undefined>();
-const [loadingPage, setLoadingPage] = useState(false);
-const [hasMore, setHasMore] = useState(true);
-const clientRef = useRef<WsClient | null>(null);
-const scrollRef = useRef<HTMLDivElement | null>(null);
-const SNAPSHOT_KEY = "smsgate2_snapshot";
+  const [deviceRtt, setDeviceRtt] = useState<string>("—");
+  const [connected, setConnected] = useState(false);
+  const [lastError, setLastError] = useState<string | undefined>();
+  const [loadingPage, setLoadingPage] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [filterNumber, setFilterNumber] = useState<string>("__all__");
+  const clientRef = useRef<WsClient | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const SNAPSHOT_KEY = "smsgate2_snapshot";
 
-const orderedEvents = useMemo(() => events.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)), [events]);
+  const orderedEvents = useMemo(() => {
+    const filtered =
+      filterNumber === "__all__" ? events : events.filter((ev) => ev.number === filterNumber);
+    return filtered.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
+  }, [events, filterNumber]);
 
 useEffect(() => {
   if (!session) return;
@@ -121,6 +127,17 @@ useEffect(() => {
     }
   }
 
+  async function handleStateChange(id: string, state: "claimed" | "verified" | "rejected") {
+    if (!session) return;
+    setActionError(null);
+    try {
+      const updated = await updateEventState(session, id, state);
+      setEvents((prev) => prev.map((e) => (e.id === id ? updated : e)));
+    } catch (err) {
+      setActionError((err as Error).message);
+    }
+  }
+
   if (!session) return null;
 
   return (
@@ -131,12 +148,27 @@ useEffect(() => {
           <h1 className="gg-title">Realtime feed</h1>
           <p className="gg-subtitle">Streaming snapshot + new events with presence/latency chips.</p>
         </div>
+        {actionError && <div className="login-error">Action failed: {actionError}</div>}
         <section className="gg-section dashboard-grid">
           <div className="feed">
             <div className="feed-head">
               <span className={`status-dot ${connected ? "ok" : "warn"}`} />
               <span>{connected ? "Connected" : "Reconnecting..."}</span>
               {lastError && <span className="muted">Last error: {lastError}</span>}
+            </div>
+            <div className="filter-row">
+              <label htmlFor="number-filter" className="gg-label">Filter by number</label>
+              <select
+                id="number-filter"
+                className="gg-select"
+                value={filterNumber}
+                onChange={(e) => setFilterNumber(e.target.value)}
+              >
+                <option value="__all__">All numbers</option>
+                {(session.user.numbers ?? []).map((num) => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
             </div>
             <div className="phone-mock">
               <div className="phone-mock__screen" ref={scrollRef}>
@@ -147,7 +179,14 @@ useEffect(() => {
                       <span className="msg-time">{new Date(evt.createdAt).toLocaleTimeString()}</span>
                     </div>
                     <div className="msg-body">{evt.content}</div>
-                    {evt.state !== "new" && <span className="msg-pill">{evt.state}</span>}
+                    <div className="msg-actions">
+                      <span className={`msg-pill state-${evt.state}`}>{evt.state}</span>
+                      <div className="actions">
+                        <button className="ghost" onClick={() => handleStateChange(evt.id, "claimed")}>Claim</button>
+                        <button className="ghost" onClick={() => handleStateChange(evt.id, "verified")}>Verify</button>
+                        <button className="ghost" onClick={() => handleStateChange(evt.id, "rejected")}>Reject</button>
+                      </div>
+                    </div>
                   </div>
                 ))}
                 {orderedEvents.length === 0 && <div className="muted">Waiting for snapshot...</div>}

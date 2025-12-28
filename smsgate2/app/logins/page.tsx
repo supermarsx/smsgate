@@ -2,7 +2,7 @@
 
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getLoginEvents } from "../../lib/rest";
 
 export default function LoginsPage() {
@@ -10,6 +10,8 @@ export default function LoginsPage() {
   const [rows, setRows] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState("");
+  const [page, setPage] = useState(0);
   if (!session) return null;
 
   useEffect(() => {
@@ -21,6 +23,16 @@ export default function LoginsPage() {
       .finally(() => setLoading(false));
   }, [session]);
 
+  const pageSize = 10;
+  const filtered = useMemo(() => {
+    const term = filter.toLowerCase();
+    return rows.filter((r) =>
+      [r.user, r.username, r.status, r.ip].some((field: any) => String(field ?? "").toLowerCase().includes(term))
+    );
+  }, [rows, filter]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
+
   return (
     <ProtectedShell>
       <div className="gg-panel">
@@ -31,16 +43,55 @@ export default function LoginsPage() {
         </div>
         {error && <div className="login-error">Error: {error}</div>}
         {loading && <div className="muted">Loading...</div>}
+        <div className="filter-row">
+          <label className="gg-label" htmlFor="login-filter">Filter</label>
+          <input
+            id="login-filter"
+            className="gg-input"
+            value={filter}
+            onChange={(e) => { setFilter(e.target.value); setPage(0); }}
+            placeholder="Search user/status/ip"
+          />
+        </div>
         <div className="presence-list">
-          {rows.map((r, idx) => (
-            <div key={idx} className="presence-row spaced">
+          {paged.map((r, idx) => (
+            <div key={`${page}-${idx}`} className="presence-row spaced">
               <div>
                 <div className="gg-value">{r.status ?? r.result ?? "unknown"}</div>
-                <div className="muted">{r.user ?? r.username ?? "user"} @ {r.timestamp ?? "—"}</div>
+                <div className="muted">
+                  {r.user ?? r.username ?? "user"} @ {r.timestamp ?? "—"} | IP: {r.ip ?? "—"}
+                </div>
               </div>
             </div>
           ))}
           {!rows.length && !loading && <div className="muted">No login events yet.</div>}
+        </div>
+        <div className="pagination">
+          <button className="ghost" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+            Prev
+          </button>
+          <span className="muted">Page {page + 1} / {pageCount}</span>
+          <button
+            className="ghost"
+            disabled={page + 1 >= pageCount}
+            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+          >
+            Next
+          </button>
+          <button
+            className="ghost"
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(filtered, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "login-events.json";
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            Export JSON
+          </button>
         </div>
       </div>
     </ProtectedShell>

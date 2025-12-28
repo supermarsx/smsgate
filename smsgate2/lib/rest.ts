@@ -20,16 +20,65 @@ export async function listEvents(session: Session, params: ListEventsParams = {}
   return [];
 }
 
+export async function updateEventState(
+  session: Session,
+  id: string,
+  state: "claimed" | "verified" | "rejected"
+): Promise<Event> {
+  return http<Event>(session, `/events/${id}/state`, {
+    method: "POST",
+    body: JSON.stringify({ state })
+  });
+}
+
 export async function listDevices(session: Session): Promise<any[]> {
   return http<any[]>(session, "/devices", { method: "GET" });
+}
+
+export async function updateDeviceName(session: Session, id: string, name: string): Promise<void> {
+  await http<void>(session, `/devices/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name })
+  });
 }
 
 export async function listNumbers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/numbers", { method: "GET" });
 }
 
+export async function createNumber(session: Session, payload: { e164: string; label?: string }): Promise<any> {
+  return http(session, "/numbers", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function assignNumber(session: Session, e164: string, payload: { userId?: string; deviceId?: string }): Promise<void> {
+  await http<void>(session, `/numbers/${encodeURIComponent(e164)}/assign`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function unassignNumber(session: Session, e164: string): Promise<void> {
+  await http<void>(session, `/numbers/${encodeURIComponent(e164)}/assign`, { method: "DELETE" });
+}
+
 export async function listUsers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/users", { method: "GET" });
+}
+
+export async function updateUserRole(session: Session, id: string, role: string): Promise<void> {
+  await http<void>(session, `/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) });
+}
+
+export async function forceLogoutUser(session: Session, id: string): Promise<void> {
+  await http<void>(session, `/users/${id}/force-logout`, { method: "POST" });
+}
+
+export async function unlockUser(session: Session, id: string): Promise<void> {
+  await http<void>(session, `/users/${id}/unlock`, { method: "POST" });
+}
+
+export async function fetchDiagnostics(session: Session, deviceId: string): Promise<any> {
+  return http<any>(session, `/devices/${deviceId}/diagnostics`, { method: "GET" });
 }
 
 export async function getAudit(session: Session): Promise<any[]> {

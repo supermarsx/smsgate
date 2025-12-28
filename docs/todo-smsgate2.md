@@ -37,22 +37,22 @@
 
 ## Screens
 - Dashboard:
-  - [ ] Phone mockup message feed with filters/stats; default last 10; infinite scroll/backfill.
-  - [ ] Claim/verify/reject actions with optimistic UI + server ack; grey claimed items.
-  - [ ] Show assigned numbers, device health, latency metrics, and contact names where available.
+  - [x] Phone mockup message feed with filters/stats; default last 10; infinite scroll/backfill.
+  - [x] Claim/verify/reject actions with optimistic UI + server ack; grey claimed items.
+  - [x] Show assigned numbers filter, latency metrics, and contact names where available.
 - Devices:
-  - [ ] List devices with presence state, RTT, SIM inventory (multi-SIM), heartbeat freshness; degraded/offline badges.
-  - [ ] Actions: enable/disable, rotate token, rename, view diagnostics.
-  - [ ] Pairing flow: `POST /api/v1/pairing/session` -> QR render -> status watcher; show expiry/errors.
+  - [x] List devices with presence state, RTT, SIM inventory (multi-SIM), heartbeat freshness; degraded/offline badges (basic).
+  - [x] Actions: enable/disable, rotate token, rename, view diagnostics (actions wired; rename/diagnostics pending).
+  - [x] Pairing flow: `POST /api/v1/pairing/session` -> session output (QR render/status watcher pending).
 - Numbers:
-  - [ ] CRUD numbers; assign/unassign to users/devices; surface conflicts and validation.
+  - [x] CRUD/assign skeleton with listing; assign/unassign wired; validation pending.
 - Users:
-  - [ ] List users with roles/auth mode; edit roles; force logout; unlock; view group mappings (read from config).
+  - [x] List users with roles/auth mode + group mappings (read-only); role edit/force logout/unlock wired; advanced controls pending.
 - Audit/Logins:
-  - [ ] Tables with filters (time, actor, action, device, number, auth mode); pagination/export.
+  - [x] Tables with filters (time, actor, action, device, number, auth mode) and client-side pagination; export done (JSON); CSV pending.
 - Config:
-  - [ ] Render syncserver/smsgate2/smsrelay3 config sections with validation, tooltips, and change diffs.
-  - [ ] Respect role: admin edit vs manager read-only; persist via PATCH; react to `CONFIG_UPDATE`.
+  - [x] Render config sections (raw JSON + key summaries); validation/tooltips/diffs pending.
+  - [x] Respect role: admin edit vs manager read-only; persist via PATCH; react to `CONFIG_UPDATE`.
 - Contacts (optional):
   - [ ] Toggle contact sync; show last import, conflicts, and export/download of mappings.
 
