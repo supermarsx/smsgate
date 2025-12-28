@@ -27,9 +27,13 @@ export class WsClient {
   private pingTimer: number | null = null;
   private visibilityPaused = false;
   private lastPingAt: number | null = null;
+  private subscribedNumbers: string[] | undefined;
+  private onConfigUpdate?: () => void;
 
-  constructor(session: Session) {
+  constructor(session: Session, opts?: { numbers?: string[]; onConfigUpdate?: () => void }) {
     this.session = session;
+    this.subscribedNumbers = opts?.numbers;
+    this.onConfigUpdate = opts?.onConfigUpdate;
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", this.handleVisibilityChange);
     }
@@ -59,7 +63,7 @@ export class WsClient {
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
       this.emit({ connected: true, lastError: undefined });
-      this.send({ type: "SUBSCRIBE" });
+      this.send({ type: "SUBSCRIBE", payload: { numbers: this.subscribedNumbers } });
       this.startPing();
     };
 
@@ -102,6 +106,11 @@ export class WsClient {
 
   requestPage(before?: string, limit = 25): void {
     this.send({ type: "PAGE", payload: { before, limit } });
+  }
+
+  updateSubscription(numbers?: string[]) {
+    this.subscribedNumbers = numbers;
+    this.send({ type: "SUBSCRIBE", payload: { numbers } });
   }
 
   private send(message: ClientToServer) {
@@ -147,7 +156,7 @@ export class WsClient {
         });
         break;
       case "CONFIG_UPDATE":
-        // TODO: trigger config reload once config client is wired.
+        if (this.onConfigUpdate) this.onConfigUpdate();
         break;
       case "ERROR":
         this.emit({ lastError: msg.payload });

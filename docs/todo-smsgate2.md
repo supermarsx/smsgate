@@ -21,7 +21,7 @@
 ## Realtime client (WS-first)
 - [x] Build WS client for `/api/v1/ws` with reconnect/backoff, ping, resume cursor via `resumeAfter`, and visibility-aware throttling.
 - [x] Handle server messages: `WELCOME`, `SNAPSHOT`, `EVENT_NEW`, `EVENT_UPDATE`, `EVENT_PAGE`, `PRESENCE_UPDATE`, `METRICS_UPDATE`, `CONTACT_UPDATE`, `CONFIG_UPDATE`, `ERROR` (config auto-reload pending).
-- [x] Handle client messages: `SUBSCRIBE`, `PAGE` (before/limit), `PING`; assignment-based auto-subscription still pending.
+- [x] Handle client messages: `SUBSCRIBE`, `PAGE` (before/limit), `PING`; assignment-based auto-subscription now uses user-assigned numbers when present; backend alignment pending.
 - [x] Implement paging/backfill over WS with infinite scroll on dashboard; REST fallback when WS degrades.
 - [x] Capture latency metrics (client<->server RTT, device RTT, ingest->render) and feed the status bar.
 

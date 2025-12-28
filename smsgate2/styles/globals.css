@@ -363,3 +363,12 @@ body {
   gap: 8px;
   align-items: center;
 }
+
+.presence-row.spaced {
+  justify-content: space-between;
+}
+
+.presence-row .actions {
+  display: flex;
+  gap: 6px;
+}

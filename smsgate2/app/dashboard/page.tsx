@@ -8,9 +8,11 @@ import { useSession } from "../../components/session-provider";
 import { formatLatency, WsClient } from "../../lib/ws";
 import type { Event, PresenceUpdate } from "../../lib/contracts";
 import { listEvents } from "../../lib/rest";
+import { useConfig } from "../../components/config-provider";
 
 export default function DashboardPage() {
   const { session } = useSession();
+  const { refresh: refreshConfig } = useConfig();
   const [events, setEvents] = useState<Event[]>([]);
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
   const [latency, setLatency] = useState<string>("—");
@@ -27,7 +29,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!session) return;
-    const client = new WsClient(session);
+    const client = new WsClient(session, {
+      numbers: session.user.numbers,
+      onConfigUpdate: () => refreshConfig()
+    });
     clientRef.current = client;
     const unsubscribe = client.subscribe((state) => {
       setEvents(state.events);

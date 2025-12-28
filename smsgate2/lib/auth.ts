@@ -11,6 +11,7 @@ export type SessionUser = {
   authMode: "oauth" | "simple_signin" | "domain_signin";
   locale?: Locale;
   requires2fa?: boolean;
+  numbers?: string[];
 };
 
 export type Session = {
