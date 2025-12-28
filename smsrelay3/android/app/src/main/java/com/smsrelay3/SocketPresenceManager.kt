@@ -5,6 +5,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import com.smsrelay3.data.DeviceAuthStore
 
 object SocketPresenceManager {
     private var socket: WebSocket? = null
@@ -16,8 +17,12 @@ object SocketPresenceManager {
             LogStore.append("error", "presence", "Socket presence: missing server URL")
             return
         }
-        val token = HashUtil.sha512(config.pin + config.salt)
-        ConfigStore.setString(context, ConfigStore.KEY_TOKEN, token)
+        val deviceToken = DeviceAuthStore.getDeviceToken(context)
+        if (deviceToken.isNullOrBlank()) {
+            LogStore.append("error", "presence", "Socket presence: missing device token")
+            return
+        }
+        ConfigStore.setString(context, ConfigStore.KEY_TOKEN, deviceToken)
         val wsUrl = buildWebSocketUrl(config.serverUrl)
         try {
             val request = Request.Builder().url(wsUrl).build()
@@ -25,7 +30,7 @@ object SocketPresenceManager {
                 request,
                 object : WebSocketListener() {
                     override fun onOpen(webSocket: WebSocket, response: Response) {
-                        webSocket.send(buildAuthMessage(config, token))
+                        webSocket.send(buildAuthMessage(config, deviceToken))
                     }
 
                     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
@@ -50,7 +55,7 @@ object SocketPresenceManager {
     }
 
     fun buildAuthMessage(config: AppConfig, tokenOverride: String? = null): String {
-        val token = tokenOverride ?: HashUtil.sha512(config.pin + config.salt)
+        val token = tokenOverride ?: ""
         return """{"type":"auth","token":"$token","clientId":"${config.clientIdValue}"}"""
     }
 

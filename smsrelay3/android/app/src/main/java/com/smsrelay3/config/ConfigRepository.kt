@@ -13,12 +13,26 @@ class ConfigRepository(private val context: Context) {
         if (raw.isNullOrBlank()) {
             return ConfigPolicy(
                 realtimeMode = ConfigDefaults.REALTIME_MODE,
+                syncRetryBaseMs = ConfigDefaults.SYNC_RETRY_BASE_MS,
+                syncRetryMaxMs = ConfigDefaults.SYNC_RETRY_MAX_MS,
+                syncMaxAttempts = ConfigDefaults.SYNC_MAX_ATTEMPTS,
+                syncQueueMaxDepth = ConfigDefaults.SYNC_QUEUE_MAX_DEPTH,
+                syncBatchMaxSize = ConfigDefaults.SYNC_BATCH_MAX_SIZE,
+                syncFlushOnConnect = ConfigDefaults.SYNC_FLUSH_ON_CONNECT,
+                wsKeepaliveS = ConfigDefaults.WS_KEEPALIVE_S,
+                wsReconnectBaseMs = ConfigDefaults.WS_RECONNECT_BASE_MS,
+                wsReconnectMaxMs = ConfigDefaults.WS_RECONNECT_MAX_MS,
+                loggingEnabled = ConfigDefaults.LOGGING_ENABLED,
+                loggingLevel = ConfigDefaults.LOGGING_LEVEL,
+                loggingPersistToDisk = ConfigDefaults.LOGGING_PERSIST,
+                loggingRedactSmsContent = ConfigDefaults.LOGGING_REDACT_SMS,
                 heartbeatIntervalS = ConfigDefaults.HEARTBEAT_INTERVAL_S,
                 simPollIntervalS = ConfigDefaults.SIM_POLL_INTERVAL_S,
                 reconcileEnabled = ConfigDefaults.RECONCILE_ENABLED,
                 reconcileWindowMinutes = ConfigDefaults.RECONCILE_WINDOW_MINUTES,
                 reconcileIntervalMinutes = ConfigDefaults.RECONCILE_INTERVAL_MINUTES,
                 reconcileMaxScanCount = ConfigDefaults.RECONCILE_MAX_SCAN_COUNT,
+                reconcileIgnoreSenders = ConfigDefaults.RECONCILE_IGNORE_SENDERS,
                 retentionAckedHours = ConfigDefaults.RETENTION_ACKED_HOURS,
                 retentionHeartbeatHours = ConfigDefaults.RETENTION_HEARTBEAT_HOURS,
                 retentionSimDays = ConfigDefaults.RETENTION_SIM_DAYS,
@@ -41,6 +55,9 @@ class ConfigRepository(private val context: Context) {
             val heartbeat = json.optJSONObject("heartbeat")
             val sim = json.optJSONObject("sim")
             val reconcile = json.optJSONObject("reconcile")
+            val sync = json.optJSONObject("sync")
+            val ws = json.optJSONObject("ws")
+            val logging = json.optJSONObject("logging")
             val realtimeMode = json.optString("realtime_mode", ConfigDefaults.REALTIME_MODE)
             val heartbeatInterval = heartbeat?.optLong("interval_s", ConfigDefaults.HEARTBEAT_INTERVAL_S)
                 ?: ConfigDefaults.HEARTBEAT_INTERVAL_S
@@ -57,6 +74,9 @@ class ConfigRepository(private val context: Context) {
                 ?: ConfigDefaults.RECONCILE_INTERVAL_MINUTES
             val reconcileMaxScan = reconcile?.optInt("max_scan_count", ConfigDefaults.RECONCILE_MAX_SCAN_COUNT)
                 ?: ConfigDefaults.RECONCILE_MAX_SCAN_COUNT
+            val reconcileIgnore = reconcile?.optJSONArray("ignore_senders")?.let { array ->
+                (0 until array.length()).mapNotNull { array.optString(it) }.filter { it.isNotBlank() }
+            } ?: ConfigDefaults.RECONCILE_IGNORE_SENDERS
             val retention = json.optJSONObject("retention")
             val overrides = json.optJSONObject("overrides")
             val contacts = json.optJSONObject("contacts_sync")
@@ -87,12 +107,38 @@ class ConfigRepository(private val context: Context) {
             } ?: emptyList()
             ConfigPolicy(
                 realtimeMode = realtimeMode,
+                syncRetryBaseMs = sync?.optLong("retry_base_ms", ConfigDefaults.SYNC_RETRY_BASE_MS)
+                    ?: ConfigDefaults.SYNC_RETRY_BASE_MS,
+                syncRetryMaxMs = sync?.optLong("retry_max_ms", ConfigDefaults.SYNC_RETRY_MAX_MS)
+                    ?: ConfigDefaults.SYNC_RETRY_MAX_MS,
+                syncMaxAttempts = sync?.optInt("max_attempts", ConfigDefaults.SYNC_MAX_ATTEMPTS)
+                    ?: ConfigDefaults.SYNC_MAX_ATTEMPTS,
+                syncQueueMaxDepth = sync?.optInt("queue") ?: ConfigDefaults.SYNC_QUEUE_MAX_DEPTH,
+                syncBatchMaxSize = sync?.optInt("batch_max_size", ConfigDefaults.SYNC_BATCH_MAX_SIZE)
+                    ?: ConfigDefaults.SYNC_BATCH_MAX_SIZE,
+                syncFlushOnConnect = sync?.optBoolean("flush_on_connect", ConfigDefaults.SYNC_FLUSH_ON_CONNECT)
+                    ?: ConfigDefaults.SYNC_FLUSH_ON_CONNECT,
+                wsKeepaliveS = ws?.optLong("keepalive_s", ConfigDefaults.WS_KEEPALIVE_S)
+                    ?: ConfigDefaults.WS_KEEPALIVE_S,
+                wsReconnectBaseMs = ws?.optLong("reconnect_base_ms", ConfigDefaults.WS_RECONNECT_BASE_MS)
+                    ?: ConfigDefaults.WS_RECONNECT_BASE_MS,
+                wsReconnectMaxMs = ws?.optLong("reconnect_max_ms", ConfigDefaults.WS_RECONNECT_MAX_MS)
+                    ?: ConfigDefaults.WS_RECONNECT_MAX_MS,
+                loggingEnabled = logging?.optBoolean("enabled", ConfigDefaults.LOGGING_ENABLED)
+                    ?: ConfigDefaults.LOGGING_ENABLED,
+                loggingLevel = logging?.optString("level", ConfigDefaults.LOGGING_LEVEL)
+                    ?: ConfigDefaults.LOGGING_LEVEL,
+                loggingPersistToDisk = logging?.optBoolean("persist_to_disk", ConfigDefaults.LOGGING_PERSIST)
+                    ?: ConfigDefaults.LOGGING_PERSIST,
+                loggingRedactSmsContent = logging?.optBoolean("redact_sms_content", ConfigDefaults.LOGGING_REDACT_SMS)
+                    ?: ConfigDefaults.LOGGING_REDACT_SMS,
                 heartbeatIntervalS = heartbeatInterval.coerceAtLeast(5L),
                 simPollIntervalS = simInterval.coerceAtLeast(10L),
                 reconcileEnabled = reconcileEnabled,
                 reconcileWindowMinutes = reconcileWindow.coerceAtLeast(1),
                 reconcileIntervalMinutes = reconcileInterval.coerceAtLeast(1),
                 reconcileMaxScanCount = reconcileMaxScan.coerceAtLeast(10),
+                reconcileIgnoreSenders = reconcileIgnore,
                 retentionAckedHours = ackedHours.coerceAtLeast(1),
                 retentionHeartbeatHours = heartbeatHours.coerceAtLeast(1),
                 retentionSimDays = simDays.coerceAtLeast(1),
@@ -110,12 +156,26 @@ class ConfigRepository(private val context: Context) {
         } catch (_: Exception) {
             ConfigPolicy(
                 realtimeMode = ConfigDefaults.REALTIME_MODE,
+                syncRetryBaseMs = ConfigDefaults.SYNC_RETRY_BASE_MS,
+                syncRetryMaxMs = ConfigDefaults.SYNC_RETRY_MAX_MS,
+                syncMaxAttempts = ConfigDefaults.SYNC_MAX_ATTEMPTS,
+                syncQueueMaxDepth = ConfigDefaults.SYNC_QUEUE_MAX_DEPTH,
+                syncBatchMaxSize = ConfigDefaults.SYNC_BATCH_MAX_SIZE,
+                syncFlushOnConnect = ConfigDefaults.SYNC_FLUSH_ON_CONNECT,
+                wsKeepaliveS = ConfigDefaults.WS_KEEPALIVE_S,
+                wsReconnectBaseMs = ConfigDefaults.WS_RECONNECT_BASE_MS,
+                wsReconnectMaxMs = ConfigDefaults.WS_RECONNECT_MAX_MS,
+                loggingEnabled = ConfigDefaults.LOGGING_ENABLED,
+                loggingLevel = ConfigDefaults.LOGGING_LEVEL,
+                loggingPersistToDisk = ConfigDefaults.LOGGING_PERSIST,
+                loggingRedactSmsContent = ConfigDefaults.LOGGING_REDACT_SMS,
                 heartbeatIntervalS = ConfigDefaults.HEARTBEAT_INTERVAL_S,
                 simPollIntervalS = ConfigDefaults.SIM_POLL_INTERVAL_S,
                 reconcileEnabled = ConfigDefaults.RECONCILE_ENABLED,
                 reconcileWindowMinutes = ConfigDefaults.RECONCILE_WINDOW_MINUTES,
                 reconcileIntervalMinutes = ConfigDefaults.RECONCILE_INTERVAL_MINUTES,
                 reconcileMaxScanCount = ConfigDefaults.RECONCILE_MAX_SCAN_COUNT,
+                reconcileIgnoreSenders = ConfigDefaults.RECONCILE_IGNORE_SENDERS,
                 retentionAckedHours = ConfigDefaults.RETENTION_ACKED_HOURS,
                 retentionHeartbeatHours = ConfigDefaults.RETENTION_HEARTBEAT_HOURS,
                 retentionSimDays = ConfigDefaults.RETENTION_SIM_DAYS,

@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.smsrelay3.ConfigStore
 import com.smsrelay3.HttpClient
 import com.smsrelay3.LogStore
+import com.smsrelay3.config.ConfigRepository
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.OutboundMessageStatus
 import com.smsrelay3.data.db.DatabaseProvider
@@ -19,6 +20,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.math.min
 
 class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
@@ -37,20 +39,38 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
         val db = DatabaseProvider.get(applicationContext)
         val dao = db.outboundMessageDao()
-        val pending = dao.loadByStatus(OutboundMessageStatus.QUEUED, DEFAULT_BATCH_SIZE)
+        val policy = ConfigRepository(applicationContext).latestPolicy()
+        val pending = dao.loadByStatus(
+            OutboundMessageStatus.QUEUED,
+            min(policy.syncBatchMaxSize, MAX_BATCH_READ)
+        )
         if (pending.isEmpty()) return Result.success()
+        val now = System.currentTimeMillis()
+        val due = pending.filter { message ->
+            val lastAttempt = message.lastAttemptAtMs ?: return@filter true
+            val waitMs = QueueStateMachine.nextDelayMillis(
+                message.retryCount,
+                policy.syncRetryBaseMs,
+                policy.syncRetryMaxMs
+            )
+            (now - lastAttempt) >= waitMs
+        }
+        if (due.isEmpty()) {
+            LogStore.append("info", "sync", "Sync: no messages due (respecting backoff)")
+            return Result.success()
+        }
 
-        if (pending.size > 1 && tryBatchSend(baseUrl, config.apiPath, deviceToken, pending)) {
+        if (due.size > 1 && tryBatchSend(baseUrl, config.apiPath, deviceToken, due)) {
             val now = System.currentTimeMillis()
-            pending.forEach { msg ->
+            due.forEach { msg ->
                 dao.update(onSendSuccess(onSendStart(msg, now)))
             }
-            LogStore.append("info", "sync", "Batch sent ${pending.size} messages")
+            LogStore.append("info", "sync", "Batch sent ${due.size} messages")
             return Result.success()
         }
 
         var hadFailure = false
-        for (message in pending) {
+        for (message in due) {
             val alreadyAcked = dao.countStatusByHashBetween(
                 OutboundMessageStatus.ACKED,
                 message.contentHash,
@@ -68,7 +88,12 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 dao.update(onSendSuccess(sending))
             } else {
                 com.smsrelay3.LogStore.append("error", "sync", "Sync: send failed ${message.id}")
-                val failure = onSendFailure(sending)
+                val failure = onSendFailure(
+                    sending,
+                    maxAttempts = policy.syncMaxAttempts,
+                    baseDelayMs = policy.syncRetryBaseMs,
+                    maxDelayMs = policy.syncRetryMaxMs
+                )
                 dao.update(failure.message)
                 hadFailure = true
             }
@@ -89,12 +114,17 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         val request = Request.Builder()
             .url("$baseUrl$path")
             .addHeader("Authorization", "Bearer $deviceToken")
+            .addHeader("Accept", "application/json")
             .post(body)
             .build()
 
         return try {
             HttpClient.get(applicationContext).newCall(request).execute().use { response ->
-                response.isSuccessful
+                if (!response.isSuccessful) return@use false
+                val payload = response.body?.string().orEmpty()
+                if (payload.isBlank()) return@use false
+                val json = runCatching { JSONObject(payload) }.getOrNull() ?: return@use false
+                json.has("event_id") || json.has("eventId") || json.has("device_seq")
             }
         } catch (_: Exception) {
             false
@@ -118,10 +148,12 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             val request = Request.Builder()
                 .url("$baseUrl$batchPath")
                 .addHeader("Authorization", "Bearer $deviceToken")
+                .addHeader("Accept", "application/json")
                 .post(body)
                 .build()
             HttpClient.get(applicationContext).newCall(request).execute().use { response ->
-                response.isSuccessful
+                val payload = response.body?.string().orEmpty()
+                response.isSuccessful && payload.isNotBlank()
             }
         } catch (_: Exception) {
             false
@@ -150,9 +182,8 @@ class SyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     }
 
     companion object {
-        private const val DEFAULT_BATCH_SIZE = 10
-        private const val DEFAULT_MAX_ATTEMPTS = 5
         private const val DEDUP_WINDOW_MS = 5 * 60 * 1000
+        private const val MAX_BATCH_READ = 50
         private val JSON_MEDIA = "application/json".toMediaType()
     }
 }

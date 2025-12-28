@@ -28,7 +28,8 @@ class SmsUploadWorker(appContext: Context, workerParams: WorkerParameters) :
         val timestamp = pending?.timestamp ?: inputData.getLong(KEY_TIMESTAMP, System.currentTimeMillis())
 
         val date = formatDate(timestamp)
-        val token = HashUtil.sha512(config.pin + config.salt)
+        val token = com.smsrelay3.data.DeviceAuthStore.getDeviceToken(applicationContext)
+            ?: return Result.retry()
         ConfigStore.setString(applicationContext, ConfigStore.KEY_TOKEN, token)
         val json = JSONObject()
         json.put("number", from)

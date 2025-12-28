@@ -6,12 +6,15 @@ import android.content.Intent
 import android.provider.Telephony
 import android.telephony.SmsMessage
 import com.smsrelay3.data.OutboundMessageRepository
+import com.smsrelay3.data.db.DatabaseProvider
+import com.smsrelay3.data.entity.SmsRawStore
 import com.smsrelay3.sync.SyncScheduler
 import com.smsrelay3.util.SimInfoResolver
 import com.smsrelay3.util.SmsParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -40,16 +43,30 @@ class SmsReceiver : BroadcastReceiver() {
                 val simInfo = SimInfoResolver.resolve(context, subId)
                 val body = SmsParser.stitch(ordered.mapNotNull { it.messageBody })
                 val hash = SmsParser.contentHash(sender, simInfo.iccid ?: simInfo.subscriptionId?.toString(), body)
+                val receivedAt = first.timestampMillis.takeIf { it > 0 } ?: System.currentTimeMillis()
                 repository.enqueueSms(
                     sender = sender,
                     content = body,
-                    receivedAtMs = System.currentTimeMillis(),
+                    receivedAtMs = receivedAt,
                     simSlotIndex = simInfo.slotIndex,
                     subscriptionId = simInfo.subscriptionId,
                     iccid = simInfo.iccid,
                     msisdn = simInfo.msisdn,
                     source = "broadcast",
                     contentHash = hash
+                )
+                DatabaseProvider.get(context).smsRawStoreDao().insert(
+                    SmsRawStore(
+                        id = UUID.randomUUID().toString(),
+                        capturedAtMs = System.currentTimeMillis(),
+                        providerId = null,
+                        sender = sender,
+                        contentHash = hash,
+                        length = body.length,
+                        simSlotIndex = simInfo.slotIndex,
+                        subscriptionId = simInfo.subscriptionId,
+                        deliveryPath = "broadcast"
+                    )
                 )
             }
             SyncScheduler.enqueueNow(context)

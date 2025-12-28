@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.smsrelay3.config.ConfigRepository
 import com.smsrelay3.config.ConfigWebSocketManager
+import com.smsrelay3.SocketPresenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
@@ -19,11 +20,10 @@ object ServiceModeController {
             stopAll(context)
             return
         }
-        if (config.enableSocketPresence) {
-            // Connect may touch disk (device token); keep it off main.
-            withContext(Dispatchers.IO) { ConfigWebSocketManager.connect(context) }
-        } else {
-            ConfigWebSocketManager.disconnect()
+        // Config updates should always listen; keep connection independent of presence toggle.
+        withContext(Dispatchers.IO) { ConfigWebSocketManager.connect(context) }
+        if (!config.enableSocketPresence) {
+            SocketPresenceManager.disconnect()
         }
         val policy = withContext(Dispatchers.IO) { ConfigRepository(context).latestPolicy() }
         when (policy.realtimeMode) {
@@ -71,5 +71,6 @@ object ServiceModeController {
         stopForeground(context)
         stopBackground(context)
         ConfigWebSocketManager.disconnect()
+        SocketPresenceManager.disconnect()
     }
 }

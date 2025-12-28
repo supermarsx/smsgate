@@ -9,10 +9,6 @@ import com.smsrelay3.util.RetryBackoff
  * This keeps the retry policy centralized and testable.
  */
 object QueueStateMachine {
-    private const val MAX_ATTEMPTS = 5
-    private const val BASE_DELAY_MS = 1_000L
-    private const val MAX_DELAY_MS = 5 * 60_000L
-
     fun onSendStart(message: OutboundMessage, nowMs: Long = System.currentTimeMillis()): OutboundMessage {
         return message.copy(
             status = OutboundMessageStatus.SENDING,
@@ -26,25 +22,34 @@ object QueueStateMachine {
         )
     }
 
-    fun onSendFailure(message: OutboundMessage): FailureResult {
+    fun onSendFailure(
+        message: OutboundMessage,
+        maxAttempts: Int = 5,
+        baseDelayMs: Long = 1_000L,
+        maxDelayMs: Long = 5 * 60_000L
+    ): FailureResult {
         val attempts = message.retryCount + 1
         val failedOut = message.copy(
             retryCount = attempts,
-            status = if (attempts >= MAX_ATTEMPTS) {
+            status = if (attempts >= maxAttempts) {
                 OutboundMessageStatus.FAILED
             } else {
                 OutboundMessageStatus.QUEUED
             }
         )
-        val delayMs = nextDelayMillis(attempts - 1)
+        val delayMs = nextDelayMillis(attempts - 1, baseDelayMs, maxDelayMs)
         return FailureResult(failedOut, delayMs)
     }
 
-    fun nextDelayMillis(attempt: Int): Long =
+    fun nextDelayMillis(
+        attempt: Int,
+        baseMillis: Long = 1_000L,
+        maxMillis: Long = 5 * 60_000L
+    ): Long =
         RetryBackoff.calculateDelayMillis(
             attempt = attempt,
-            baseMillis = BASE_DELAY_MS,
-            maxMillis = MAX_DELAY_MS,
+            baseMillis = baseMillis,
+            maxMillis = maxMillis,
             jitterFraction = 0.25
         )
 

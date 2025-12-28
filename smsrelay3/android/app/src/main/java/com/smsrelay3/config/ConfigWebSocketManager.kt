@@ -6,10 +6,11 @@ import com.smsrelay3.ConfigStore
 import com.smsrelay3.HttpClient
 import com.smsrelay3.LogStore
 import com.smsrelay3.ServiceModeController
-import com.smsrelay3.SocketPresenceManager
+import com.smsrelay3.config.ConfigRuntime
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.db.DatabaseProvider
 import com.smsrelay3.data.entity.ConfigState
+import com.smsrelay3.SocketPresenceManager
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -83,6 +84,7 @@ object ConfigWebSocketManager {
             )
             kotlinx.coroutines.runBlocking {
                 DatabaseProvider.get(context).configStateDao().upsert(state)
+                ConfigRuntime.apply(context)
             }
             LogStore.append("info", "config", "Config WS: applied v$version")
             ConfigEvents.notifyChanged()

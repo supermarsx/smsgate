@@ -3,6 +3,8 @@ package com.smsrelay3
 import android.content.Context
 import com.smsrelay3.data.db.DatabaseProvider
 import com.smsrelay3.data.entity.LocalLogEntry
+import com.smsrelay3.config.ConfigRepository
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,13 +31,17 @@ object LogStore {
     }
 
     fun append(level: String, category: String, message: String) {
+        val policy = currentPolicy()
+        if (policy?.loggingEnabled == false) return
         val timestamp = formatter.format(Date())
-        val redacted = redact(message)
+        val redacted = redact(message, policy?.loggingRedactSmsContent != false)
         lines.add("[$timestamp] $redacted")
         while (lines.size > MAX_LINES) {
             lines.removeAt(0)
         }
-        persist(level, category, redacted)
+        if (policy?.loggingPersistToDisk != false) {
+            persist(level, category, redacted)
+        }
         notifyListeners()
     }
 
@@ -77,12 +83,18 @@ object LogStore {
         }
     }
 
-    private fun redact(raw: String): String {
+    private fun redact(raw: String, enabled: Boolean): String {
+        if (!enabled) return raw
         val digits = Regex("\\b\\d{4,}\\b")
         val maskedDigits = digits.replace(raw) { "*".repeat(it.value.length) }
         // Keep log lines concise to reduce accidental payload leakage.
         return if (maskedDigits.length > 200) {
             maskedDigits.take(120) + " …[redacted]…"
         } else maskedDigits
+    }
+
+    private fun currentPolicy(): com.smsrelay3.config.ConfigPolicy? {
+        val context = appContext ?: return null
+        return runBlocking { ConfigRepository(context).latestPolicy() }
     }
 }

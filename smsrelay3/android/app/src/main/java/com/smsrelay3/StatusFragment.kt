@@ -9,6 +9,9 @@ import androidx.fragment.app.Fragment
 import com.smsrelay3.data.DeviceAuthStore
 import com.smsrelay3.data.OutboundMessageStatus
 import com.smsrelay3.data.db.DatabaseProvider
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,19 +78,24 @@ class StatusFragment : Fragment() {
                 )
                 lastSendText.text = getString(
                     R.string.status_last_send,
-                    lastAck?.toString() ?: "-"
+                    lastAck?.let { formatTs(it) } ?: "-"
                 )
                 simSummaryText.text = getString(
                     R.string.status_sim_summary,
                     if (simSlots.isEmpty()) "-" else simSlots.joinToString(",")
                 )
                 val reconcileStatus = if (policy.reconcileEnabled) {
-                    if (reconcileAt > 0) "on (last $reconcileAt)" else "on"
+                    if (reconcileAt > 0) "on (last ${formatTs(reconcileAt)})" else "on"
                 } else {
                     "off"
                 }
                 reconcileText.text = getString(R.string.status_reconcile, reconcileStatus)
             }
         }
+    }
+
+    private fun formatTs(ts: Long): String {
+        val fmt = SimpleDateFormat("HH:mm:ss", Locale.US)
+        return fmt.format(Date(ts))
     }
 }

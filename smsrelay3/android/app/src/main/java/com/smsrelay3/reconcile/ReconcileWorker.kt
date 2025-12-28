@@ -36,6 +36,9 @@ class ReconcileWorker(appContext: Context, params: WorkerParameters) : Coroutine
         val dao = DatabaseProvider.get(applicationContext).outboundMessageDao()
         val repo = OutboundMessageRepository(applicationContext)
         for (sms in providerMessages) {
+            if (policy.reconcileIgnoreSenders.any { ignore -> ignore.equals(sms.sender, ignoreCase = true) }) {
+                continue
+            }
             val bucket = sms.receivedAtMs / 60_000L
             val fingerprint = HashUtil.sha256(
                 "${sms.sender}|${sms.body}|$bucket|${sms.subscriptionId ?: -1}"
