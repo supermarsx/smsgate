@@ -8,6 +8,8 @@ export type StatusSnapshot = {
   clientRtt?: string;
   deviceRtt?: string;
   devicesOnline?: number;
+  wsErrors?: number;
+  reconnects?: number;
   lastError?: string;
 };
 

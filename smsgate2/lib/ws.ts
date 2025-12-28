@@ -10,6 +10,8 @@ export type StreamState = {
   lastError?: string;
   cursor?: string;
   clientRttMs?: number;
+  wsErrors?: number;
+  reconnects?: number;
 };
 
 type Listener = (state: StreamState) => void;
@@ -29,6 +31,8 @@ export class WsClient {
   private lastPingAt: number | null = null;
   private subscribedNumbers: string[] | undefined;
   private onConfigUpdate?: () => void;
+  private wsErrors = 0;
+  private reconnects = 0;
 
   constructor(session: Session, opts?: { numbers?: string[]; onConfigUpdate?: () => void }) {
     this.session = session;
@@ -77,17 +81,21 @@ export class WsClient {
           this.lastPingAt = null;
         }
       } catch (err) {
-        this.emit({ lastError: (err as Error).message });
+        this.wsErrors += 1;
+        this.emit({ lastError: (err as Error).message, wsErrors: this.wsErrors });
       }
     };
 
     this.ws.onerror = () => {
-      this.emit({ lastError: "WebSocket error" });
+      this.wsErrors += 1;
+      this.emit({ lastError: "WebSocket error", wsErrors: this.wsErrors });
     };
 
     this.ws.onclose = () => {
       this.emit({ connected: false });
       if (this.pingTimer) window.clearInterval(this.pingTimer);
+      this.reconnects += 1;
+      this.emit({ reconnects: this.reconnects });
       this.scheduleReconnect();
     };
   }
@@ -184,6 +192,7 @@ export class WsClient {
     this.reconnectAttempts += 1;
     const backoff = Math.min(30_000, 1000 * 2 ** this.reconnectAttempts);
     window.setTimeout(() => this.connect(), backoff);
+    this.emit({ reconnects: this.reconnects });
   }
 
   private startPing() {

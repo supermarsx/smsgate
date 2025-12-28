@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
@@ -61,7 +59,9 @@ useEffect(() => {
         clientRtt: state.clientRttMs ? `${state.clientRttMs} ms` : "—",
         deviceRtt: deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "—",
         devicesOnline: Object.values(state.presence).filter((p) => p.state === "online").length,
-        lastError: state.lastError
+        lastError: state.lastError,
+        wsErrors: state.wsErrors ?? 0,
+        reconnects: state.reconnects ?? 0
       });
     });
     client.connect();
