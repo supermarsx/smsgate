@@ -1,7 +1,7 @@
 import { appConfig, wsUrl } from "./config";
 import type { Locale } from "./i18n";
 
-export type Role = "viewer" | "verifier" | "manager" | "admin";
+export type Role = string;
 
 export type SessionUser = {
   id: string;
@@ -11,6 +11,7 @@ export type SessionUser = {
   authMode: "oauth" | "simple_signin" | "domain_signin";
   locale?: Locale;
   requires2fa?: boolean;
+  requiresPasswordChange?: boolean;
   numbers?: string[];
 };
 
@@ -25,6 +26,7 @@ const STORAGE_KEY = "smsgate2_session_v1";
 const CODE_VERIFIER_KEY = "smsgate2_pkce_verifier";
 
 type SignInResult = { session?: Session; requires2fa?: boolean; error?: string };
+type PasswordChangeResult = { session?: Session; error?: string; requires2fa?: boolean; requiresPasswordChange?: boolean };
 
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${appConfig.apiBaseUrl}${path}`, {
