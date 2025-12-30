@@ -17,6 +17,7 @@ export default function ConfigPage() {
   const [contactsError, setContactsError] = useState<string | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [diffSummary, setDiffSummary] = useState<string | null>(null);
+  const [shapeErrors, setShapeErrors] = useState<string[]>([]);
   if (!session) return null;
 
   const safeSession = session as NonNullable<typeof session>;
@@ -30,12 +31,32 @@ export default function ConfigPage() {
   const jsonPreview = draft || (config ? JSON.stringify(config.data ?? config, null, 2) : "");
   const beforeConfig = config?.data ?? config ?? {};
 
+  function validateShape(parsed: any): string[] {
+    const issues: string[] = [];
+    if (!parsed || typeof parsed !== "object") issues.push("Config must be a JSON object");
+    if (!parsed.authModes || typeof parsed.authModes !== "object") issues.push("authModes missing");
+    if (parsed.authModes) {
+      ["oauth", "simpleSignin", "domainSignin"].forEach((key) => {
+        if (typeof parsed.authModes[key] !== "boolean") issues.push(`authModes.${key} must be boolean`);
+      });
+    }
+    if (!parsed.presence || typeof parsed.presence !== "object") issues.push("presence thresholds missing");
+    if (!parsed.retention || typeof parsed.retention !== "object") issues.push("retention missing");
+    if (parsed.roles && !Array.isArray(parsed.roles.order)) issues.push("roles.order must be an array when provided");
+    return issues;
+  }
+
   async function handleSave() {
     if (!config || !canEdit) return;
     setSaving(true);
     try {
       const parsed = draft ? JSON.parse(draft) : (config.data ?? config);
       setParseError(null);
+      const shapeIssues = validateShape(parsed);
+      setShapeErrors(shapeIssues);
+      if (shapeIssues.length) {
+        throw new Error("Config shape invalid");
+      }
       await updateConfig(safeSession, { ...config, data: parsed }, etag);
       await refresh();
     } catch (err) {
@@ -50,6 +71,8 @@ export default function ConfigPage() {
     try {
       const parsed = JSON.parse(next);
       setParseError(null);
+      const shapeIssues = validateShape(parsed);
+      setShapeErrors(shapeIssues);
       const diffKeys = Object.keys(parsed).filter(
         (k) => JSON.stringify((beforeConfig as any)[k]) !== JSON.stringify(parsed[k])
       );
@@ -57,6 +80,7 @@ export default function ConfigPage() {
     } catch (err) {
       setParseError((err as Error).message);
       setDiffSummary(null);
+      setShapeErrors([]);
     }
   }
 
@@ -86,6 +110,16 @@ export default function ConfigPage() {
             rows={12}
           />
           {parseError && <div className="login-error">Draft invalid: {parseError}</div>}
+          {shapeErrors.length > 0 && !parseError && (
+            <div className="login-error">
+              Config shape issues:
+              <ul>
+                {shapeErrors.map((err) => (
+                  <li key={err}>{err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {diffSummary && !parseError && <div className="muted">{diffSummary}</div>}
           <div className="config-grid">
             <div>

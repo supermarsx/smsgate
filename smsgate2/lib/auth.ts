@@ -26,7 +26,12 @@ const STORAGE_KEY = "smsgate2_session_v1";
 const CODE_VERIFIER_KEY = "smsgate2_pkce_verifier";
 
 type SignInResult = { session?: Session; requires2fa?: boolean; error?: string };
-type PasswordChangeResult = { session?: Session; error?: string; requires2fa?: boolean; requiresPasswordChange?: boolean };
+type PasswordChangeResult = {
+  session?: Session;
+  error?: string;
+  requires2fa?: boolean;
+  requiresPasswordChange?: boolean;
+};
 
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${appConfig.apiBaseUrl}${path}`, {
@@ -71,12 +76,50 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(STORAGE_KEY);
 }
 
-export async function loginSimple(username: string, password: string, mfaCode?: string): Promise<SignInResult> {
+export async function requestPasswordReset(email: string): Promise<{ ok: boolean; message?: string }> {
   try {
-    const data = await apiFetch<SignInResult>("/auth/simple_signin", {
+    await apiFetch<void>("/auth/password/reset-request", { method: "POST", body: JSON.stringify({ email }) });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+export async function changePassword(payload: {
+  token?: string;
+  username?: string;
+  currentPassword?: string;
+  newPassword: string;
+  mfaCode?: string;
+}): Promise<PasswordChangeResult> {
+  try {
+    const data = await apiFetch<PasswordChangeResult>("/auth/password/change", {
       method: "POST",
-      body: JSON.stringify({ username, password, mfaCode })
+      body: JSON.stringify(payload)
     });
+    if (data.session) saveSession(data.session, true);
+    return data;
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+
+export async function loginSimple(
+  username: string,
+  password: string,
+  mfaCode?: string
+): Promise<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }> {
+  try {
+    const data = await apiFetch<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }>(
+      "/auth/simple_signin",
+      {
+        method: "POST",
+        body: JSON.stringify({ username, password, mfaCode })
+      }
+    );
+    if (data.requiresPasswordChange) {
+      return { ...data, requiresPasswordChange: true };
+    }
     if (data.session) saveSession(data.session, true);
     return data;
   } catch (err) {
@@ -89,12 +132,18 @@ export async function loginDomain(
   password: string,
   domain?: string,
   mfaCode?: string
-): Promise<SignInResult> {
+): Promise<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }> {
   try {
-    const data = await apiFetch<SignInResult>("/auth/domain_signin", {
-      method: "POST",
-      body: JSON.stringify({ username, password, domain, mfaCode })
-    });
+    const data = await apiFetch<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }>(
+      "/auth/domain_signin",
+      {
+        method: "POST",
+        body: JSON.stringify({ username, password, domain, mfaCode })
+      }
+    );
+    if (data.requiresPasswordChange) {
+      return { ...data, requiresPasswordChange: true };
+    }
     if (data.session) saveSession(data.session, true);
     return data;
   } catch (err) {
@@ -169,13 +218,7 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
     const buffer = await crypto.subtle.digest("SHA-256", data);
     return base64UrlEncode(new Uint8Array(buffer));
   }
-  try {
-    const nodeCrypto = await import("node:crypto");
-    const hash = nodeCrypto.createHash("sha256").update(data).digest("base64");
-    return hash.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  } catch {
-    throw new Error("Unable to generate PKCE challenge");
-  }
+  throw new Error("Unable to generate PKCE challenge");
 }
 
 function base64UrlEncode(bytes: Uint8Array): string {

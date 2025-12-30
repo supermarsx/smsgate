@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { logout } from "../lib/auth";
-import { allowedNav } from "../lib/roles";
+import { allowedNav, getRoleLabel } from "../lib/roles";
 import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useTheme } from "./theme";
 import { SUPPORTED_LOCALES, getInitialLocale, setPreferredLocale, type Locale } from "../lib/i18n";
+import { useConfig } from "./config-provider";
 
 type Props = {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export function ProtectedShell({ children }: Props) {
   const router = useRouter();
   const status = useStatus();
   const { theme, toggle } = useTheme();
+  const { config } = useConfig();
   const [locale, setLocale] = useState<Locale>("en-US");
   const [navOpen, setNavOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
@@ -31,7 +33,11 @@ export function ProtectedShell({ children }: Props) {
     }
   }, [router, session]);
 
-  const navItems = useMemo(() => (session ? allowedNav(session.user.role) : []), [session]);
+  const rolesConfig = useMemo(() => ((config?.data as any)?.roles ?? {}) as any, [config]);
+  const roleOrder = rolesConfig?.order;
+  const roleLabels = rolesConfig?.labels ?? {};
+
+  const navItems = useMemo(() => (session ? allowedNav(session.user.role, roleOrder) : []), [roleOrder, session]);
   useEffect(() => {
     if (!session) return;
     const allowedPaths = navItems.map((n) => n.path);
@@ -92,7 +98,7 @@ export function ProtectedShell({ children }: Props) {
       <section className="shell-main">
         <header className="shell-topbar">
           <div className="topbar-meta">
-            <span className="pill pill-muted">{session.user.role}</span>
+            <span className="pill pill-muted">{getRoleLabel(session.user.role, roleLabels)}</span>
             <div className="account-chip">
               <div className="gg-label">Account</div>
               <div className="gg-value">{session.user.email ?? session.user.name}</div>
@@ -154,6 +160,12 @@ export function ProtectedShell({ children }: Props) {
             Reconnecting to realtime stream... showing cached data. {status.lastError ? `(${status.lastError})` : ""}
           </div>
         )}
+        {session.user.requiresPasswordChange && (
+          <div className="banner warn">Password change required before accessing the console.</div>
+        )}
+        {session.user.requires2fa && (
+          <div className="banner warn">2FA enrollment required; sign in with MFA to continue.</div>
+        )}
         {debugOpen && (
           <div className="debug-overlay">
             <div className="gg-label">Debug snapshot</div>
@@ -176,7 +188,17 @@ export function ProtectedShell({ children }: Props) {
             )}
           </div>
         )}
-        <div className="shell-content">{children}</div>
+        <div className="shell-content">
+          {session.user.requiresPasswordChange || session.user.requires2fa ? (
+            <div className="gg-panel">
+              <div className="login-error">
+                Account requires password update and/or 2FA enrollment. Please log out and complete the required step.
+              </div>
+            </div>
+          ) : (
+            children
+          )}
+        </div>
       </section>
     </div>
   );

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ConfigPayload } from "../lib/rest";
 import { fetchConfig } from "../lib/rest";
 import { useSession } from "./session-provider";
+import { configureRoles } from "../lib/roles";
 
 type ConfigContextValue = {
   config: ConfigPayload | null;
@@ -35,6 +36,8 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         if (!notModified && next) {
           setConfig(next);
           setEtag(nextEtag);
+          const rolesCfg = ((next?.data as any)?.roles ?? {}) as { order?: string[]; labels?: Record<string, string> };
+          configureRoles({ order: rolesCfg.order, labels: rolesCfg.labels });
         }
         setError(undefined);
       } catch (err) {

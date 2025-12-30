@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { appConfig, wsUrl } from "../lib/config";
-import { buildOAuthAuthorizeUrl, loginDomain, loginSimple, type Session } from "../lib/auth";
+import {
+  buildOAuthAuthorizeUrl,
+  changePassword,
+  loginDomain,
+  loginSimple,
+  requestPasswordReset,
+  type Session
+} from "../lib/auth";
 
 type Mode = "oauth" | "simple_signin" | "domain_signin";
 
@@ -15,17 +22,24 @@ export function LoginPanel({ onLogin }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [requires2fa, setRequires2fa] = useState(false);
+  const [passwordChange, setPasswordChange] = useState<{ token?: string; username: string; mfaCode?: string } | null>(
+    null
+  );
   const [form, setForm] = useState({
     username: "",
     password: "",
     domain: "",
     mfaCode: ""
   });
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetStatus, setResetStatus] = useState<string | null>(null);
 
   function handleSelect(next: Mode) {
     setMode(next);
     setError(null);
     setRequires2fa(false);
+    setPasswordChange(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,6 +70,15 @@ export function LoginPanel({ onLogin }: Props) {
         setPending(false);
         return;
       }
+      if ((result as any).requiresPasswordChange) {
+        setPasswordChange({
+          token: (result as any).passwordChangeToken,
+          username: form.username,
+          mfaCode: form.mfaCode || undefined
+        });
+        setPending(false);
+        return;
+      }
       if (result.requires2fa) {
         setRequires2fa(true);
         setPending(false);
@@ -63,6 +86,42 @@ export function LoginPanel({ onLogin }: Props) {
       }
       if (result.session) {
         onLogin(result.session);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (!passwordChange) return;
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    setPending(true);
+    setError(null);
+    const payload = {
+      token: passwordChange.token,
+      username: passwordChange.username,
+      currentPassword: form.password,
+      newPassword,
+      mfaCode: passwordChange.mfaCode
+    };
+    try {
+      const res = await changePassword(payload);
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      if (res.requiresPasswordChange) {
+        setError("Password change still required");
+        return;
+      }
+      if (res.session) {
+        onLogin(res.session);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -103,7 +162,37 @@ export function LoginPanel({ onLogin }: Props) {
         )}
       </div>
 
-      {mode && mode !== "oauth" && (
+      {passwordChange && (
+        <form className="login-form" onSubmit={handlePasswordChange}>
+          <div className="form-row">
+            <label htmlFor="new-password">New password</label>
+            <input
+              id="new-password"
+              required
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Update default/admin password"
+            />
+          </div>
+          <div className="form-row">
+            <label htmlFor="confirm-password">Confirm password</label>
+            <input
+              id="confirm-password"
+              required
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="login-submit" disabled={pending}>
+            {pending ? "Saving..." : "Save new password"}
+          </button>
+          <div className="muted small">Required on first login or when policy forces a reset.</div>
+        </form>
+      )}
+
+      {!passwordChange && mode && mode !== "oauth" && (
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <label htmlFor="username">Username</label>
@@ -149,6 +238,32 @@ export function LoginPanel({ onLogin }: Props) {
           <button type="submit" className="login-submit" disabled={pending}>
             {pending ? "Signing in..." : "Sign in"}
           </button>
+          <div className="form-row">
+            <label htmlFor="reset-email">Password reset email</label>
+            <div className="reset-row">
+              <input
+                id="reset-email"
+                placeholder="user@example.com"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+              />
+              <button
+                type="button"
+                className="ghost"
+                disabled={pending}
+                onClick={async () => {
+                  setResetStatus(null);
+                  setPending(true);
+                  const res = await requestPasswordReset(form.username);
+                  setResetStatus(res.ok ? "Reset link sent" : (res.message ?? "Reset failed"));
+                  setPending(false);
+                }}
+              >
+                Send reset link
+              </button>
+            </div>
+            {resetStatus && <div className="muted small">{resetStatus}</div>}
+          </div>
         </form>
       )}
 
