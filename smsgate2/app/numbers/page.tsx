@@ -50,21 +50,31 @@ export default function NumbersPage() {
                 <div className="muted">Shared: {n.shared ? "yes" : "no"}</div>
                 <div className="muted">Default device: {n.defaultDeviceId ?? "-"}</div>
                 <div className="filter-row">
-                  <label className="gg-label" htmlFor={`label-${n.e164}`}>Label</label>
+                  <label className="gg-label" htmlFor={`label-${n.e164}`}>
+                    Label
+                  </label>
                   <input
                     id={`label-${n.e164}`}
                     className="gg-input"
                     value={edit[n.e164]?.label ?? n.label ?? ""}
-                    onChange={(e) => setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), label: e.target.value } }))}
+                    onChange={(e) =>
+                      setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), label: e.target.value } }))
+                    }
                   />
-                  <label className="gg-label" htmlFor={`shared-${n.e164}`}>Shared</label>
+                  <label className="gg-label" htmlFor={`shared-${n.e164}`}>
+                    Shared
+                  </label>
                   <input
                     id={`shared-${n.e164}`}
                     type="checkbox"
                     checked={edit[n.e164]?.shared ?? n.shared ?? false}
-                    onChange={(e) => setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), shared: e.target.checked } }))}
+                    onChange={(e) =>
+                      setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), shared: e.target.checked } }))
+                    }
                   />
-                  <label className="gg-label" htmlFor={`default-device-${n.e164}`}>Default device</label>
+                  <label className="gg-label" htmlFor={`default-device-${n.e164}`}>
+                    Default device
+                  </label>
                   <input
                     id={`default-device-${n.e164}`}
                     className="gg-input"

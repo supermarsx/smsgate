@@ -34,7 +34,7 @@ export default function ConfigPage() {
     if (!config || !canEdit) return;
     setSaving(true);
     try {
-      const parsed = draft ? JSON.parse(draft) : config.data ?? config;
+      const parsed = draft ? JSON.parse(draft) : (config.data ?? config);
       setParseError(null);
       await updateConfig(safeSession, { ...config, data: parsed }, etag);
       await refresh();
