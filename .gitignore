@@ -1,2 +1,5 @@
 /smsgate2/node_modules
 /smsgate2/.next
+/smsgate2/tsconfig.tsbuildinfo
+/smsgate2/coverage
+/smsgate2/.env.local
