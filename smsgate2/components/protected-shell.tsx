@@ -23,6 +23,7 @@ export function ProtectedShell({ children }: Props) {
   const [locale, setLocale] = useState<Locale>("en-US");
   const [navOpen, setNavOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
 
   if (!session) {
     if (typeof window !== "undefined") router.replace("/login");
@@ -72,17 +73,42 @@ export function ProtectedShell({ children }: Props) {
         <header className="shell-topbar">
           <div className="topbar-meta">
             <span className="pill pill-muted">{session.user.role}</span>
-            <span>{session.user.name}</span>
-            {session.user.email && <span className="muted">{session.user.email}</span>}
+            <div className="account-chip">
+              <div className="gg-label">Account</div>
+              <div className="gg-value">{session.user.email ?? session.user.name}</div>
+              {session.user.email && <div className="muted small">{session.user.name}</div>}
+            </div>
+            <span className={`badge ${session.user.requires2fa ? "degraded" : "online"}`}>
+              {session.user.requires2fa ? "2FA required" : "2FA ready"}
+            </span>
           </div>
           <div className="topbar-actions">
-            <span className={`status-dot ${status.connected ? "ok" : "warn"}`} title={status.lastError ?? "WS status"} />
-            <span className="muted">WS: {status.connected ? "Online" : "Offline"}</span>
-            <span className="muted">RTT: {status.clientRtt ?? "—"}</span>
-            <span className="muted">Device RTT: {status.deviceRtt ?? "—"}</span>
-            <span className="muted">Latency: {status.ingestLatency ?? "—"}</span>
+            <div className={`status-chip ${status.connected ? "ok" : "warn"}`} title={status.lastError ?? "WS status"}>
+              <span className={`status-dot ${status.connected ? "" : "warn"}`} />
+              <div className="chip-label">WS</div>
+              <div className="chip-value">{status.connected ? "Online" : "Offline"}</div>
+              <div className="muted small">RTT {status.clientRtt ?? "-"}</div>
+            </div>
+            <div className="status-chip info" title="Device presence and RTT">
+              <span className="status-dot" />
+              <div className="chip-label">Devices</div>
+              <div className="chip-value">{status.devicesOnline ?? 0} online</div>
+              <div className="muted small">RTT {status.deviceRtt ?? "-"}</div>
+            </div>
+            <div className="status-chip ok" title="Ingest to render latency">
+              <span className="status-dot" />
+              <div className="chip-label">Latency</div>
+              <div className="chip-value">{status.ingestLatency ?? "-"}</div>
+              <div className="muted small">Errors {status.wsErrors ?? 0}</div>
+            </div>
+            <div className="status-chip" title="WS reconnects">
+              <span className="status-dot" />
+              <div className="chip-label">Reconnects</div>
+              <div className="chip-value">{status.reconnects ?? 0}</div>
+              <div className="muted small">Role {session.user.role}</div>
+            </div>
             <button className="ghost" onClick={toggle} title="Toggle theme">
-              {theme === "dark" ? "Light" : "Dark"}
+              Theme: {theme === "dark" ? "Dark" : "Light"}
             </button>
             <select
               className="gg-select topbar-select"
@@ -95,11 +121,6 @@ export function ProtectedShell({ children }: Props) {
                 </option>
               ))}
             </select>
-            <span className={`status-dot ${session.user.requires2fa ? "warn" : "ok"}`} title="2FA status" />
-            <div className="account-chip">
-              <div className="gg-label">Account</div>
-              <div className="gg-value">{session.user.email ?? session.user.name}</div>
-            </div>
             <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>Debug</button>
             <button className="ghost" onClick={handleLogout}>Logout</button>
           </div>
@@ -113,6 +134,22 @@ export function ProtectedShell({ children }: Props) {
           <div className="debug-overlay">
             <div className="gg-label">Debug snapshot</div>
             <pre className="pairing-pre">{JSON.stringify(status, null, 2)}</pre>
+            <div className="actions">
+              <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
+                {showLogs ? "Hide logs" : "Show logs"}
+              </button>
+            </div>
+            {showLogs && status.logs && (
+              <div className="log-grid">
+                {status.logs.map((log, idx) => (
+                  <div key={idx} className="log-row">
+                    <span className="muted">{new Date(log.ts).toLocaleTimeString()}</span>
+                    <span>{log.type}</span>
+                    {log.detail && <span className="muted">{log.detail}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         <div className="shell-content">{children}</div>

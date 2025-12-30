@@ -29,13 +29,12 @@ export default function DashboardPage() {
   const SNAPSHOT_KEY = "smsgate2_snapshot";
 
   const orderedEvents = useMemo(() => {
-    const filtered =
-      filterNumber === "__all__" ? events : events.filter((ev) => ev.number === filterNumber);
+    const filtered = filterNumber === "__all__" ? events : events.filter((ev) => ev.number === filterNumber);
     return filtered.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
   }, [events, filterNumber]);
 
-useEffect(() => {
-  if (!session) return;
+  useEffect(() => {
+    if (!session) return;
     const client = new WsClient(session, {
       numbers: session.user.numbers,
       onConfigUpdate: () => refreshConfig(),
@@ -70,30 +69,7 @@ useEffect(() => {
       unsubscribe();
       client.disconnect();
     };
-  }, [session]);
-
-  // Load cached snapshot for offline/boot without WS
-  useEffect(() => {
-    if (events.length || presence && Object.keys(presence).length) return;
-    try {
-      const raw = window.localStorage.getItem(SNAPSHOT_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { events?: Event[]; presence?: Record<string, PresenceUpdate> };
-      if (parsed.events?.length) setEvents(parsed.events);
-      if (parsed.presence) setPresence(parsed.presence);
-    } catch {
-      // ignore cache errors
-    }
-  }, [events.length, presence]);
-
-  // Persist snapshot for offline view
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ events, presence }));
-    } catch {
-      // ignore
-    }
-  }, [events, presence]);
+  }, [session, addLog, refreshConfig, setStatus]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -106,6 +82,26 @@ useEffect(() => {
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
   }, [loadingPage, hasMore, orderedEvents]);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SNAPSHOT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { events?: Event[]; presence?: Record<string, PresenceUpdate> };
+      if (parsed.events?.length) setEvents(parsed.events);
+      if (parsed.presence) setPresence(parsed.presence);
+    } catch {
+      // ignore cache errors
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ events, presence }));
+    } catch {
+      // ignore
+    }
+  }, [events, presence]);
 
   async function loadOlder() {
     if (!session) return;

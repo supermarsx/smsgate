@@ -113,6 +113,10 @@ export async function createPairingSession(session: Session): Promise<any> {
   return http(session, "/pairing/session", { method: "POST", body: JSON.stringify({}) });
 }
 
+export async function getPairingSession(session: Session, id: string): Promise<any> {
+  return http<any>(session, `/pairing/session/${id}`, { method: "GET" });
+}
+
 export async function toggleDevice(session: Session, id: string, action: "enable" | "disable" | "rotate-token"): Promise<void> {
   await http<void>(session, `/devices/${id}/${action}`, { method: "POST" });
 }

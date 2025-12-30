@@ -34,7 +34,7 @@
 - [x] Build layout with left nav (Dashboard, Devices, Numbers, Users, Audit, Logins, Config) and top status bar (org, user/role, client status, RTTs, device presence, end-to-end latency).
 - [x] Apply glass theme (translucent panels, blur, subtle borders/shadows) with light/dark toggle; full design-system polish still pending.
 - [x] Add locale menu, account details, and mobile-responsive nav; theme toggle persisted.
-- [ ] Align visual system to `docs/spec-design-system.md` (Graphite Glass tokens, typography, motion); add Bulma overrides and status bar chips per spec.
+- [x] Align visual system to `docs/spec-design-system.md` (Graphite Glass tokens, typography, motion); add Bulma overrides and status bar chips per spec.
 
 ## Screens
 - Dashboard:
@@ -45,8 +45,8 @@
   - [x] List devices with presence state, RTT, SIM inventory (multi-SIM), heartbeat freshness; degraded/offline badges (basic).
   - [x] Actions: enable/disable, rotate token, rename, view diagnostics (actions wired; rename/diagnostics UI pending).
   - [x] Pairing flow: `POST /api/v1/pairing/session` -> session output (QR render/status watcher pending).
-  - [ ] Pairing status watcher and expiry/error states per spec.
-  - [ ] Device diagnostics UI as structured cards; degraded/offline badges per thresholds.
+  - [x] Pairing status watcher and expiry/error states per spec.
+  - [x] Device diagnostics UI as structured cards; degraded/offline badges per thresholds.
 - Numbers:
   - [x] CRUD/assign skeleton with listing; assign/unassign wired; validation pending.
 - Users:
@@ -74,5 +74,5 @@
 ## Ops & release
 - [ ] Dockerfile/compose covering smsgate2 + syncserver + Redis + DB (SQLite/Postgres) for dev/test.
 - [ ] CI: lint, typecheck, tests, build, artifact publish; basic vulnerability scanning.
-- [ ] Security hardening: CSP, rate limits, cookie flags, secret management docs.
+- [x] Security hardening: CSP (CSP/HSTS/XFO/Referrer-Policy headers added); rate limits/cookie flags/secret management docs pending.
 - [ ] Cutover plan from legacy `smsgate/`: redirects or link to new UI, config migration notes, and deprecation timeline.

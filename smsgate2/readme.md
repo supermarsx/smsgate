@@ -14,6 +14,8 @@ For Turbopack (experimental, fastest reloads):
 bun run dev:turbo
 ```
 
+Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Options, and Referrer-Policy; adjust `connect-src` if your syncserver lives on a different origin.
+
 ## Notes
 - Bulma and Graphite Glass styling hooks are available in `styles/globals.css`.
 - Auth entry lives at `/login` with config-driven auth modes (SSO/local/domain), PKCE scaffold, and session persistence; root `/` redirects based on session.
