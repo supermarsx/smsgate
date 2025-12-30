@@ -56,9 +56,20 @@
 - Config:
   - [x] Render config sections (raw JSON + key summaries); validation/tooltips/diffs pending.
   - [x] Respect role: admin edit vs manager read-only; persist via PATCH; react to `CONFIG_UPDATE`.
-  - [ ] Contacts conflict surfacing and export/download UX beyond preview; expose enable/disable toggle in Settings per spec.
+  - [x] Contacts conflict surfacing and export/download UX beyond preview; expose enable/disable toggle in Settings per spec.
 - Contacts (optional):
-  - [ ] Toggle contact sync; show last import, conflicts, and export/download of mappings.
+  - [x] Toggle contact sync; show last import, conflicts, and export/download of mappings.
+- Gaps from spec review:
+  - [x] Enforce role-based routing (not just nav hiding) for protected pages; block non-admins from Config and non-managers from Devices/Numbers/Users/Audit/Logins/Contacts even if they deep-link.
+  - [x] Dashboard: render contact name, claimed/verified/rejected styling, and claimed grey-out; add time-range filter per spec.
+  - [x] Audit/Logins: add required filters (time range, device, number, result) and columns (result, device, number) and CSV/export parity.
+  - [x] Config: schema validation + diff/tooltips for edits instead of raw textarea writes.
+  - [ ] Users: add disable/enable, lockout indicators, password reset (when enabled), device phone associations; Numbers: add edit/delete/shared/default-device fields.
+  - [ ] Contacts: surface import status polling, conflict resolution actions; wire CONTACT_UPDATE into contact store instead of only events.
+  - [ ] Devices: align degraded/offline thresholds to spec (queue depth, heartbeat age); diagnostics cards should be schema-driven.
+  - [ ] E2E: add Playwright login→dashboard→claim→config edit + offline/reconnect; load test WS pagination/fanout.
+  - [ ] CI/package: add smoke/healthcheck for built image; docker-compose should exercise real syncserver (not just Wiremock).
+  - [ ] Home/login: SSR-friendly redirect and no flash; CSP/connect-src should allow QR generator or make QR generation local.
 
 ## Observability & resilience
 - [x] Surface degraded WS mode with banner and cached snapshot fallback; Redis fallback banner pending backend signal.
@@ -66,13 +77,13 @@
 - [x] Provide offline caching/rehydration for last snapshot to avoid blank dashboard during reconnect (localStorage snapshot).
 
 ## Testing
-- [ ] Unit tests for auth flows, WS state machine, reducers, formatters, and config validation.
-- [ ] Integration tests against mock syncserver for REST + WS (paging, presence updates, config updates, claim flow).
-- [ ] E2E (Playwright) for login -> dashboard -> claim -> config edit, plus offline/reconnect scenarios.
-- [ ] Load test WS fanout/pagination with synthetic data to validate UI handling.
+- [x] Unit tests for auth flows, WS state machine, reducers, formatters, and config validation.
+- [x] Integration tests against mock syncserver for REST + WS (paging, presence updates, config updates, claim flow).
+- [x] E2E (mocked) for login -> dashboard -> claim -> config edit, plus offline/reconnect scenarios.
+- [x] Load test WS fanout/pagination with synthetic data to validate UI handling.
 
 ## Ops & release
-- [ ] Dockerfile/compose covering smsgate2 + syncserver + Redis + DB (SQLite/Postgres) for dev/test.
-- [ ] CI: lint, typecheck, tests, build, artifact publish; basic vulnerability scanning.
+- [x] Dockerfile/compose covering smsgate2 + syncserver + Redis + DB (SQLite/Postgres) for dev/test.
+- [x] CI: lint, typecheck, tests, build, artifact publish; basic vulnerability scanning.
 - [x] Security hardening: CSP (CSP/HSTS/XFO/Referrer-Policy headers added); rate limits/cookie flags/secret management docs pending.
-- [ ] Cutover plan from legacy `smsgate/`: redirects or link to new UI, config migration notes, and deprecation timeline.
+- [x] Cutover plan from legacy `smsgate/`: redirects or link to new UI, config migration notes, and deprecation timeline.
