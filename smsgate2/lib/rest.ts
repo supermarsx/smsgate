@@ -1,6 +1,6 @@
 import { appConfig } from "./config";
 import { http } from "./http";
-import type { Event, PresenceUpdate } from "./contracts";
+import type { Event } from "./contracts";
 import type { Session } from "./auth";
 
 type ListEventsParams = {
@@ -50,7 +50,11 @@ export async function createNumber(session: Session, payload: { e164: string; la
   return http(session, "/numbers", { method: "POST", body: JSON.stringify(payload) });
 }
 
-export async function assignNumber(session: Session, e164: string, payload: { userId?: string; deviceId?: string }): Promise<void> {
+export async function assignNumber(
+  session: Session,
+  e164: string,
+  payload: { userId?: string; deviceId?: string }
+): Promise<void> {
   await http<void>(session, `/numbers/${encodeURIComponent(e164)}/assign`, {
     method: "POST",
     body: JSON.stringify(payload)
@@ -117,7 +121,11 @@ export async function getPairingSession(session: Session, id: string): Promise<a
   return http<any>(session, `/pairing/session/${id}`, { method: "GET" });
 }
 
-export async function toggleDevice(session: Session, id: string, action: "enable" | "disable" | "rotate-token"): Promise<void> {
+export async function toggleDevice(
+  session: Session,
+  id: string,
+  action: "enable" | "disable" | "rotate-token"
+): Promise<void> {
   await http<void>(session, `/devices/${id}/${action}`, { method: "POST" });
 }
 
@@ -126,7 +134,10 @@ export type ConfigPayload = {
   data: Record<string, unknown>;
 };
 
-export async function fetchConfig(session: Session, etag?: string): Promise<{ config?: ConfigPayload; etag?: string; notModified: boolean }> {
+export async function fetchConfig(
+  session: Session,
+  etag?: string
+): Promise<{ config?: ConfigPayload; etag?: string; notModified: boolean }> {
   const res = await fetch(`${appConfig.apiBaseUrl}/config`, {
     method: "GET",
     headers: {

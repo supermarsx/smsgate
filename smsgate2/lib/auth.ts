@@ -69,11 +69,7 @@ export function clearSession(): void {
   window.sessionStorage.removeItem(STORAGE_KEY);
 }
 
-export async function loginSimple(
-  username: string,
-  password: string,
-  mfaCode?: string
-): Promise<SignInResult> {
+export async function loginSimple(username: string, password: string, mfaCode?: string): Promise<SignInResult> {
   try {
     const data = await apiFetch<SignInResult>("/auth/simple_signin", {
       method: "POST",
@@ -127,10 +123,10 @@ export async function logout(): Promise<void> {
   clearSession();
 }
 
-export function buildOAuthAuthorizeUrl(redirectUri: string, clientId = "smsgate2-ui"): string {
+export async function buildOAuthAuthorizeUrl(redirectUri: string, clientId = "smsgate2-ui"): Promise<string> {
   const state = crypto.randomUUID();
   const verifier = generateCodeVerifier();
-  const challenge = generateCodeChallenge(verifier);
+  const challenge = await generateCodeChallenge(verifier);
   window.localStorage.setItem(CODE_VERIFIER_KEY, verifier);
 
   const url = new URL("/auth/oauth/authorize", appConfig.apiBaseUrl);
@@ -165,13 +161,22 @@ function generateCodeVerifier(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function generateCodeChallenge(verifier: string): string {
+async function generateCodeChallenge(verifier: string): Promise<string> {
   const data = new TextEncoder().encode(verifier);
-  return base64UrlEncode(crypto.subtle.digestSync("SHA-256", data));
+  if (crypto?.subtle && typeof crypto.subtle.digest === "function") {
+    const buffer = await crypto.subtle.digest("SHA-256", data);
+    return base64UrlEncode(new Uint8Array(buffer));
+  }
+  try {
+    const nodeCrypto = await import("node:crypto");
+    const hash = nodeCrypto.createHash("sha256").update(data).digest("base64");
+    return hash.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  } catch {
+    throw new Error("Unable to generate PKCE challenge");
+  }
 }
 
-function base64UrlEncode(bufferPromise: ArrayBuffer): string {
-  const bytes = new Uint8Array(bufferPromise);
+function base64UrlEncode(bytes: Uint8Array): string {
   let str = "";
   for (let i = 0; i < bytes.byteLength; i += 1) {
     str += String.fromCharCode(bytes[i]);

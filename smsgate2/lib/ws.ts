@@ -1,11 +1,19 @@
-import { appConfig, wsUrl } from "./config";
-import type { ClientToServer, ServerToClient, SnapshotPayload, Event, PresenceUpdate, MetricsUpdate } from "./contracts";
+import { wsUrl } from "./config";
+import type {
+  ClientToServer,
+  ServerToClient,
+  SnapshotPayload,
+  Event,
+  PresenceUpdate,
+  MetricsUpdate
+} from "./contracts";
 import type { Session } from "./auth";
 
 export type StreamState = {
   events: Event[];
   presence: Record<string, PresenceUpdate>;
   metrics?: MetricsUpdate;
+  contacts?: Record<string, string>;
   connected: boolean;
   lastError?: string;
   cursor?: string;
@@ -24,6 +32,7 @@ export class WsClient {
   private state: StreamState = {
     events: [],
     presence: {},
+    contacts: {},
     connected: false
   };
   private reconnectAttempts = 0;
@@ -166,6 +175,7 @@ export class WsClient {
         break;
       case "CONTACT_UPDATE":
         this.emit({
+          contacts: { ...(this.state.contacts ?? {}), [msg.payload.number]: msg.payload.contactName },
           events: this.state.events.map((ev) =>
             ev.number === msg.payload.number ? { ...ev, contactName: msg.payload.contactName } : ev
           )
@@ -222,10 +232,10 @@ export class WsClient {
 }
 
 export function formatLatency(metrics?: MetricsUpdate): string {
-  if (!metrics?.ingestToDashboardMs) return "—";
+  if (!metrics?.ingestToDashboardMs) return String.fromCharCode(45);
   const { p50, p95 } = metrics.ingestToDashboardMs;
   if (p50 && p95) return `${p50}ms p50 / ${p95}ms p95`;
   if (p50) return `${p50}ms p50`;
   if (p95) return `${p95}ms p95`;
-  return "—";
+  return String.fromCharCode(45);
 }

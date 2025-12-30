@@ -29,7 +29,6 @@ function validateUrlish(value: string, label: string): string {
   try {
     // Accept relative paths by allowing URL construction to fail; only check non-empty.
     if (!value.startsWith("http")) return value;
-    // eslint-disable-next-line no-new
     new URL(value);
     return value;
   } catch {
@@ -65,6 +64,7 @@ function buildConfig(): AppConfig {
 export const appConfig = buildConfig();
 
 export function wsUrl(): string {
-  const origin = appConfig.wsOrigin ?? (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+  const origin =
+    appConfig.wsOrigin ?? (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
   return origin.replace(/^http/, "ws") + appConfig.wsPath;
 }
