@@ -48,7 +48,7 @@ export default function AuditPage() {
       const matchesTime = cutoff ? Date.parse(r.timestamp ?? r.createdAt ?? "") >= cutoff : true;
       return matchesText && matchesResult && matchesDevice && matchesNumber && matchesTime;
     });
-  }, [rows, filter, result, deviceFilter, numberFilter, timeRange]);
+  }, [rows, filter, result, deviceFilter, numberFilter, cutoff, timeRange]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
 
