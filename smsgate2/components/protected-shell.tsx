@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { logout } from "../lib/auth";
-import { allowedNav, hasAtLeast } from "../lib/roles";
+import { allowedNav } from "../lib/roles";
 import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useTheme } from "./theme";
@@ -24,13 +24,24 @@ export function ProtectedShell({ children }: Props) {
   const [navOpen, setNavOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
+  useEffect(() => {
+    if (!session && typeof window !== "undefined") {
+      router.replace("/login");
+    }
+  }, [router, session]);
 
-  if (!session) {
-    if (typeof window !== "undefined") router.replace("/login");
-    return null;
-  }
-
-  const navItems = allowedNav(session.user.role);
+  const navItems = useMemo(() => (session ? allowedNav(session.user.role) : []), [session]);
+  useEffect(() => {
+    if (!session) return;
+    const allowedPaths = navItems.map((n) => n.path);
+    if (!allowedPaths.includes(pathname)) {
+      setUnauthorized(true);
+      router.replace(allowedPaths[0] ?? "/dashboard");
+    } else {
+      setUnauthorized(false);
+    }
+  }, [navItems, pathname, router, session]);
 
   async function handleLogout() {
     await logout();
@@ -45,6 +56,15 @@ export function ProtectedShell({ children }: Props) {
   function changeLocale(next: Locale) {
     setLocale(next);
     setPreferredLocale(next);
+  }
+
+  if (!session) return null;
+  if (unauthorized) {
+    return (
+      <div className="gg-panel">
+        <div className="login-error">Unauthorized for this route; redirecting...</div>
+      </div>
+    );
   }
 
   return (
@@ -121,8 +141,12 @@ export function ProtectedShell({ children }: Props) {
                 </option>
               ))}
             </select>
-            <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>Debug</button>
-            <button className="ghost" onClick={handleLogout}>Logout</button>
+            <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>
+              Debug
+            </button>
+            <button className="ghost" onClick={handleLogout}>
+              Logout
+            </button>
           </div>
         </header>
         {!status.connected && (

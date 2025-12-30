@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { appConfig, wsUrl } from "../lib/config";
-import {
-  buildOAuthAuthorizeUrl,
-  exchangeOAuthCode,
-  loginDomain,
-  loginSimple,
-  saveSession,
-  type Session
-} from "../lib/auth";
+import { buildOAuthAuthorizeUrl, loginDomain, loginSimple, type Session } from "../lib/auth";
 
 type Mode = "oauth" | "simple_signin" | "domain_signin";
 
@@ -44,13 +37,18 @@ export function LoginPanel({ onLogin }: Props) {
     try {
       if (mode === "oauth") {
         const redirectUri = window.location.origin + "/login/oauth/callback";
-        const url = buildOAuthAuthorizeUrl(redirectUri);
+        const url = await buildOAuthAuthorizeUrl(redirectUri);
         window.location.href = url;
         return;
       }
 
       const fn = mode === "simple_signin" ? loginSimple : loginDomain;
-      const result = await fn(form.username, form.password, mode === "domain_signin" ? form.domain : undefined, form.mfaCode);
+      const result = await fn(
+        form.username,
+        form.password,
+        mode === "domain_signin" ? form.domain : undefined,
+        form.mfaCode
+      );
 
       if (result.error) {
         setError(result.error);

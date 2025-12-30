@@ -31,7 +31,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     async function maybeRefresh() {
       if (!session) return;
       if (!sessionExpiresSoon(session)) return;
-      const refreshed = await refreshSession(session.refreshToken);
+      const refreshed = await refreshSession(session.refreshToken!);
       if (!cancelled && refreshed) {
         setSession(refreshed);
       }

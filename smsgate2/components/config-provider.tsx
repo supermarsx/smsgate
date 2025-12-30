@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ConfigPayload } from "../lib/rest";
 import { fetchConfig } from "../lib/rest";
 import { useSession } from "./session-provider";
@@ -26,27 +26,29 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
 
-  async function load(force = false) {
-    if (!session) return;
-    setLoading(true);
-    try {
-      const { config: next, etag: nextEtag, notModified } = await fetchConfig(session, force ? undefined : etag);
-      if (!notModified && next) {
-        setConfig(next);
-        setEtag(nextEtag);
+  const load = useCallback(
+    async (force = false) => {
+      if (!session) return;
+      setLoading(true);
+      try {
+        const { config: next, etag: nextEtag, notModified } = await fetchConfig(session, force ? undefined : etag);
+        if (!notModified && next) {
+          setConfig(next);
+          setEtag(nextEtag);
+        }
+        setError(undefined);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
-      setError(undefined);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
+    },
+    [etag, session]
+  );
 
   useEffect(() => {
     load(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.accessToken]);
+  }, [load, session?.accessToken]);
 
   const value = useMemo(
     () => ({
@@ -56,7 +58,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
       loading,
       error
     }),
-    [config, etag, loading, error]
+    [config, etag, loading, error, load]
   );
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
