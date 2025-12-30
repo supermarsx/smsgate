@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
-  --bg: #07090C;
-  --bg-2: #0B0F14;
+  --bg: #07090c;
+  --bg-2: #0b0f14;
   --panel: rgba(16, 23, 34, 0.62);
   --panel-2: rgba(22, 31, 43, 0.72);
   --panel-solid: #101722;
@@ -9,15 +9,15 @@
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.14);
 
-  --text: #E9EEF6;
-  --text-2: #B9C4D6;
-  --text-3: #7E8CA4;
+  --text: #e9eef6;
+  --text-2: #b9c4d6;
+  --text-3: #7e8ca4;
 
-  --primary: #4CC9FF;
-  --info: #6C7CFF;
-  --success: #39F0C0;
-  --warning: #FFCC66;
-  --danger: #FF5C7A;
+  --primary: #4cc9ff;
+  --info: #6c7cff;
+  --success: #39f0c0;
+  --warning: #ffcc66;
+  --danger: #ff5c7a;
 
   --shadow-1: 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.28);
@@ -44,24 +44,24 @@
 :root[data-theme="light"],
 body[data-theme="light"] {
   color-scheme: light;
-  --bg: #F6F7FA;
-  --bg-2: #FFFFFF;
+  --bg: #f6f7fa;
+  --bg-2: #ffffff;
   --panel: rgba(255, 255, 255, 0.72);
   --panel-2: rgba(240, 242, 246, 0.82);
-  --panel-solid: #FFFFFF;
+  --panel-solid: #ffffff;
 
   --border: rgba(18, 24, 38, 0.1);
   --border-strong: rgba(18, 24, 38, 0.16);
 
   --text: #121826;
-  --text-2: #3A455A;
-  --text-3: #66728A;
+  --text-2: #3a455a;
+  --text-3: #66728a;
 
-  --primary: #1FA7E6;
-  --info: #4658F0;
-  --success: #0DBA8C;
-  --warning: #D79A2C;
-  --danger: #E13E5B;
+  --primary: #1fa7e6;
+  --info: #4658f0;
+  --success: #0dba8c;
+  --warning: #d79a2c;
+  --danger: #e13e5b;
 
   --shadow-1: 0 10px 28px rgba(18, 24, 38, 0.1);
   --shadow-2: 0 6px 18px rgba(18, 24, 38, 0.08);
@@ -83,7 +83,7 @@ body[data-theme="light"] {
 
 body {
   margin: 0;
-  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 38%, #0A0D12 100%);
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 38%, #0a0d12 100%);
   color: var(--text);
   font-family: var(--font);
   min-height: 100vh;
@@ -228,7 +228,9 @@ a {
   background: var(--panel-2);
   color: var(--text);
   outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .gg-select:focus,
@@ -256,7 +258,9 @@ a {
   background: var(--panel-2);
   color: var(--text);
   cursor: pointer;
-  transition: transform var(--transition), border-color var(--transition);
+  transition:
+    transform var(--transition),
+    border-color var(--transition);
 }
 
 .login-mode.is-active {
@@ -292,7 +296,9 @@ a {
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(76, 201, 255, 0.2);
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .login-submit:hover {
@@ -362,7 +368,9 @@ a {
   color: var(--text);
   text-decoration: none;
   position: relative;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .nav-link.is-active {
@@ -443,7 +451,10 @@ a {
   padding: 9px 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: border-color var(--transition), background var(--transition), transform var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    transform var(--transition);
 }
 
 .ghost:hover {
@@ -508,6 +519,19 @@ a {
   position: relative;
 }
 
+.msg-row.state-claimed {
+  opacity: 0.75;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.msg-row.state-verified {
+  border-color: rgba(57, 240, 192, 0.35);
+}
+
+.msg-row.state-rejected {
+  border-color: rgba(255, 92, 122, 0.35);
+}
+
 .msg-meta {
   display: flex;
   justify-content: space-between;
@@ -519,6 +543,10 @@ a {
 .msg-body {
   font-weight: 600;
   line-height: 1.4;
+}
+
+.msg-contact {
+  color: var(--text-3);
 }
 
 .msg-actions {
@@ -810,6 +838,26 @@ a {
   display: grid;
   gap: 8px;
   margin-top: 10px;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 14px;
+  margin-top: 8px;
+}
+
+.conflict-list {
+  display: grid;
+  gap: 10px;
+}
+
+.conflict-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-2);
 }
 
 @media (max-width: 960px) {
