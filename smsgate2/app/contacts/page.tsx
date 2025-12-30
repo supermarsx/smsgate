@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { useConfig } from "../../components/config-provider";
-import { exportContacts, fetchContacts, toggleContactSync } from "../../lib/rest";
+import { exportContacts, fetchContacts, resolveContactConflict, toggleContactSync } from "../../lib/rest";
 import { hasAtLeast } from "../../lib/roles";
 
 type ContactRecord = Record<string, unknown>;
@@ -15,6 +15,7 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState<ContactRecord[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [importStatus, setImportStatus] = useState<string>("idle");
   if (!session) return null;
 
   const safeSession = session as NonNullable<typeof session>;
@@ -80,6 +81,28 @@ export default function ContactsPage() {
     }
   }
 
+  async function handleResolve(conflict: any, resolution: string) {
+    if (!safeSession) return;
+    setError(null);
+    setLoading(true);
+    const conflictId = conflict.id ?? conflict.conflictId ?? conflict.number ?? String(Math.random());
+    try {
+      await resolveContactConflict(safeSession, conflictId, resolution);
+      await handleRefresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function pollImport() {
+    setImportStatus("polling...");
+    await handleRefresh();
+    setImportStatus("refreshed");
+    setTimeout(() => setImportStatus("idle"), 1500);
+  }
+
   return (
     <ProtectedShell>
       <div className="gg-panel">
@@ -118,9 +141,13 @@ export default function ContactsPage() {
             <button className="ghost" disabled={loading} onClick={handleRefresh}>
               Refresh contacts
             </button>
+            <button className="ghost" disabled={loading} onClick={pollImport}>
+              Poll import status
+            </button>
             <button className="login-submit" disabled={loading} onClick={handleExport}>
               Export JSON
             </button>
+            {importStatus !== "idle" && <span className="muted small">{importStatus}</span>}
           </div>
         </section>
         {contacts && (
@@ -140,6 +167,14 @@ export default function ContactsPage() {
                   <div className="gg-value">Entry {idx + 1}</div>
                   <div className="muted small">Source: {(c as any).source ?? "-"}</div>
                   <pre className="pairing-pre">{JSON.stringify(c, null, 2)}</pre>
+                  <div className="actions">
+                    <button className="ghost" onClick={() => handleResolve(c, "server")}>
+                      Keep server
+                    </button>
+                    <button className="ghost" onClick={() => handleResolve(c, "client")}>
+                      Keep client
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

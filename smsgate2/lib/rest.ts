@@ -65,6 +65,21 @@ export async function unassignNumber(session: Session, e164: string): Promise<vo
   await http<void>(session, `/numbers/${encodeURIComponent(e164)}/assign`, { method: "DELETE" });
 }
 
+export async function updateNumber(
+  session: Session,
+  e164: string,
+  payload: { label?: string; shared?: boolean; defaultDeviceId?: string | null }
+): Promise<void> {
+  await http<void>(session, `/numbers/${encodeURIComponent(e164)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function deleteNumber(session: Session, e164: string): Promise<void> {
+  await http<void>(session, `/numbers/${encodeURIComponent(e164)}`, { method: "DELETE" });
+}
+
 export async function listUsers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/users", { method: "GET" });
 }
@@ -81,6 +96,25 @@ export async function unlockUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/unlock`, { method: "POST" });
 }
 
+export async function disableUser(session: Session, id: string): Promise<void> {
+  await http<void>(session, `/users/${id}/disable`, { method: "POST" });
+}
+
+export async function enableUser(session: Session, id: string): Promise<void> {
+  await http<void>(session, `/users/${id}/enable`, { method: "POST" });
+}
+
+export async function resetUserPassword(session: Session, id: string, password: string): Promise<void> {
+  await http<void>(session, `/users/${id}/reset-password`, {
+    method: "POST",
+    body: JSON.stringify({ password })
+  });
+}
+
+export async function mapDevicePhone(session: Session, id: string, devicePhone: string): Promise<void> {
+  await http<void>(session, `/users/${id}/device-phone`, { method: "POST", body: JSON.stringify({ devicePhone }) });
+}
+
 export async function fetchDiagnostics(session: Session, deviceId: string): Promise<any> {
   return http<any>(session, `/devices/${deviceId}/diagnostics`, { method: "GET" });
 }
@@ -91,6 +125,13 @@ export async function fetchContacts(session: Session): Promise<any[]> {
 
 export async function toggleContactSync(session: Session, enabled: boolean): Promise<void> {
   await http<void>(session, "/contacts/toggle", { method: "POST", body: JSON.stringify({ enabled }) });
+}
+
+export async function resolveContactConflict(session: Session, conflictId: string, resolution: string): Promise<void> {
+  await http<void>(session, `/contacts/conflicts/${conflictId}/resolve`, {
+    method: "POST",
+    body: JSON.stringify({ resolution })
+  });
 }
 
 export async function exportContacts(session: Session): Promise<Blob> {

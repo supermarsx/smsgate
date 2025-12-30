@@ -65,10 +65,10 @@
   - [x] Audit/Logins: add required filters (time range, device, number, result) and columns (result, device, number) and CSV/export parity.
   - [x] Config: schema validation + diff/tooltips for edits instead of raw textarea writes.
   - [ ] Users: add disable/enable, lockout indicators, password reset (when enabled), device phone associations; Numbers: add edit/delete/shared/default-device fields.
-  - [ ] Contacts: surface import status polling, conflict resolution actions; wire CONTACT_UPDATE into contact store instead of only events.
-  - [ ] Devices: align degraded/offline thresholds to spec (queue depth, heartbeat age); diagnostics cards should be schema-driven.
-  - [ ] E2E: add Playwright login→dashboard→claim→config edit + offline/reconnect; load test WS pagination/fanout.
-  - [ ] CI/package: add smoke/healthcheck for built image; docker-compose should exercise real syncserver (not just Wiremock).
+  - [x] Contacts: surface import status polling, conflict resolution actions; wire CONTACT_UPDATE into contact store instead of only events.
+  - [x] Devices: align degraded/offline thresholds to spec (queue depth, heartbeat age); diagnostics cards should be schema-driven.
+  - [x] E2E: add Playwright login→dashboard→claim→config edit + offline/reconnect; load test WS pagination/fanout.
+  - [x] CI/package: add smoke/healthcheck for built image; docker-compose should exercise real syncserver (not just Wiremock).
   - [ ] Home/login: SSR-friendly redirect and no flash; CSP/connect-src should allow QR generator or make QR generation local.
 
 ## Observability & resilience

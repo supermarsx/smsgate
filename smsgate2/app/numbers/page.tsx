@@ -3,7 +3,7 @@
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { useEffect, useState } from "react";
-import { assignNumber, createNumber, listNumbers, unassignNumber } from "../../lib/rest";
+import { assignNumber, createNumber, deleteNumber, listNumbers, unassignNumber, updateNumber } from "../../lib/rest";
 
 export default function NumbersPage() {
   const { session } = useSession();
@@ -14,6 +14,7 @@ export default function NumbersPage() {
   const [assigning, setAssigning] = useState(false);
   const [form, setForm] = useState({ e164: "", label: "" });
   const [assignForm, setAssignForm] = useState({ e164: "", userId: "", deviceId: "" });
+  const [edit, setEdit] = useState<Record<string, { label?: string; shared?: boolean; defaultDeviceId?: string }>>({});
 
   function validateE164(value: string): boolean {
     return /^\+?[1-9]\d{6,15}$/.test(value.trim());
@@ -45,7 +46,75 @@ export default function NumbersPage() {
             <div key={n.id ?? n.e164} className="presence-row spaced">
               <div>
                 <div className="gg-value">{n.e164 ?? n.number}</div>
-                <div className="muted">Assigned to: {n.assignedTo ?? "—"}</div>
+                <div className="muted">Assigned to: {n.assignedTo ?? "-"}</div>
+                <div className="muted">Shared: {n.shared ? "yes" : "no"}</div>
+                <div className="muted">Default device: {n.defaultDeviceId ?? "-"}</div>
+                <div className="filter-row">
+                  <label className="gg-label" htmlFor={`label-${n.e164}`}>Label</label>
+                  <input
+                    id={`label-${n.e164}`}
+                    className="gg-input"
+                    value={edit[n.e164]?.label ?? n.label ?? ""}
+                    onChange={(e) => setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), label: e.target.value } }))}
+                  />
+                  <label className="gg-label" htmlFor={`shared-${n.e164}`}>Shared</label>
+                  <input
+                    id={`shared-${n.e164}`}
+                    type="checkbox"
+                    checked={edit[n.e164]?.shared ?? n.shared ?? false}
+                    onChange={(e) => setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), shared: e.target.checked } }))}
+                  />
+                  <label className="gg-label" htmlFor={`default-device-${n.e164}`}>Default device</label>
+                  <input
+                    id={`default-device-${n.e164}`}
+                    className="gg-input"
+                    value={edit[n.e164]?.defaultDeviceId ?? n.defaultDeviceId ?? ""}
+                    onChange={(e) =>
+                      setEdit((prev) => ({
+                        ...prev,
+                        [n.e164]: { ...(prev[n.e164] ?? {}), defaultDeviceId: e.target.value }
+                      }))
+                    }
+                    placeholder="device id"
+                  />
+                </div>
+              </div>
+              <div className="actions">
+                <button
+                  className="ghost"
+                  onClick={async () => {
+                    if (!session) return;
+                    try {
+                      const payload = edit[n.e164] ?? {};
+                      await updateNumber(session, n.e164 ?? n.number, {
+                        label: payload.label ?? n.label,
+                        shared: payload.shared ?? n.shared,
+                        defaultDeviceId: payload.defaultDeviceId ?? n.defaultDeviceId ?? null
+                      });
+                      const next = await listNumbers(session);
+                      setNumbers(next);
+                    } catch (err) {
+                      setError((err as Error).message);
+                    }
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  className="ghost"
+                  onClick={async () => {
+                    if (!session) return;
+                    try {
+                      await deleteNumber(session, n.e164 ?? n.number);
+                      const next = await listNumbers(session);
+                      setNumbers(next);
+                    } catch (err) {
+                      setError((err as Error).message);
+                    }
+                  }}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}

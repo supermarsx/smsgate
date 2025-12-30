@@ -3,7 +3,16 @@
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { useEffect, useState } from "react";
-import { forceLogoutUser, listUsers, unlockUser, updateUserRole } from "../../lib/rest";
+import {
+  disableUser,
+  enableUser,
+  forceLogoutUser,
+  listUsers,
+  mapDevicePhone,
+  resetUserPassword,
+  unlockUser,
+  updateUserRole
+} from "../../lib/rest";
 
 export default function UsersPage() {
   const { session } = useSession();
@@ -11,6 +20,8 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
+  const [passwords, setPasswords] = useState<Record<string, string>>({});
+  const [devicePhones, setDevicePhones] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!session) return;
@@ -41,9 +52,11 @@ export default function UsersPage() {
               <div>
                 <div className="gg-value">{u.name ?? u.email ?? u.id}</div>
                 <div className="muted">
-                  Role: {u.role ?? "—"} | Auth: {u.authMode ?? "—"}
+                  Role: {u.role ?? "-"} | Auth: {u.authMode ?? "-"} | Status: {u.disabled ? "disabled" : "active"}
                 </div>
+                {u.locked && <div className="login-error">Locked out</div>}
                 {Array.isArray(u.groups) && <div className="muted">Groups: {u.groups.join(", ")}</div>}
+                {u.devicePhone && <div className="muted">Device phone: {u.devicePhone}</div>}
               </div>
               <div className="actions">
                 <select
@@ -69,6 +82,29 @@ export default function UsersPage() {
                     </option>
                   ))}
                 </select>
+                <button
+                  className="ghost"
+                  disabled={pending === u.id}
+                  onClick={async () => {
+                    if (!session) return;
+                    setPending(u.id);
+                    try {
+                      if (u.disabled) {
+                        await enableUser(session, u.id);
+                      } else {
+                        await disableUser(session, u.id);
+                      }
+                      const next = await listUsers(session);
+                      setUsers(next);
+                    } catch (err) {
+                      setError((err as Error).message);
+                    } finally {
+                      setPending(null);
+                    }
+                  }}
+                >
+                  {u.disabled ? "Enable" : "Disable"}
+                </button>
                 <button
                   className="ghost"
                   disabled={pending === u.id}
@@ -102,6 +138,53 @@ export default function UsersPage() {
                   }}
                 >
                   Unlock
+                </button>
+                <input
+                  className="gg-input"
+                  placeholder="New password"
+                  value={passwords[u.id] ?? ""}
+                  onChange={(e) => setPasswords((prev) => ({ ...prev, [u.id]: e.target.value }))}
+                />
+                <button
+                  className="ghost"
+                  disabled={pending === u.id || !passwords[u.id]}
+                  onClick={async () => {
+                    if (!session) return;
+                    setPending(u.id);
+                    try {
+                      await resetUserPassword(session, u.id, passwords[u.id]);
+                      setPasswords((prev) => ({ ...prev, [u.id]: "" }));
+                    } catch (err) {
+                      setError((err as Error).message);
+                    } finally {
+                      setPending(null);
+                    }
+                  }}
+                >
+                  Reset password
+                </button>
+                <input
+                  className="gg-input"
+                  placeholder="Device phone"
+                  value={devicePhones[u.id] ?? ""}
+                  onChange={(e) => setDevicePhones((prev) => ({ ...prev, [u.id]: e.target.value }))}
+                />
+                <button
+                  className="ghost"
+                  disabled={pending === u.id}
+                  onClick={async () => {
+                    if (!session) return;
+                    setPending(u.id);
+                    try {
+                      await mapDevicePhone(session, u.id, devicePhones[u.id]);
+                    } catch (err) {
+                      setError((err as Error).message);
+                    } finally {
+                      setPending(null);
+                    }
+                  }}
+                >
+                  Map device phone
                 </button>
               </div>
             </div>

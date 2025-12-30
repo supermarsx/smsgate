@@ -12,6 +12,7 @@ import {
   toggleDevice,
   updateDeviceName
 } from "../../lib/rest";
+import { useConfig } from "../../components/config-provider";
 
 type PairingState = {
   state: "pending" | "waiting" | "completed" | "expired" | "error";
@@ -25,6 +26,7 @@ type DeviceTone = "online" | "degraded" | "offline" | "neutral";
 
 export default function DevicesPage() {
   const { session } = useSession();
+  const { config } = useConfig();
   const [devices, setDevices] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,9 +60,16 @@ export default function DevicesPage() {
     const lastHeartbeat = d.lastHeartbeat ?? d.lastHeartbeatAt ?? d.last_heartbeat ?? d.lastSeen;
     const lastTs = lastHeartbeat ? Date.parse(lastHeartbeat) : undefined;
     const age = lastTs ? Date.now() - lastTs : undefined;
+    const thresholds = (config?.data as any)?.presence ?? {};
+    const maxStale = thresholds.maxStaleMs ?? 5 * 60 * 1000;
+    const degradedStale = thresholds.degradedMs ?? 90 * 1000;
+    const queueWarn = thresholds.queueWarn ?? 50;
+    const queueCrit = thresholds.queueCrit ?? 100;
+    const queue = d.queueDepth ?? d.queue_depth ?? d.queue ?? 0;
     if (d.state === "disabled") return { label: "Disabled", tone: "neutral" };
-    if (d.state === "offline" || (age && age > 5 * 60 * 1000)) return { label: "Offline", tone: "offline" };
-    if (d.state === "degraded" || (age && age > 90 * 1000) || (d.rttMs && d.rttMs > 1500)) {
+    if (d.state === "offline" || (age && age > maxStale)) return { label: "Offline", tone: "offline" };
+    if (queue >= queueCrit) return { label: "Offline", tone: "offline" };
+    if (d.state === "degraded" || (age && age > degradedStale) || (d.rttMs && d.rttMs > 1500) || queue > queueWarn) {
       return { label: "Degraded", tone: "degraded" };
     }
     return { label: "Online", tone: "online" };

@@ -12,6 +12,7 @@
     "typecheck": "bun --bun tsc --noEmit",
     "test": "vitest run --pool=forks",
     "test:watch": "vitest watch --pool=forks",
+    "test:e2e": "playwright test",
     "format": "bun --bun prettier --check .",
     "format:write": "bun --bun prettier --write .",
     "package": "docker build -f Dockerfile -t smsgate2:ci ."
@@ -36,6 +37,7 @@
     "jsdom": "^24.0.0",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "@playwright/test": "^1.49.0"
   }
 }
