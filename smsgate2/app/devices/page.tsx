@@ -1,9 +1,17 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
-import { createPairingSession, fetchDiagnostics, getPairingSession, listDevices, toggleDevice, updateDeviceName } from "../../lib/rest";
+import {
+  createPairingSession,
+  fetchDiagnostics,
+  getPairingSession,
+  listDevices,
+  toggleDevice,
+  updateDeviceName
+} from "../../lib/rest";
 
 type PairingState = {
   state: "pending" | "waiting" | "completed" | "expired" | "error";
@@ -25,7 +33,6 @@ export default function DevicesPage() {
   const [diagnostics, setDiagnostics] = useState<Record<string, any>>({});
   const [qr, setQr] = useState<string | null>(null);
   const pairingTimers = useRef<Record<string, number>>({});
-  if (!session) return null;
 
   useEffect(() => {
     if (!session) return;
@@ -142,7 +149,7 @@ export default function DevicesPage() {
     if (pairingTimers.current[id]) window.clearTimeout(pairingTimers.current[id]);
     try {
       const res = await getPairingSession(session, id);
-      setPairing((prev) => (prev?.id === id ? { ...prev, ...res } : prev));
+      setPairing((prev: any | null) => (prev?.id === id ? { ...prev, ...res } : prev));
       const normalized = normalizePairingStatus(res);
       setPairingStatus(id, normalized);
       if (["completed", "expired", "error"].includes(normalized.state)) {
@@ -166,7 +173,8 @@ export default function DevicesPage() {
     const lastError = diag.lastError ?? diag.error;
     const appVersion = diag.appVersion ?? diag.version ?? diag.build;
     const signalValue = network.signal ?? (network.rssi !== undefined ? `${network.rssi} dBm` : "");
-    const uptimeValue = diag.uptime !== undefined ? String(diag.uptime) : (diag.uptimeSec !== undefined ? `${diag.uptimeSec}s` : "");
+    const uptimeValue =
+      diag.uptime !== undefined ? String(diag.uptime) : diag.uptimeSec !== undefined ? `${diag.uptimeSec}s` : "";
     const storageValue = storage !== undefined ? `${storage}` : "";
     const cards: Array<{ title: string; rows: Array<{ label: string; value: string }> }> = [];
     const addCard = (title: string, rows: Array<{ label: string; value: string }>) =>
@@ -221,6 +229,8 @@ export default function DevicesPage() {
     return val === null || val === undefined ? undefined : val;
   };
 
+  if (!session) return null;
+
   return (
     <ProtectedShell>
       <div className="gg-panel">
@@ -232,7 +242,9 @@ export default function DevicesPage() {
         {error && <div className="login-error">Error: {error}</div>}
         {loading && <div className="muted">Loading...</div>}
         <div className="config-actions">
-          <button className="login-submit" onClick={startPairing} disabled={loading}>Start pairing session</button>
+          <button className="login-submit" onClick={startPairing} disabled={loading}>
+            Start pairing session
+          </button>
           {pairing && (
             <div className="pairing-block">
               <div className="gg-label">Pairing session</div>
@@ -253,13 +265,20 @@ export default function DevicesPage() {
                   </span>
                 )}
                 {activePairingState?.detail && <span className="muted small">{activePairingState.detail}</span>}
-                {activePairingState?.expiresAt && <span className="muted small">Expires {formatDate(activePairingState.expiresAt)}</span>}
-                {activePairingState?.deviceId && <span className="muted small">Device {activePairingState.deviceId}</span>}
+                {activePairingState?.expiresAt && (
+                  <span className="muted small">Expires {formatDate(activePairingState.expiresAt)}</span>
+                )}
+                {activePairingState?.deviceId && (
+                  <span className="muted small">Device {activePairingState.deviceId}</span>
+                )}
               </div>
               <pre className="pairing-pre">{JSON.stringify(pairing, null, 2)}</pre>
               {qr && (
                 <div className="qr-box">
-                  <img alt="pairing-qr" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qr)}`} />
+                  <img
+                    alt="pairing-qr"
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qr)}`}
+                  />
                   <div className="gg-value small">{qr}</div>
                 </div>
               )}
@@ -275,7 +294,9 @@ export default function DevicesPage() {
                   <div className="device-card__meta">
                     <div className="gg-value">{d.name ?? d.id}</div>
                     <div className="muted small">{d.id}</div>
-                    <div className="muted small">Last heartbeat: {formatDate(d.lastHeartbeat ?? d.lastHeartbeatAt)}</div>
+                    <div className="muted small">
+                      Last heartbeat: {formatDate(d.lastHeartbeat ?? d.lastHeartbeatAt)}
+                    </div>
                   </div>
                   <div className="actions">
                     <span className={`badge ${status.tone}`}>{status.label}</span>
@@ -297,7 +318,9 @@ export default function DevicesPage() {
                   </div>
                   <div className="kv">
                     <div className="gg-label">Numbers</div>
-                    <div className="gg-value">{Array.isArray(d.numbers) ? d.numbers.join(", ") : d.assignedNumbers ?? "-"}</div>
+                    <div className="gg-value">
+                      {Array.isArray(d.numbers) ? d.numbers.join(", ") : (d.assignedNumbers ?? "-")}
+                    </div>
                   </div>
                 </div>
                 <div className="filter-row">
@@ -310,9 +333,15 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="actions">
-                  <button className="ghost" onClick={() => handleAction(d.id, "enable")}>Enable</button>
-                  <button className="ghost" onClick={() => handleAction(d.id, "disable")}>Disable</button>
-                  <button className="ghost" onClick={() => handleAction(d.id, "rotate-token")}>Rotate token</button>
+                  <button className="ghost" onClick={() => handleAction(d.id, "enable")}>
+                    Enable
+                  </button>
+                  <button className="ghost" onClick={() => handleAction(d.id, "disable")}>
+                    Disable
+                  </button>
+                  <button className="ghost" onClick={() => handleAction(d.id, "rotate-token")}>
+                    Rotate token
+                  </button>
                   <button
                     className="ghost"
                     onClick={async () => {

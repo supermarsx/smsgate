@@ -14,7 +14,6 @@ export default function NumbersPage() {
   const [assigning, setAssigning] = useState(false);
   const [form, setForm] = useState({ e164: "", label: "" });
   const [assignForm, setAssignForm] = useState({ e164: "", userId: "", deviceId: "" });
-  if (!session) return null;
 
   function validateE164(value: string): boolean {
     return /^\+?[1-9]\d{6,15}$/.test(value.trim());
@@ -28,6 +27,8 @@ export default function NumbersPage() {
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
   }, [session]);
+
+  if (!session) return null;
 
   return (
     <ProtectedShell>
@@ -53,7 +54,9 @@ export default function NumbersPage() {
         <div className="gg-section">
           <h3 className="gg-section__title">Add number</h3>
           <div className="filter-row">
-            <label className="gg-label" htmlFor="num-e164">E.164</label>
+            <label className="gg-label" htmlFor="num-e164">
+              E.164
+            </label>
             <input
               id="num-e164"
               className="gg-input"
@@ -61,7 +64,9 @@ export default function NumbersPage() {
               onChange={(e) => setForm({ ...form, e164: e.target.value })}
               placeholder="+15551234567"
             />
-            <label className="gg-label" htmlFor="num-label">Label</label>
+            <label className="gg-label" htmlFor="num-label">
+              Label
+            </label>
             <input
               id="num-label"
               className="gg-input"
@@ -99,14 +104,18 @@ export default function NumbersPage() {
         <div className="gg-section">
           <h3 className="gg-section__title">Assign/unassign</h3>
           <div className="filter-row">
-            <label className="gg-label" htmlFor="assign-e164">E.164</label>
+            <label className="gg-label" htmlFor="assign-e164">
+              E.164
+            </label>
             <input
               id="assign-e164"
               className="gg-input"
               value={assignForm.e164}
               onChange={(e) => setAssignForm({ ...assignForm, e164: e.target.value })}
             />
-            <label className="gg-label" htmlFor="assign-user">User ID</label>
+            <label className="gg-label" htmlFor="assign-user">
+              User ID
+            </label>
             <input
               id="assign-user"
               className="gg-input"
@@ -114,7 +123,9 @@ export default function NumbersPage() {
               onChange={(e) => setAssignForm({ ...assignForm, userId: e.target.value })}
               placeholder="optional"
             />
-            <label className="gg-label" htmlFor="assign-device">Device ID</label>
+            <label className="gg-label" htmlFor="assign-device">
+              Device ID
+            </label>
             <input
               id="assign-device"
               className="gg-input"

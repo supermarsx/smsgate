@@ -12,8 +12,17 @@ export default function AuditPage() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
-  const [csvUrl, setCsvUrl] = useState<string | null>(null);
-  if (!session) return null;
+  const [result, setResult] = useState<string>("__all__");
+  const [deviceFilter, setDeviceFilter] = useState<string>("");
+  const [numberFilter, setNumberFilter] = useState<string>("");
+  const [timeRange, setTimeRange] = useState<"all" | "1h" | "24h">("all");
+  const [cutoff, setCutoff] = useState<number | null>(null);
+  useEffect(() => {
+    const now = Date.now();
+    if (timeRange === "1h") setCutoff(now - 60 * 60 * 1000);
+    else if (timeRange === "24h") setCutoff(now - 24 * 60 * 60 * 1000);
+    else setCutoff(null);
+  }, [timeRange]);
 
   useEffect(() => {
     if (!session) return;
@@ -27,12 +36,19 @@ export default function AuditPage() {
   const pageSize = 10;
   const filtered = useMemo(() => {
     const term = filter.toLowerCase();
-    return rows.filter((r) =>
-      [r.action, r.actor, r.device, r.number].some((field: any) =>
-        String(field ?? "").toLowerCase().includes(term)
-      )
-    );
-  }, [rows, filter]);
+    return rows.filter((r) => {
+      const matchesText = [r.action, r.actor, r.device, r.number].some((field: any) =>
+        String(field ?? "")
+          .toLowerCase()
+          .includes(term)
+      );
+      const matchesResult = result === "__all__" ? true : (r.result ?? r.status) === result;
+      const matchesDevice = deviceFilter ? String(r.device ?? "").includes(deviceFilter) : true;
+      const matchesNumber = numberFilter ? String(r.number ?? "").includes(numberFilter) : true;
+      const matchesTime = cutoff ? Date.parse(r.timestamp ?? r.createdAt ?? "") >= cutoff : true;
+      return matchesText && matchesResult && matchesDevice && matchesNumber && matchesTime;
+    });
+  }, [rows, filter, result, deviceFilter, numberFilter, timeRange]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
 
@@ -50,16 +66,16 @@ export default function AuditPage() {
     const csv = [header.join(","), ...body].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    setCsvUrl(url);
     const a = document.createElement("a");
     a.href = url;
     a.download = "audit.csv";
     a.click();
     setTimeout(() => {
       URL.revokeObjectURL(url);
-      setCsvUrl(null);
     }, 1000);
   }
+
+  if (!session) return null;
 
   return (
     <ProtectedShell>
@@ -67,19 +83,83 @@ export default function AuditPage() {
         <div className="gg-panel__header">
           <div className="gg-pill">Audit</div>
           <h1 className="gg-title">Audit log</h1>
-          <p className="gg-subtitle">Tables with filters (time, actor, action, device, number) and pagination/export.</p>
+          <p className="gg-subtitle">
+            Tables with filters (time, actor, action, device, number) and pagination/export.
+          </p>
         </div>
         {error && <div className="login-error">Error: {error}</div>}
         {loading && <div className="muted">Loading...</div>}
         <div className="filter-row">
-          <label className="gg-label" htmlFor="audit-filter">Filter</label>
+          <label className="gg-label" htmlFor="audit-filter">
+            Filter
+          </label>
           <input
             id="audit-filter"
             className="gg-input"
             value={filter}
-            onChange={(e) => { setFilter(e.target.value); setPage(0); }}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(0);
+            }}
             placeholder="Search actor/action/device/number"
           />
+        </div>
+        <div className="filter-row">
+          <label className="gg-label" htmlFor="audit-result">
+            Result
+          </label>
+          <select
+            id="audit-result"
+            className="gg-select"
+            value={result}
+            onChange={(e) => {
+              setResult(e.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="__all__">All</option>
+            <option value="success">success</option>
+            <option value="fail">fail</option>
+          </select>
+          <label className="gg-label" htmlFor="audit-device">
+            Device
+          </label>
+          <input
+            id="audit-device"
+            className="gg-input"
+            value={deviceFilter}
+            onChange={(e) => {
+              setDeviceFilter(e.target.value);
+              setPage(0);
+            }}
+            placeholder="device id"
+          />
+          <label className="gg-label" htmlFor="audit-number">
+            Number
+          </label>
+          <input
+            id="audit-number"
+            className="gg-input"
+            value={numberFilter}
+            onChange={(e) => {
+              setNumberFilter(e.target.value);
+              setPage(0);
+            }}
+            placeholder="+1555"
+          />
+          <label className="gg-label" htmlFor="audit-time">
+            Time
+          </label>
+          <select
+            id="audit-time"
+            className="gg-select"
+            value={timeRange}
+            onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
+          >
+            <option value="all">All</option>
+            <option value="1h">Last hour</option>
+            <option value="24h">Last 24h</option>
+          </select>
         </div>
         <div className="presence-list">
           {paged.map((r, idx) => (
@@ -98,7 +178,9 @@ export default function AuditPage() {
           <button className="ghost" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
             Prev
           </button>
-          <span className="muted">Page {page + 1} / {pageCount}</span>
+          <span className="muted">
+            Page {page + 1} / {pageCount}
+          </span>
           <button
             className="ghost"
             disabled={page + 1 >= pageCount}
@@ -120,7 +202,9 @@ export default function AuditPage() {
           >
             Export JSON
           </button>
-          <button className="ghost" onClick={() => exportCsv(filtered)}>Export CSV</button>
+          <button className="ghost" onClick={() => exportCsv(filtered)}>
+            Export CSV
+          </button>
         </div>
       </div>
     </ProtectedShell>

@@ -75,11 +75,7 @@ export default function HomePage() {
           </div>
           <div>
             <div className="gg-label">{t("localeLabel")}</div>
-            <select
-              className="gg-select"
-              value={locale}
-              onChange={(e) => handleLocaleChange(e.target.value as Locale)}
-            >
+            <select className="gg-select" value={locale} onChange={(e) => handleLocaleChange(e.target.value as Locale)}>
               {SUPPORTED_LOCALES.map((loc) => (
                 <option key={loc} value={loc}>
                   {loc}

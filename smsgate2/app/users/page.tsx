@@ -11,7 +11,6 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
-  if (!session) return null;
 
   useEffect(() => {
     if (!session) return;
@@ -21,6 +20,8 @@ export default function UsersPage() {
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
   }, [session]);
+
+  if (!session) return null;
 
   return (
     <ProtectedShell>
@@ -39,7 +40,9 @@ export default function UsersPage() {
             <div key={u.id ?? u.email} className="presence-row spaced">
               <div>
                 <div className="gg-value">{u.name ?? u.email ?? u.id}</div>
-                <div className="muted">Role: {u.role ?? "—"} | Auth: {u.authMode ?? "—"}</div>
+                <div className="muted">
+                  Role: {u.role ?? "—"} | Auth: {u.authMode ?? "—"}
+                </div>
                 {Array.isArray(u.groups) && <div className="muted">Groups: {u.groups.join(", ")}</div>}
               </div>
               <div className="actions">

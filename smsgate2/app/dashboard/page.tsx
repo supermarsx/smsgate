@@ -24,14 +24,18 @@ export default function DashboardPage() {
   const [hasMore, setHasMore] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [filterNumber, setFilterNumber] = useState<string>("__all__");
+  const [timeRange, setTimeRange] = useState<"all" | "1h" | "24h">("all");
   const clientRef = useRef<WsClient | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const SNAPSHOT_KEY = "smsgate2_snapshot";
 
   const orderedEvents = useMemo(() => {
     const filtered = filterNumber === "__all__" ? events : events.filter((ev) => ev.number === filterNumber);
-    return filtered.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
-  }, [events, filterNumber]);
+    const cutoff =
+      timeRange === "1h" ? Date.now() - 60 * 60 * 1000 : timeRange === "24h" ? Date.now() - 24 * 60 * 60 * 1000 : null;
+    const timeFiltered = cutoff ? filtered.filter((ev) => Date.parse(ev.createdAt) >= cutoff) : filtered;
+    return timeFiltered.slice().sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
+  }, [events, filterNumber, timeRange]);
 
   useEffect(() => {
     if (!session) return;
@@ -72,8 +76,9 @@ export default function DashboardPage() {
   }, [session, addLog, refreshConfig, setStatus]);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    const target = scrollRef.current;
+    if (!target) return;
+    const el = target;
     function onScroll() {
       if (loadingPage || !hasMore) return;
       const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
@@ -81,6 +86,7 @@ export default function DashboardPage() {
     }
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingPage, hasMore, orderedEvents]);
 
   useEffect(() => {
@@ -154,7 +160,9 @@ export default function DashboardPage() {
               {lastError && <span className="muted">Last error: {lastError}</span>}
             </div>
             <div className="filter-row">
-              <label htmlFor="number-filter" className="gg-label">Filter by number</label>
+              <label htmlFor="number-filter" className="gg-label">
+                Filter by number
+              </label>
               <select
                 id="number-filter"
                 className="gg-select"
@@ -163,25 +171,51 @@ export default function DashboardPage() {
               >
                 <option value="__all__">All numbers</option>
                 {(session.user.numbers ?? []).map((num) => (
-                  <option key={num} value={num}>{num}</option>
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
                 ))}
+              </select>
+            </div>
+            <div className="filter-row">
+              <label htmlFor="time-filter" className="gg-label">
+                Time window
+              </label>
+              <select
+                id="time-filter"
+                className="gg-select"
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
+              >
+                <option value="all">All</option>
+                <option value="1h">Last hour</option>
+                <option value="24h">Last 24h</option>
               </select>
             </div>
             <div className="phone-mock">
               <div className="phone-mock__screen" ref={scrollRef}>
                 {orderedEvents.map((evt) => (
-                  <div key={evt.id} className="msg-row">
+                  <div key={evt.id} className={`msg-row state-${evt.state}`}>
                     <div className="msg-meta">
                       <span className="msg-number">{evt.number}</span>
                       <span className="msg-time">{new Date(evt.createdAt).toLocaleTimeString()}</span>
                     </div>
-                    <div className="msg-body">{evt.content}</div>
+                    <div className="msg-body">
+                      {evt.contactName && <span className="msg-contact">{evt.contactName} • </span>}
+                      {evt.content}
+                    </div>
                     <div className="msg-actions">
                       <span className={`msg-pill state-${evt.state}`}>{evt.state}</span>
                       <div className="actions">
-                        <button className="ghost" onClick={() => handleStateChange(evt.id, "claimed")}>Claim</button>
-                        <button className="ghost" onClick={() => handleStateChange(evt.id, "verified")}>Verify</button>
-                        <button className="ghost" onClick={() => handleStateChange(evt.id, "rejected")}>Reject</button>
+                        <button className="ghost" onClick={() => handleStateChange(evt.id, "claimed")}>
+                          Claim
+                        </button>
+                        <button className="ghost" onClick={() => handleStateChange(evt.id, "verified")}>
+                          Verify
+                        </button>
+                        <button className="ghost" onClick={() => handleStateChange(evt.id, "rejected")}>
+                          Reject
+                        </button>
                       </div>
                     </div>
                   </div>
