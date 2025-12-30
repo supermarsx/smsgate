@@ -213,6 +213,12 @@ a {
   color: var(--text-3);
 }
 
+.reset-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .small {
   font-size: 12px;
 }
