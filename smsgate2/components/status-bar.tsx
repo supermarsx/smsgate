@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from "react";
 import { useStatus } from "./status-context";
-import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
+import { getTranslations, type Locale, useLocale } from "../lib/i18n";
 
 /**
  * Compact websocket status indicator with expandable metrics.
@@ -14,7 +14,7 @@ import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
  */
 export function StatusBar() {
   const status = useStatus();
-  const [locale] = useState<Locale>(getInitialLocale());
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const t = useMemo(() => {
     const dict = getTranslations(locale);

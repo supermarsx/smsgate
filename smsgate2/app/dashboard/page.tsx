@@ -12,7 +12,7 @@ import type { Event, PresenceUpdate } from "../../lib/contracts";
 import { listEvents, updateEventState } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
 import { useStatus } from "../../components/status-context";
-import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { getTranslations, useLocale } from "../../lib/i18n";
 import { mapWsErrorKey } from "../../lib/status";
 
 /**
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const { session } = useSession();
   const { refresh: refreshConfig } = useConfig();
   const { setStatus, addLog } = useStatus();
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const addLogRef = useRef(addLog);
   const setStatusRef = useRef(setStatus);
   useEffect(() => {

@@ -11,7 +11,7 @@ import { useConfig } from "../../components/config-provider";
 import { updateConfig } from "../../lib/rest";
 import { useMemo, useState } from "react";
 import { fetchContacts, exportContacts, toggleContactSync } from "../../lib/rest";
-import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { getTranslations, useLocale } from "../../lib/i18n";
 
 /**
  * Configuration editor with validation, diff preview, and contact utilities.
@@ -27,7 +27,7 @@ export default function ConfigPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [diffSummary, setDiffSummary] = useState<string | null>(null);
   const [shapeErrors, setShapeErrors] = useState<string[]>([]);
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;

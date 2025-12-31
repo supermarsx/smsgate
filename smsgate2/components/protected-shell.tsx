@@ -13,7 +13,7 @@ import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useConfig } from "./config-provider";
 import { mapWsErrorKey } from "../lib/status";
-import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
+import { getTranslations, type Locale, useLocale } from "../lib/i18n";
 import { StatusBar } from "./status-bar";
 
 type Props = {
@@ -35,7 +35,7 @@ export function ProtectedShell({ children }: Props) {
   const [showLogs, setShowLogs] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
-  const [locale] = useState<Locale>(getInitialLocale());
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;

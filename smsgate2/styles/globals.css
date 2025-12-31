@@ -228,6 +228,23 @@ a {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-2);
   backdrop-filter: blur(var(--blur));
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.gg-panel::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  background:
+    radial-gradient(circle at 22% 24%, rgba(76, 201, 255, 0.16), transparent 38%),
+    radial-gradient(circle at 78% 26%, rgba(57, 240, 192, 0.12), transparent 40%),
+    radial-gradient(circle at 50% 82%, rgba(111, 88, 240, 0.12), transparent 42%);
+  filter: blur(24px);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .gg-panel__header {

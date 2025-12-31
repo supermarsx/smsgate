@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { getLoginEvents } from "../../lib/rest";
-import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { getTranslations, useLocale } from "../../lib/i18n";
 
 /**
  * Login events history with filters and CSV/JSON export.
@@ -16,7 +16,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
  */
 export default function LoginsPage() {
   const { session } = useSession();
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;

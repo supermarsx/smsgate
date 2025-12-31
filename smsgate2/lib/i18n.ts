@@ -2,6 +2,7 @@
  * @fileoverview Locale helpers for dictionary resolution and persistence.
  */
 
+import { useEffect, useState } from "react";
 import enUS from "../locales/en-US.json";
 import esES from "../locales/es-ES.json";
 import ptPT from "../locales/pt-PT.json";
@@ -33,6 +34,45 @@ function tryMatchLocale(value?: string | null): Locale | null {
 
 const CONFIG_DEFAULT_LOCALE = tryMatchLocale(appConfig.defaultLocale);
 export const DEFAULT_LOCALE: Locale = CONFIG_DEFAULT_LOCALE ?? "en-US";
+
+/**
+ * Resolve locale in a hydration-safe way and react to changes (storage/custom events).
+ */
+export function useLocale(): Locale {
+  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    // Initial sync after mount
+    setLocale(getInitialLocale());
+
+    // Listen for explicit locale changes dispatched by setPreferredLocale
+    const onLocaleEvent = (event: Event) => {
+      if (event instanceof CustomEvent && event.detail) {
+        setLocale(normalizeLocale(String(event.detail)));
+      }
+    };
+
+    // React to storage updates (e.g., other tabs/windows)
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY) return;
+      try {
+        setLocale(normalizeLocale(event.newValue ? (JSON.parse(event.newValue) as string) : undefined));
+      } catch {
+        // ignore malformed storage values
+      }
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("smsgate2:locale-changed", onLocaleEvent as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("smsgate2:locale-changed", onLocaleEvent as EventListener);
+    };
+  }, []);
+
+  return locale;
+}
 
 /**
  * Normalize a locale value to the closest supported locale.

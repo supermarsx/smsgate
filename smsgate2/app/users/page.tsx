@@ -19,7 +19,7 @@ import {
   updateUserRole
 } from "../../lib/rest";
 import { DEFAULT_ROLE_ORDER, getRoleLabel } from "../../lib/roles";
-import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { getTranslations, useLocale } from "../../lib/i18n";
 
 /**
  * User management page for roles, status toggles, logout/unlock, and credentials.
@@ -28,7 +28,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 export default function UsersPage() {
   const { session } = useSession();
   const { config } = useConfig();
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;

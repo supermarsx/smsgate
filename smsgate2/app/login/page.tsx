@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LoginPanel } from "../../components/login-panel";
 import { exchangeOAuthCode, loadSession, saveSession, type Session } from "../../lib/auth";
 import { useSession } from "../../components/session-provider";
-import { getTranslations, getInitialLocale } from "../../lib/i18n";
+import { getTranslations, getInitialLocale, useLocale } from "../../lib/i18n";
 
 /**
  * OAuth callback-aware login page that hydrates sessions and renders login panel.
@@ -19,7 +19,7 @@ function LoginBody() {
   const router = useRouter();
   const search = useSearchParams();
   const { session, setSession } = useSession();
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = (key: string, fallback?: string) => getTranslations(locale)[key] ?? fallback ?? key;
 
   useEffect(() => {

@@ -10,7 +10,7 @@ import { useSession } from "../../components/session-provider";
 import { useConfig } from "../../components/config-provider";
 import { exportContacts, fetchContacts, resolveContactConflict, toggleContactSync } from "../../lib/rest";
 import { hasAtLeast } from "../../lib/roles";
-import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { getTranslations, useLocale } from "../../lib/i18n";
 
 type ContactRecord = Record<string, unknown>;
 
@@ -21,7 +21,7 @@ type ContactRecord = Record<string, unknown>;
 export default function ContactsPage() {
   const { session } = useSession();
   const { config, refresh, loading: configLoading } = useConfig();
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;

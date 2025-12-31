@@ -18,7 +18,7 @@ import {
   updateDeviceName
 } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
-import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { getTranslations, useLocale } from "../../lib/i18n";
 
 type PairingState = {
   state: "pending" | "waiting" | "completed" | "expired" | "error";
@@ -37,7 +37,7 @@ type DeviceTone = "online" | "degraded" | "offline" | "neutral";
 export default function DevicesPage() {
   const { session } = useSession();
   const { config } = useConfig();
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;

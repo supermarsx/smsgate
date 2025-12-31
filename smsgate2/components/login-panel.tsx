@@ -14,7 +14,7 @@ import {
   requestPasswordReset,
   type Session
 } from "../lib/auth";
-import { getInitialLocale, getTranslations } from "../lib/i18n";
+import { getTranslations, useLocale } from "../lib/i18n";
 
 type Mode = "oauth" | "simple_signin" | "domain_signin";
 
@@ -27,7 +27,7 @@ type Props = {
  * @returns Login panel element.
  */
 export function LoginPanel({ onLogin }: Props) {
-  const locale = getInitialLocale();
+  const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
