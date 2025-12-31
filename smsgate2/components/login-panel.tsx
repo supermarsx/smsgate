@@ -66,6 +66,8 @@ export function LoginPanel({ onLogin }: Props) {
   const [resetOpen, setResetOpen] = useState(false);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
   const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
+  const networkErrorHint = t("loginNetworkHint", "Server unreachable. Verify API base URL and network.");
+  const genericErrorHint = t("loginErrorHelp", "If this keeps happening, check your connection or contact an admin.");
 
   function handleSelect(next: Mode | null) {
     setMode(next);
@@ -432,6 +434,11 @@ export function LoginPanel({ onLogin }: Props) {
       {error && (
         <div className="login-error">
           {t("errorPrefix", "Error")}: {error}
+          <div className="muted small">
+            {error?.toLowerCase().includes("network") || error?.toLowerCase().includes("fetch")
+              ? networkErrorHint
+              : genericErrorHint}
+          </div>
         </div>
       )}
       <div className="login-foot">
