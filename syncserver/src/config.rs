@@ -751,6 +751,24 @@ impl AppConfig {
             if let Some(modes) = auth.modes {
                 self.auth.modes = modes;
             }
+            if let Some(pepper) = auth.password_pepper {
+                self.auth.password_pepper = Some(pepper);
+            }
+            if let Some(ttl) = auth.session_ttl_secs {
+                self.auth.session_ttl_secs = ttl;
+            }
+            if let Some(require_admin_totp) = auth.require_admin_totp {
+                self.auth.require_admin_totp = require_admin_totp;
+            }
+            if let Some(issuer) = auth.oauth_issuer {
+                self.auth.oauth_issuer = Some(issuer);
+            }
+            if let Some(aud) = auth.oauth_audience {
+                self.auth.oauth_audience = Some(aud);
+            }
+            if let Some(secret) = auth.domain_shared_secret {
+                self.auth.domain_shared_secret = Some(secret);
+            }
         }
 
         if let Some(presence) = from.presence {
@@ -964,4 +982,10 @@ pub struct PartialDatabaseConfig {
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct PartialAuthConfig {
     pub modes: Option<Vec<AuthMode>>,
+    pub password_pepper: Option<Option<String>>,
+    pub session_ttl_secs: Option<u64>,
+    pub require_admin_totp: Option<bool>,
+    pub oauth_issuer: Option<Option<String>>,
+    pub oauth_audience: Option<Option<String>>,
+    pub domain_shared_secret: Option<Option<String>>,
 }
