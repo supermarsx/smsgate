@@ -1,17 +1,11 @@
-mod config;
-mod error;
-mod routes;
-mod state;
-mod telemetry;
-
-use crate::{config::AppConfig, routes::router, state::AppState};
+use syncserver::{config::AppConfig, routes::router, state::AppState};
 use tokio::net::TcpListener;
 
 /// Entrypoint: load configuration, start telemetry, and run the Axum server.
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
-    telemetry::init_tracing();
+    syncserver::telemetry::init_tracing();
 
     let config = AppConfig::load()?;
     let state = AppState::new(config.clone());

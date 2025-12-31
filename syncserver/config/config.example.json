@@ -1,0 +1,22 @@
+{
+  "env": "development",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "ws_max_connections": 5000,
+    "ws_snapshot_limit": 10,
+    "ws_ping_interval_ms": 15000
+  },
+  "hot_store": {
+    "mode": "memory",
+    "redis_url": null
+  },
+  "database": {
+    "adapter": "json_db",
+    "path": "data/syncserver.json",
+    "url": null
+  },
+  "auth": {
+    "modes": ["simple_signin"]
+  }
+}

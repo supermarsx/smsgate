@@ -6,10 +6,10 @@
 - [ ] No WebSocket gateway, config plane, audit/login logging, or admin/user/number APIs exist.
 
 ## Foundations & scaffolding
-- [ ] Set up lint/format/test baseline (`cargo fmt`, `clippy`, unit/integration test harness) and CI hooks.
+- [x] Set up lint/format/test baseline (`cargo fmt`, `clippy` alias, unit/integration test harness); CI workflow pending.
 - [x] Add shared error type (thiserror/anyhow) and response mapping for HTTP/WS.
 - [x] Implement configuration loader (config.json + env overrides + secrets) with validation and defaults.
-- [ ] Define shared domain models and typed contracts (events, presence, config, pairing, users, numbers, audit, login events).
+- [x] Define shared domain models and typed contracts (events, presence, config, pairing, users, numbers, audit, login events).
 - [x] Add structured logging/tracing bootstrap with env-based filter.
 - [ ] Wire metrics exporter (Prometheus/OpenTelemetry) and `/metrics` endpoint.
 - [ ] Containerize server (Dockerfile + compose service alongside Redis/DB) and document env vars.
