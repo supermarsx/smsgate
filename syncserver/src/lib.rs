@@ -2,6 +2,7 @@
 //! This exposes configuration loading, domain contracts, telemetry, and routing helpers.
 
 pub mod auth;
+pub mod audit;
 pub mod config;
 pub mod domain;
 pub mod error;

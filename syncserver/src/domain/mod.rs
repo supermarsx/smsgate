@@ -216,6 +216,10 @@ pub struct AuditEntry {
     pub details: serde_json::Value,
     /// Timestamp when the audit was recorded.
     pub occurred_at: DateTime<Utc>,
+    /// Optional IP address recorded for the action.
+    pub ip: Option<String>,
+    /// Optional user agent recorded for the action.
+    pub user_agent: Option<String>,
 }
 
 /// Login event representation.

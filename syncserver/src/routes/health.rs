@@ -25,6 +25,7 @@ pub(crate) struct ReadyChecks {
     config: &'static str,
     storage: &'static str,
     hot_store: &'static str,
+    presence: &'static str,
 }
 
 /// Readiness payload returned by `/readyz`.
@@ -38,6 +39,10 @@ pub(crate) struct ReadyResponse {
     backends: Backends,
     /// Individual check results.
     checks: ReadyChecks,
+    /// Whether the service is degraded (some dependencies unhealthy but http/config ready).
+    degraded: bool,
+    /// Human-readable reasons for degradation.
+    reasons: Vec<String>,
 }
 
 /// Surfaces configured storage choices for quick debugging.
@@ -68,20 +73,28 @@ pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
     let snapshot = state.ready_flags.snapshot();
     let cfg_guard = state.config.read().await;
     let cfg = &cfg_guard.config;
-    let status = if snapshot.http_ready
-        && snapshot.config_ready
-        && snapshot.hot_store_ready
-        && snapshot.storage_ready
-    {
+    let dependencies_ready = snapshot.hot_store_ready && snapshot.storage_ready;
+    let degraded = snapshot.http_ready && snapshot.config_ready && !dependencies_ready;
+    let status = if snapshot.http_ready && snapshot.config_ready && dependencies_ready {
         "ready"
+    } else if degraded {
+        "degraded"
     } else {
         "initializing"
     };
-    let status_code = if snapshot.http_ready && snapshot.config_ready {
+    let status_code = if status == "ready" {
         StatusCode::OK
     } else {
         StatusCode::SERVICE_UNAVAILABLE
     };
+
+    let mut reasons = Vec::new();
+    if !snapshot.hot_store_ready {
+        reasons.push("hot_store not ready".to_string());
+    }
+    if !snapshot.storage_ready {
+        reasons.push("storage not ready".to_string());
+    }
 
     let payload = ReadyResponse {
         status,
@@ -95,7 +108,10 @@ pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
             config: readiness_label(snapshot.config_ready),
             storage: readiness_label(snapshot.storage_ready),
             hot_store: readiness_label(snapshot.hot_store_ready),
+            presence: readiness_label(snapshot.presence_ready),
         },
+        degraded,
+        reasons,
     };
 
     state.metrics.observe_http("/readyz", status_code);

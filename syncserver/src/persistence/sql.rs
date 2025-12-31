@@ -85,6 +85,92 @@ impl PersistentStore for SqlStore {
         .map(|_| ())
         .map_err(|err| format!("failed to persist event: {err}"))
     }
+
+    async fn persist_audit(&self, audit: &crate::domain::AuditEntry) -> Result<(), String> {
+        let payload =
+            serde_json::to_string(audit).map_err(|err| format!("serialize audit failed: {err}"))?;
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id TEXT PRIMARY KEY,
+                actor TEXT NOT NULL,
+                action TEXT NOT NULL,
+                target TEXT NULL,
+                result TEXT NOT NULL,
+                correlation_id TEXT NULL,
+                payload TEXT NOT NULL,
+                occurred_at TEXT NOT NULL,
+                ip TEXT NULL,
+                user_agent TEXT NULL
+            )
+            "#,
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(|err| format!("failed to init audit_log table: {err}"))?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO audit_log (id, actor, action, target, result, correlation_id, payload, occurred_at, ip, user_agent)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+            ON CONFLICT(id) DO UPDATE SET payload=excluded.payload, occurred_at=excluded.occurred_at
+            "#,
+        )
+        .bind(&audit.id)
+        .bind(&audit.actor)
+        .bind(&audit.action)
+        .bind(&audit.target)
+        .bind(&audit.result)
+        .bind(&audit.correlation_id)
+        .bind(payload)
+        .bind(audit.occurred_at.to_rfc3339())
+        .bind(&audit.ip)
+        .bind(&audit.user_agent)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(|err| format!("failed to persist audit: {err}"))
+    }
+
+    async fn persist_login(&self, login: &crate::domain::LoginEvent) -> Result<(), String> {
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS login_events (
+                id TEXT PRIMARY KEY,
+                identity TEXT NOT NULL,
+                mode TEXT NOT NULL,
+                result TEXT NOT NULL,
+                ip TEXT NOT NULL,
+                user_agent TEXT NULL,
+                two_fa_passed INTEGER NOT NULL,
+                occurred_at TEXT NOT NULL
+            )
+            "#,
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(|err| format!("failed to init login_events table: {err}"))?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO login_events (id, identity, mode, result, ip, user_agent, two_fa_passed, occurred_at)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            ON CONFLICT(id) DO UPDATE SET result=excluded.result, occurred_at=excluded.occurred_at
+            "#,
+        )
+        .bind(&login.id)
+        .bind(&login.identity)
+        .bind(format!("{:?}", login.mode))
+        .bind(&login.result)
+        .bind(&login.ip)
+        .bind(&login.user_agent)
+        .bind(login.two_fa_passed as i32)
+        .bind(login.occurred_at.to_rfc3339())
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(|err| format!("failed to persist login event: {err}"))
+    }
 }
 
 impl SqlStore {

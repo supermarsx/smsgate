@@ -4,6 +4,7 @@ use crate::{metrics, state::AppState};
 
 pub mod auth;
 pub mod config;
+pub mod context;
 pub mod devices;
 pub mod events;
 mod health;

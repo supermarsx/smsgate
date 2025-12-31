@@ -18,6 +18,10 @@ pub mod worker;
 pub trait PersistentStore: Send + Sync {
     /// Persist an event for compliance/retention.
     async fn persist_event(&self, event: &SmsEvent) -> Result<(), String>;
+    /// Persist an audit entry.
+    async fn persist_audit(&self, audit: &crate::domain::AuditEntry) -> Result<(), String>;
+    /// Persist a login event.
+    async fn persist_login(&self, login: &crate::domain::LoginEvent) -> Result<(), String>;
 }
 
 /// JSON lines writer for events; suitable for dev/small installs.
@@ -56,6 +60,36 @@ impl PersistentStore for JsonDb {
         file.write_all(serialized.as_bytes())
             .await
             .map_err(|err| format!("failed to write event to {}: {}", self.path.display(), err))?;
+        file.write_all(b"\n")
+            .await
+            .map_err(|err| format!("failed to write newline: {}", err))?;
+        file.flush()
+            .await
+            .map_err(|err| format!("failed to flush json db file: {}", err))
+    }
+
+    async fn persist_audit(&self, audit: &crate::domain::AuditEntry) -> Result<(), String> {
+        let serialized = serde_json::to_string(audit)
+            .map_err(|err| format!("failed to serialize audit: {}", err))?;
+        let mut file = self.file.lock().await;
+        file.write_all(serialized.as_bytes())
+            .await
+            .map_err(|err| format!("failed to write audit to {}: {}", self.path.display(), err))?;
+        file.write_all(b"\n")
+            .await
+            .map_err(|err| format!("failed to write newline: {}", err))?;
+        file.flush()
+            .await
+            .map_err(|err| format!("failed to flush json db file: {}", err))
+    }
+
+    async fn persist_login(&self, login: &crate::domain::LoginEvent) -> Result<(), String> {
+        let serialized = serde_json::to_string(login)
+            .map_err(|err| format!("failed to serialize login event: {}", err))?;
+        let mut file = self.file.lock().await;
+        file.write_all(serialized.as_bytes())
+            .await
+            .map_err(|err| format!("failed to write login event to {}: {}", self.path.display(), err))?;
         file.write_all(b"\n")
             .await
             .map_err(|err| format!("failed to write newline: {}", err))?;

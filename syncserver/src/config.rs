@@ -158,6 +158,9 @@ pub struct DatabaseConfig {
     pub url: Option<String>,
     /// Filesystem path for JSON DB or SQLite file (if not using URL).
     pub path: Option<String>,
+    /// Whether to persist audit logs when enabled.
+    #[serde(default = "default_true")]
+    pub enable_audit_log: bool,
 }
 
 impl Default for DatabaseConfig {
@@ -166,6 +169,7 @@ impl Default for DatabaseConfig {
             adapter: DatabaseAdapter::JsonDb,
             url: None,
             path: Some("data/syncserver.json".to_string()),
+            enable_audit_log: true,
         }
     }
 }

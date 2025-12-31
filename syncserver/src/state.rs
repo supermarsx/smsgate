@@ -1,4 +1,5 @@
 use crate::{
+    audit::AuditService,
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
@@ -101,6 +102,8 @@ pub struct AppState {
     pub session_store: Arc<SessionStore>,
     /// Local user store for simple_signin.
     pub user_store: Arc<UserStore>,
+    /// Audit service for recording security and config changes.
+    pub audit: AuditService,
 }
 
 impl AppState {
@@ -226,6 +229,7 @@ impl AppState {
             })
             .collect();
         let user_store = Arc::new(crate::auth::users::UserStore::new(&config.auth, &roles));
+        let audit = AuditService::new(persistence.clone(), config.database.enable_audit_log);
 
         Self {
             config: versioned_config,
@@ -244,6 +248,7 @@ impl AppState {
             pairing_store,
             session_store,
             user_store,
+            audit,
         }
     }
 
