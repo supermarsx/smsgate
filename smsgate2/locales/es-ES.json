@@ -197,7 +197,7 @@
   "themeDark": "Dark",
   "themeLight": "Light",
   "debugLabel": "Debug",
-  "reconnectingBanner": "Reconectando al flujo en tiempo real... mostrando datos en caché.",
+  "reconnectingBanner": "Reconectando al flujo en tiempo real... mostrando datos en caché. (Modo sin conexión: tiempo real desactivado)",
   "wsStatusTitle": "Estado WS",
   "wsOfflineMode": "Modo sin conexión: tiempo real desactivado",
   "wsErrorGeneric": "Error de WebSocket",

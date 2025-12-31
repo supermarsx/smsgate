@@ -197,7 +197,7 @@
   "themeDark": "Dark",
   "themeLight": "Light",
   "debugLabel": "Debug",
-  "reconnectingBanner": "Reconnecting to realtime stream... showing cached data.",
+  "reconnectingBanner": "A reconectar ao stream em tempo real... a mostrar cache. (Modo offline: tempo real desativado)",
   "wsStatusTitle": "WS status",
   "wsOfflineMode": "Modo offline: tempo real desativado",
   "wsErrorGeneric": "Erro de WebSocket",

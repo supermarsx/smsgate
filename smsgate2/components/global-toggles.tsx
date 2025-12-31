@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "./theme";
-import { SUPPORTED_LOCALES, getInitialLocale, getTranslations, setPreferredLocale, type Locale } from "../lib/i18n";
+import {
+  SUPPORTED_LOCALES,
+  DEFAULT_LOCALE,
+  getInitialLocale,
+  getTranslations,
+  setPreferredLocale,
+  type Locale
+} from "../lib/i18n";
 
 const LOCALE_LABELS: Record<string, string> = {
   "en-US": "English",
@@ -12,7 +19,7 @@ const LOCALE_LABELS: Record<string, string> = {
 
 export function GlobalToggles() {
   const { theme, toggle } = useTheme();
-  const [locale, setLocale] = useState<Locale>(getInitialLocale());
+  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [menuOpen, setMenuOpen] = useState(false);
   const t = useMemo(() => {
     const dict = getTranslations(locale);
@@ -26,9 +33,6 @@ export function GlobalToggles() {
   function changeLocale(next: Locale) {
     setPreferredLocale(next);
     setLocale(next);
-    if (typeof window !== "undefined") {
-      window.location.reload();
-    }
   }
 
   return (
