@@ -8,8 +8,8 @@ use axum::{
 };
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 
 pub mod rbac;
 pub mod user;

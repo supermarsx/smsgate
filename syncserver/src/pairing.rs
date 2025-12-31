@@ -62,7 +62,10 @@ impl PairingStore {
                 used: false,
             },
         );
-        let qr_payload = format!("{{\"session_id\":\"{}\",\"expires_at\":\"{}\"}}", id, expires_at);
+        let qr_payload = format!(
+            "{{\"session_id\":\"{}\",\"expires_at\":\"{}\"}}",
+            id, expires_at
+        );
         PairingSessionResponse {
             session_id: id,
             qr_payload,

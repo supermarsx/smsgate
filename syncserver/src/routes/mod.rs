@@ -5,6 +5,7 @@ use crate::{metrics, state::AppState};
 pub mod config;
 mod health;
 pub mod ingest;
+pub mod pairing;
 pub mod presence;
 pub mod ws;
 
@@ -16,6 +17,14 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/healthz", get(health::health))
         .route("/api/v1/readyz", get(health::ready))
         .route("/api/v1/config", get(config::get_config))
+        .route(
+            "/api/v1/pairing/session",
+            axum::routing::post(pairing::create_session),
+        )
+        .route(
+            "/api/v1/pairing/complete",
+            axum::routing::post(pairing::complete_session),
+        )
         .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
         .route(
             "/api/v1/presence/heartbeat",

@@ -4,8 +4,8 @@ use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    auth::user::UserAuth,
     auth::permissions,
+    auth::user::UserAuth,
     auth::{AuthContext, Principal},
     error::AppError,
     pairing::{PairingCompleteRequest, PairingStore},

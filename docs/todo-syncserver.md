@@ -29,8 +29,8 @@
 - [x] Enforce permission checks across REST/WS endpoints (config read guarded) and return role metadata for smsgate2 gating.
 
 ## Device pairing & credentials
-- [ ] Implement pairing session endpoints (`/api/v1/pairing/session`, `/complete`) that emit QR payloads.
-- [ ] Issue device ids/tokens (hashed server-side) and rotation endpoints; enforce enable/disable state.
+- [x] Implement pairing session endpoints (`/api/v1/pairing/session`, `/complete`) that emit QR payloads.
+- [x] Issue device ids/tokens (hashed server-side) for pairing completion (rotation/enable/disable pending).
 - [ ] Provide device rename/disable/enable endpoints and diagnostics fetch stub.
 - [ ] Add bootstrap seeding for initial pairing/admin device policy.
 
