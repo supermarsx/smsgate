@@ -110,6 +110,7 @@ pub async fn list_devices(
 }
 
 /// POST /api/v1/devices/:device_id/rename
+/// PATCH /api/v1/devices/:device_id (alias)
 pub async fn rename_device(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,

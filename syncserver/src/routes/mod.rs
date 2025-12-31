@@ -69,6 +69,10 @@ pub fn router(state: AppState) -> Router {
             axum::routing::post(devices::rename_device),
         )
         .route(
+            "/api/v1/devices/:device_id",
+            axum::routing::patch(devices::rename_device),
+        )
+        .route(
             "/api/v1/devices/:device_id/disable",
             axum::routing::post(devices::disable_device),
         )
@@ -88,11 +92,15 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/events/:event_id/verify",
             axum::routing::post(events::verify_event),
         )
-            .route(
-                "/api/v1/events/:event_id/reject",
-                axum::routing::post(events::reject_event),
-            )
-            .route("/api/v1/events", get(events::list_events))
+        .route(
+            "/api/v1/events/:event_id/reject",
+            axum::routing::post(events::reject_event),
+        )
+        .route(
+            "/api/v1/events/:event_id/state",
+            axum::routing::post(events::update_event_state),
+        )
+        .route("/api/v1/events", get(events::list_events))
             .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
             .route(
                 "/api/v1/presence/heartbeat",

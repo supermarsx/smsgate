@@ -21,6 +21,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
             return Result.retry()
         }
         val deviceToken = DeviceAuthStore.getDeviceToken(applicationContext)
+        val deviceId = DeviceAuthStore.getDeviceId(applicationContext)
         if (deviceToken.isNullOrBlank()) {
             ConfigScheduler.scheduleNext(applicationContext, DEFAULT_INTERVAL_SECONDS)
             return Result.retry()
@@ -31,7 +32,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
         val requestBuilder = Request.Builder()
             .url("$baseUrl/api/v1/device/config")
             .addHeader("Authorization", "Bearer $deviceToken")
-            .addHeader("x-device-id", DeviceAuthStore.getDeviceId(applicationContext) ?: "")
+            .addHeader("x-device-id", deviceId ?: "")
         current?.etag?.let { requestBuilder.addHeader("If-None-Match", it) }
 
         val response = try {

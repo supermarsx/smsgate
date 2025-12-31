@@ -200,9 +200,14 @@ export class WsClient {
     if (this.visibilityPaused) return;
     if (this.ws) this.ws.close();
     const url = new URL(wsUrl());
+    // Prefer header-based auth by mirroring server expectation; keep query token for compatibility.
     url.searchParams.set("token", this.session.accessToken);
     if (this.state.cursor) url.searchParams.set("resumeAfter", this.state.cursor);
-    this.ws = new WebSocket(url.toString());
+    this.ws = new WebSocket(url.toString(), [], {
+      headers: {
+        Authorization: `Bearer ${this.session.accessToken}`
+      }
+    } as any);
 
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
@@ -308,9 +313,12 @@ export class WsClient {
           events: this.state.events.map((ev) => (ev.id === msg.payload.id ? msg.payload : ev))
         });
         break;
-      case "EVENT_PAGE":
-        this.emit({ events: [...this.state.events, ...msg.payload] });
+      case "EVENT_PAGE": {
+        // Preserve order: existing newest -> oldest, append older items.
+        const combined = [...this.state.events, ...msg.payload];
+        this.emit({ events: combined });
         break;
+      }
       case "PRESENCE_UPDATE":
         this.emit({
           presence: {

@@ -16,6 +16,12 @@ use crate::{
     ws_types::ServerMessage,
 };
 
+/// Body for state update endpoint to match UI contract.
+#[derive(Debug, serde::Deserialize)]
+pub struct StateUpdateRequest {
+    pub state: EventState,
+}
+
 /// Query params for event listing.
 #[derive(Debug, serde::Deserialize)]
 pub struct ListEventsQuery {
@@ -44,6 +50,24 @@ pub async fn list_events(
         state.hot_store.latest(limit).await
     };
     Ok((StatusCode::OK, Json(serde_json::json!({ "events": events }))))
+}
+
+/// POST /api/v1/events/:event_id/state (compat with smsgate2)
+pub async fn update_event_state(
+    UserAuth(user): UserAuth,
+    State(state): State<AppState>,
+    Path(event_id): Path<String>,
+    ctx: RequestContext,
+    Json(body): Json<StateUpdateRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let target = body.state.clone();
+    // Map to specific transition endpoints for permission enforcement.
+    match target {
+        EventState::Claimed => claim_event(UserAuth(user), State(state), Path(event_id), ctx).await,
+        EventState::Verified => verify_event(UserAuth(user), State(state), Path(event_id), ctx).await,
+        EventState::Rejected => reject_event(UserAuth(user), State(state), Path(event_id), ctx).await,
+        EventState::New => Err(AppError::Validation("cannot transition to new".into())),
+    }
 }
 
 /// Common response payload for event mutations.
