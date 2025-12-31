@@ -12,7 +12,7 @@ function LoginBody() {
   const search = useSearchParams();
   const { session, setSession } = useSession();
   const locale = getInitialLocale();
-  const t = (key: string) => getTranslations(locale)[key] ?? key;
+  const t = (key: string, fallback?: string) => getTranslations(locale)[key] ?? fallback ?? key;
 
   useEffect(() => {
     const existing = session ?? loadSession();

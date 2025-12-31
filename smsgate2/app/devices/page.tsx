@@ -66,10 +66,10 @@ export default function DevicesPage() {
       return;
     }
     toDataURL(qr, { margin: 1, width: 220 })
-      .then((url) => {
+      .then((url: string) => {
         if (!cancelled) setQrDataUrl(url);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!cancelled) setError((err as Error).message);
         setQrDataUrl(null);
       });
