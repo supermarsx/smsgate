@@ -37,7 +37,7 @@ async fn simple_signin_login_and_session_auth() {
     let login_payload = json!({
         "mode": "simple_signin",
         "username": "admin",
-        "password": "changeme"
+        "password": "ChangeMePlease1!"
     });
 
     let res = app
@@ -88,7 +88,7 @@ async fn login_events_are_audited() {
     let login_payload = json!({
         "mode": "simple_signin",
         "username": "admin",
-        "password": "changeme"
+        "password": "ChangeMePlease1!"
     });
 
     let res = app

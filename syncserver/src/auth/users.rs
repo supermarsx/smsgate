@@ -21,15 +21,18 @@ pub struct UserRecord {
     pub role: Role,
     pub totp_secret: Option<String>,
     pub locked: bool,
+    pub lock_until: Option<DateTime<Utc>>,
     pub last_login_at: Option<DateTime<Utc>>,
 }
 
 /// In-memory user store with password hashing and lookup helpers.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct UserStore {
     users: DashMap<String, UserRecord>,
     pepper: Option<String>,
     resets: DashMap<String, PasswordResetEntry>,
+    failed_attempts: DashMap<String, (u32, DateTime<Utc>)>,
+    config: AuthConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -45,9 +48,15 @@ impl UserStore {
             users: DashMap::new(),
             pepper: config.password_pepper.clone(),
             resets: DashMap::new(),
+            failed_attempts: DashMap::new(),
+            config: config.clone(),
         };
         // Bootstrap admin if not already seeded.
-        if !store.contains_username("admin") {
+        let bootstrap_username = config
+            .bootstrap_admin_username
+            .clone()
+            .unwrap_or_else(|| "admin".into());
+        if !store.contains_username(&bootstrap_username) {
             let admin_role = default_roles
                 .iter()
                 .find(|r| r.name == "admin")
@@ -58,7 +67,7 @@ impl UserStore {
                     permissions: permissions::all_permissions(),
                 });
             let _ = store
-                .create_user("admin", "changeme", admin_role, None)
+                .create_user(&bootstrap_username, "ChangeMePlease1!", admin_role, None)
                 .map_err(|err| tracing::warn!(error = %err, "failed to create bootstrap admin"));
         }
         store
@@ -88,7 +97,12 @@ impl UserStore {
         role: Role,
         totp_secret: Option<String>,
     ) -> Result<UserRecord, AppError> {
-        if password.len() < 8 {
+        let min_len = if role.name == "admin" {
+            self.config.admin_password_min_length
+        } else {
+            self.config.password_min_length
+        };
+        if password.len() < min_len as usize {
             return Err(AppError::Validation("password too short".into()));
         }
         if self.contains_username(username) {
@@ -102,6 +116,7 @@ impl UserStore {
             role,
             totp_secret,
             locked: false,
+            lock_until: None,
             last_login_at: None,
         };
         self.users.insert(record.id.clone(), record.clone());
@@ -120,10 +135,11 @@ impl UserStore {
         let entry = found.ok_or_else(|| AppError::Validation("invalid credentials".into()))?;
         let mut user = entry.value().clone();
         drop(entry);
-        if user.locked {
+        if user.locked || self.is_temporarily_locked(&user.username) {
             return Err(AppError::Validation("account locked".into()));
         }
         self.verify_password(password, &user.password_hash)?;
+        self.failed_attempts.remove(&user.username);
         user.last_login_at = Some(Utc::now());
         let updated = user.clone();
         self.users.insert(user.id.clone(), updated.clone());
@@ -173,8 +189,8 @@ impl UserStore {
     }
 
     /// Reset a user's password using a reset token.
-    pub fn reset_password(&self, token: &str, new_password: &str) -> Result<(), AppError> {
-        if new_password.len() < 8 {
+    pub fn reset_password(&self, token: &str, new_password: &str) -> Result<String, AppError> {
+        if new_password.len() < self.config.password_min_length as usize {
             return Err(AppError::Validation("password too short".into()));
         }
         let entry = self
@@ -186,17 +202,14 @@ impl UserStore {
         }
         let user_id = entry.user_id.clone();
         drop(entry);
-        let hash = self.hash_password(new_password)?;
-        if let Some(mut user) = self.users.get_mut(&user_id) {
-            user.password_hash = hash;
-        }
+        self.set_password(&user_id, new_password)?;
         self.resets.remove(token);
-        Ok(())
+        Ok(user_id)
     }
 
     /// Directly set a user's password (admin path).
     pub fn set_password(&self, user_id: &str, new_password: &str) -> Result<UserRecord, AppError> {
-        if new_password.len() < 8 {
+        if new_password.len() < self.config.password_min_length as usize {
             return Err(AppError::Validation("password too short".into()));
         }
         let hash = self.hash_password(new_password)?;
@@ -223,6 +236,38 @@ impl UserStore {
             return Ok(user.clone());
         }
         Err(AppError::Validation("user not found".into()))
+    }
+
+    /// Record a failed attempt and return whether the account is now locked.
+    pub fn record_failure(&self, username: &str) -> bool {
+        let mut attempts = self
+            .failed_attempts
+            .entry(username.to_string())
+            .or_insert((0, Utc::now()));
+        attempts.0 += 1;
+        if attempts.0 >= self.config.max_failed_attempts {
+            attempts.1 = Utc::now() + chrono::Duration::seconds(self.config.lockout_secs as i64);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn is_temporarily_locked(&self, username: &str) -> bool {
+        if let Some((_, until)) = self.failed_attempts.get(username).map(|v| v.clone()) {
+            if Utc::now() < until {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Lookup user by username.
+    pub fn user_by_username(&self, username: &str) -> Option<UserRecord> {
+        self.users
+            .iter()
+            .find(|u| u.username == username)
+            .map(|u| u.value().clone())
     }
 
     /// Delete a user.

@@ -59,6 +59,10 @@ pub struct IngestResponse {
     pub deduped: usize,
     /// Total events seen in the request.
     pub total: usize,
+    /// Whether the server is signalling backpressure to the device.
+    pub backpressure: bool,
+    /// Suggested retry/backoff in milliseconds if backpressure is true.
+    pub retry_in_ms: Option<u64>,
 }
 
 /// Entry point for `/api/v1/ingest`.
@@ -98,6 +102,7 @@ pub async fn ingest(
     let dedup_ttl = Duration::from_millis(ingest_cfg.dedup_ttl_ms);
     let now = Utc::now();
 
+    let total_events = payload.events.len();
     for inbound in payload.events {
         let event = build_event(inbound, now);
         let dedup_key = dedup_key(&event);
@@ -158,6 +163,8 @@ pub async fn ingest(
             accepted,
             deduped,
             total: accepted + deduped,
+            backpressure: total_events >= ingest_cfg.max_batch,
+            retry_in_ms: Some(ingest_cfg.dedup_ttl_ms.min(5_000)),
         }),
     ))
 }

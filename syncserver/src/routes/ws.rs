@@ -7,11 +7,13 @@ use axum::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         ConnectInfo, State,
     },
+    http::{HeaderMap, StatusCode},
     response::Response,
 };
 use tokio::time::timeout;
 
 use crate::{
+    auth::{AuthContext, Principal},
     state::AppState,
     ws_types::{ClientMessage, PageDirection, PagePayload, ServerMessage},
 };
@@ -21,6 +23,7 @@ pub async fn ws_handler(
     ws: WebSocketUpgrade,
     State(state): State<AppState>,
     ConnectInfo(peer): ConnectInfo<std::net::SocketAddr>,
+    headers: HeaderMap,
 ) -> Response {
     if !state.try_acquire_connection().await {
         return Response::builder()
@@ -28,10 +31,33 @@ pub async fn ws_handler(
             .body(axum::body::Body::from("max connections reached"))
             .unwrap();
     }
-    ws.on_upgrade(move |socket| handle_socket(socket, state, peer))
+    // Require a bearer session token to establish WS.
+    let session_token = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .map(|s| s.trim().to_string());
+    let auth_ctx = session_token
+        .and_then(|t| state.session_store.validate(&t))
+        .map(|session| AuthContext {
+            principal: session.principal,
+        });
+    if auth_ctx.is_none() {
+        state.release_connection();
+        return Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .body(axum::body::Body::from("missing or invalid session"))
+            .unwrap();
+    }
+    ws.on_upgrade(move |socket| handle_socket(socket, state, peer, auth_ctx.unwrap()))
 }
 
-async fn handle_socket(mut socket: WebSocket, state: AppState, peer: std::net::SocketAddr) {
+async fn handle_socket(
+    mut socket: WebSocket,
+    state: AppState,
+    peer: std::net::SocketAddr,
+    auth: AuthContext,
+) {
     let mut rx = state.subscribe_events();
     let cfg = state.config.read().await;
     let snapshot_limit = cfg.config.server.ws_snapshot_limit as usize;
@@ -58,6 +84,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, peer: std::net::S
         "ws_session",
         otel.name = "ws.session",
         peer = %peer,
+        actor = %auth_label(&auth),
         connections = state.connection_count.load(std::sync::atomic::Ordering::Relaxed)
     );
     let _guard = session_span.enter();
@@ -235,5 +262,12 @@ fn message_label(msg: &ServerMessage) -> &'static str {
         ServerMessage::SimUpdate { .. } => "sim_update",
         ServerMessage::Degraded { .. } => "degraded_notice",
         ServerMessage::Pong => "pong",
+    }
+}
+
+fn auth_label(ctx: &AuthContext) -> String {
+    match &ctx.principal {
+        Principal::User { id, .. } => format!("user:{id}"),
+        Principal::Device { id } => format!("device:{id}"),
     }
 }

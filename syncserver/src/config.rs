@@ -815,7 +815,7 @@ impl AppConfig {
                 self.auth.lockout_secs = lockout_secs;
             }
             if let Some(admin_user) = auth.bootstrap_admin_username {
-                self.auth.bootstrap_admin_username = Some(admin_user);
+                self.auth.bootstrap_admin_username = admin_user;
             }
             if let Some(ttl) = auth.session_ttl_secs {
                 self.auth.session_ttl_secs = ttl;
@@ -1052,6 +1052,11 @@ pub struct PartialDatabaseConfig {
 pub struct PartialAuthConfig {
     pub modes: Option<Vec<AuthMode>>,
     pub password_pepper: Option<Option<String>>,
+    pub password_min_length: Option<u32>,
+    pub admin_password_min_length: Option<u32>,
+    pub max_failed_attempts: Option<u32>,
+    pub lockout_secs: Option<u64>,
+    pub bootstrap_admin_username: Option<Option<String>>,
     pub session_ttl_secs: Option<u64>,
     pub require_admin_totp: Option<bool>,
     pub oauth_issuer: Option<Option<String>>,

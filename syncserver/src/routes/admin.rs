@@ -138,6 +138,7 @@ pub async fn update_user(
     }
     if let Some(password) = patch.password {
         updated = state.user_store.set_password(&user_id, &password)?;
+        state.session_store.revoke_by_principal(&user_id);
     }
 
     state

@@ -99,3 +99,37 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       - run: bun install --frozen-lockfile
       - run: npm audit --audit-level=high
+
+  syncserver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            syncserver/target
+          key: ${{ runner.os }}-syncserver-${{ hashFiles('syncserver/Cargo.lock') }}
+      - name: fmt
+        working-directory: syncserver
+        run: cargo fmt -- --check
+      - name: clippy
+        working-directory: syncserver
+        run: cargo clippy --all-targets -- -D warnings
+      - name: test
+        working-directory: syncserver
+        run: cargo test --all-targets
+      - name: build container
+        run: docker build -f syncserver/Dockerfile syncserver -t syncserver:ci
+      - name: vulnerability scan
+        uses: aquasecurity/trivy-action@0.22.0
+        with:
+          image-ref: syncserver:ci
+          format: table
+          exit-code: 0

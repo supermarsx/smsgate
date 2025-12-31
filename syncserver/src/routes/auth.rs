@@ -83,9 +83,23 @@ pub async fn login(
         let principal = match payload.mode {
             AuthMode::SimpleSignin => {
                 let store = state.user_store.clone();
-                let user = store
-                    .authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
-                    .map_err(|err| AppError::Validation(err.to_string()))?;
+                let user = match store.authenticate(
+                    &payload.username,
+                    payload.password.as_deref().unwrap_or(""),
+                ) {
+                    Ok(user) => user,
+                    Err(err) => {
+                        let locked = store.record_failure(&payload.username);
+                        if locked {
+                            tracing::warn!(
+                                target: "auth",
+                                user = %payload.username,
+                                "account temporarily locked due to failures"
+                            );
+                        }
+                        return Err(err);
+                    }
+                };
                 enforce_totp(&cfg, &user, payload.totp_code.as_deref())?;
                 if cfg.auth.require_admin_totp
                     && user.role.name == "admin"
@@ -289,9 +303,10 @@ pub async fn confirm_password_reset(
     ctx: RequestContext,
     Json(payload): Json<PasswordResetConfirmRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    state
+    let user_id = state
         .user_store
         .reset_password(&payload.token, &payload.new_password)?;
+    state.session_store.revoke_by_principal(&user_id);
     state
         .audit
         .log_action(
