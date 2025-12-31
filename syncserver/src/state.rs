@@ -91,6 +91,8 @@ pub struct AppState {
     pub rbac: Arc<RbacStore>,
     /// Persistence worker for asynchronous writes.
     pub persistence_worker: PersistenceWorker,
+    /// Pairing store for session lifecycle.
+    pub pairing_store: Arc<crate::pairing::PairingStore>,
 }
 
 impl AppState {
@@ -153,6 +155,7 @@ impl AppState {
         );
         let rbac = Arc::new(RbacStore::from_config(&config.rbac));
         let persistence_worker = PersistenceWorker::new(persistence.clone());
+        let pairing_store = Arc::new(crate::pairing::PairingStore::new(config.pairing.clone()));
 
         Self {
             config,
@@ -167,6 +170,7 @@ impl AppState {
             persistence,
             rbac,
             persistence_worker,
+            pairing_store,
         }
     }
 
