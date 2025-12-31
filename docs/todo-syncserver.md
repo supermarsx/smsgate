@@ -22,7 +22,7 @@
 - [x] Enforce admin TOTP when configured; bootstrap admin defaults to no secret.
 - [x] Implement password reset token flow and bootstrap admin credential path.
 - [x] Scaffold device auth extractor (header-based placeholder) and RBAC role struct; wire ingest/presence through auth guard.
-- [ ] Align with spec password policy/lockout (min entropy, history, breach checks, configurable admin username, session invalidation on password change, SMTP email reset).
+- [ ] Align with spec password policy/lockout (breach checks, SMTP email reset, admin username non-default enforcement).
 - [ ] Replace OAuth/Domain stubs with real issuer/JWKS validation and LDAP bind + group fetch.
 
 ## RBAC & roles
@@ -49,7 +49,7 @@
 - [x] Implement state transitions (`claim/verify/reject`) with validation + broadcast (audit stream pending).
 - [x] Support batch ingest and backpressure hints to devices (batch limit enforced; backpressure signals pending).
 - [x] Add policy-based persistence enqueue for compliance/retention rules.
-- [ ] Backpressure signals to devices (queue depth thresholds, retry hints) and number ownership validation per spec.
+- [x] Backpressure signals to devices (retry hints) and number ownership validation.
 - [ ] Event retention/pruning policy and immutable audit stream (SQL currently upserts).
 
 ## Presence, metrics, SIM inventory

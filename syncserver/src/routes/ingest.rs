@@ -14,6 +14,7 @@ use crate::{
     auth::DeviceAuth,
     domain::{EventSource, EventState, SmsEvent},
     error::AppError,
+    management::NumberStore,
     routes::context::RequestContext,
     state::AppState,
     ws_types::ServerMessage,
@@ -105,6 +106,9 @@ pub async fn ingest(
     let total_events = payload.events.len();
     for inbound in payload.events {
         let event = build_event(inbound, now);
+        if let Some(number) = event.number_e164.as_ref() {
+            validate_number_ownership(&state.numbers, number, &event.device_id)?;
+        }
         let dedup_key = dedup_key(&event);
         if state.hot_store.has_dedup_key(&dedup_key).await {
             deduped += 1;
@@ -167,6 +171,21 @@ pub async fn ingest(
             retry_in_ms: Some(ingest_cfg.dedup_ttl_ms.min(5_000)),
         }),
     ))
+}
+
+fn validate_number_ownership(
+    numbers: &std::sync::Arc<NumberStore>,
+    e164: &str,
+    device_id: &str,
+) -> Result<(), AppError> {
+    if numbers.device_allowed(e164, device_id) {
+        Ok(())
+    } else {
+        Err(AppError::Validation(format!(
+            "device {} not allowed to send for number {}",
+            device_id, e164
+        )))
+    }
 }
 
 fn build_event(inbound: InboundEvent, now: DateTime<Utc>) -> SmsEvent {

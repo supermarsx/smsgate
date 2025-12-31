@@ -190,6 +190,10 @@ pub struct AuthConfig {
     pub password_min_length: u32,
     /// Minimum password length for admin users.
     pub admin_password_min_length: u32,
+    /// Minimum entropy bits estimated for passwords.
+    pub password_min_entropy_bits: u32,
+    /// Maximum password history size to prevent reuse.
+    pub password_history_size: u32,
     /// Maximum consecutive failed attempts before temporary lockout.
     pub max_failed_attempts: u32,
     /// Lockout duration in seconds after exceeding failed attempts.
@@ -215,6 +219,8 @@ impl Default for AuthConfig {
             password_pepper: None,
             password_min_length: 12,
             admin_password_min_length: 16,
+            password_min_entropy_bits: 48,
+            password_history_size: 5,
             max_failed_attempts: 5,
             lockout_secs: 300,
             bootstrap_admin_username: Some("admin".into()),
@@ -817,6 +823,12 @@ impl AppConfig {
             if let Some(admin_user) = auth.bootstrap_admin_username {
                 self.auth.bootstrap_admin_username = admin_user;
             }
+            if let Some(entropy) = auth.password_min_entropy_bits {
+                self.auth.password_min_entropy_bits = entropy;
+            }
+            if let Some(history) = auth.password_history_size {
+                self.auth.password_history_size = history;
+            }
             if let Some(ttl) = auth.session_ttl_secs {
                 self.auth.session_ttl_secs = ttl;
             }
@@ -1054,6 +1066,8 @@ pub struct PartialAuthConfig {
     pub password_pepper: Option<Option<String>>,
     pub password_min_length: Option<u32>,
     pub admin_password_min_length: Option<u32>,
+    pub password_min_entropy_bits: Option<u32>,
+    pub password_history_size: Option<u32>,
     pub max_failed_attempts: Option<u32>,
     pub lockout_secs: Option<u64>,
     pub bootstrap_admin_username: Option<Option<String>>,

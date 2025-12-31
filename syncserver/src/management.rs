@@ -90,6 +90,28 @@ impl NumberStore {
         self.numbers.remove(e164);
     }
 
+    /// Check whether a device is assigned to the given number (or number is shared).
+    pub fn device_allowed(&self, e164: &str, device_id: &str) -> bool {
+        if let Some(entry) = self.numbers.get(e164) {
+            if entry.shared {
+                return true;
+            }
+            if entry
+                .assigned_device_ids
+                .iter()
+                .any(|id| id == device_id)
+            {
+                return true;
+            }
+            if entry.default_device_id.as_deref() == Some(device_id) {
+                return true;
+            }
+            return false;
+        }
+        // If number not registered, allow by default.
+        true
+    }
+
     /// Return a page of numbers.
     pub fn list(&self, page: u32, page_size: u32) -> Vec<NumberRecord> {
         let skip = (page.saturating_sub(1) * page_size) as usize;

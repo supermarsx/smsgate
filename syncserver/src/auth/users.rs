@@ -23,6 +23,7 @@ pub struct UserRecord {
     pub locked: bool,
     pub lock_until: Option<DateTime<Utc>>,
     pub last_login_at: Option<DateTime<Utc>>,
+    pub password_history: Vec<String>,
 }
 
 /// In-memory user store with password hashing and lookup helpers.
@@ -82,6 +83,14 @@ impl UserStore {
         self.users.get(user_id).map(|v| v.value().clone())
     }
 
+    /// Lookup user by username.
+    pub fn user_by_username(&self, username: &str) -> Option<UserRecord> {
+        self.users
+            .iter()
+            .find(|u| u.username == username)
+            .map(|u| u.value().clone())
+    }
+
     /// Return a sorted list of users for admin listing.
     pub fn list(&self) -> Vec<UserRecord> {
         let mut records: Vec<_> = self.users.iter().map(|u| u.value().clone()).collect();
@@ -105,10 +114,15 @@ impl UserStore {
         if password.len() < min_len as usize {
             return Err(AppError::Validation("password too short".into()));
         }
+        if self.estimate_entropy(password) < self.config.password_min_entropy_bits as f64 {
+            return Err(AppError::Validation("password too weak".into()));
+        }
         if self.contains_username(username) {
             return Err(AppError::Validation("username already exists".into()));
         }
         let password_hash = self.hash_password(password)?;
+        let mut history = Vec::new();
+        history.push(password_hash.clone());
         let record = UserRecord {
             id: uuid::Uuid::new_v4().to_string(),
             username: username.to_string(),
@@ -118,6 +132,7 @@ impl UserStore {
             locked: false,
             lock_until: None,
             last_login_at: None,
+            password_history: history,
         };
         self.users.insert(record.id.clone(), record.clone());
         Ok(record)
@@ -193,6 +208,9 @@ impl UserStore {
         if new_password.len() < self.config.password_min_length as usize {
             return Err(AppError::Validation("password too short".into()));
         }
+        if self.estimate_entropy(new_password) < self.config.password_min_entropy_bits as f64 {
+            return Err(AppError::Validation("password too weak".into()));
+        }
         let entry = self
             .resets
             .get(token)
@@ -212,9 +230,22 @@ impl UserStore {
         if new_password.len() < self.config.password_min_length as usize {
             return Err(AppError::Validation("password too short".into()));
         }
+        if self.estimate_entropy(new_password) < self.config.password_min_entropy_bits as f64 {
+            return Err(AppError::Validation("password too weak".into()));
+        }
         let hash = self.hash_password(new_password)?;
         if let Some(mut user) = self.users.get_mut(user_id) {
-            user.password_hash = hash;
+            if user
+                .password_history
+                .iter()
+                .any(|h| h == &hash || h == &user.password_hash)
+            {
+                return Err(AppError::Validation("password was recently used".into()));
+            }
+            user.password_hash = hash.clone();
+            user.password_history.insert(0, hash);
+            user.password_history
+                .truncate(self.config.password_history_size as usize);
             return Ok(user.clone());
         }
         Err(AppError::Validation("user not found".into()))
@@ -236,6 +267,20 @@ impl UserStore {
             return Ok(user.clone());
         }
         Err(AppError::Validation("user not found".into()))
+    }
+
+    /// Delete a user.
+    pub fn delete(&self, user_id: &str) {
+        self.users.remove(user_id);
+    }
+
+    /// Rebind user roles from a fresh RBAC store (used when roles change).
+    pub fn rebind_roles(&self, rbac: &crate::auth::rbac::RbacStore) {
+        for mut user in self.users.iter_mut() {
+            if let Some(role) = rbac.role_by_name(&user.role.name) {
+                user.role = role;
+            }
+        }
     }
 
     /// Record a failed attempt and return whether the account is now locked.
@@ -262,26 +307,26 @@ impl UserStore {
         false
     }
 
-    /// Lookup user by username.
-    pub fn user_by_username(&self, username: &str) -> Option<UserRecord> {
-        self.users
-            .iter()
-            .find(|u| u.username == username)
-            .map(|u| u.value().clone())
-    }
-
-    /// Delete a user.
-    pub fn delete(&self, user_id: &str) {
-        self.users.remove(user_id);
-    }
-
-    /// Rebind user roles from a fresh RBAC store (used when roles change).
-    pub fn rebind_roles(&self, rbac: &crate::auth::rbac::RbacStore) {
-        for mut user in self.users.iter_mut() {
-            if let Some(role) = rbac.role_by_name(&user.role.name) {
-                user.role = role;
-            }
+    /// Rough entropy estimator based on length and character classes.
+    fn estimate_entropy(&self, password: &str) -> f64 {
+        let mut classes = 0f64;
+        let bytes = password.as_bytes();
+        if bytes.iter().any(|c| c.is_ascii_lowercase()) {
+            classes += 26f64;
         }
+        if bytes.iter().any(|c| c.is_ascii_uppercase()) {
+            classes += 26f64;
+        }
+        if bytes.iter().any(|c| c.is_ascii_digit()) {
+            classes += 10f64;
+        }
+        if bytes.iter().any(|c| !c.is_ascii_alphanumeric()) {
+            classes += 32f64;
+        }
+        if classes == 0.0 {
+            return 0.0;
+        }
+        (password.len() as f64) * classes.log2()
     }
 }
 
