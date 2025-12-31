@@ -42,6 +42,15 @@ export default function DashboardPage() {
   const clientRef = useRef<WsClient | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const SNAPSHOT_KEY = "smsgate2_snapshot";
+  const friendlyLastError = useMemo(() => {
+    if (!lastError) return null;
+    const lower = lastError.toLowerCase();
+    if (lower.includes("offline mode")) return t("wsOfflineMode", "Offline mode: realtime disabled");
+    if (lower.includes("websocket error")) return t("wsErrorGeneric", "WebSocket error");
+    if (lower.includes("failed to fetch") || lower.includes("network"))
+      return t("wsNetworkError", "Network error or server unreachable");
+    return lastError;
+  }, [lastError, t]);
 
   const orderedEvents = useMemo(() => {
     const filtered = filterNumber === "__all__" ? events : events.filter((ev) => ev.number === filterNumber);
@@ -177,9 +186,9 @@ export default function DashboardPage() {
             <div className="feed-head">
               <span className={`status-dot ${connected ? "ok" : "warn"}`} />
               <span>{connected ? t("connected", "Connected") : t("reconnecting", "Reconnecting...")}</span>
-              {lastError && (
+              {friendlyLastError && (
                 <span className="muted">
-                  {t("dashboardLastError", "Last error")}: {lastError}
+                  {t("dashboardLastError", "Last error")}: {friendlyLastError}
                 </span>
               )}
             </div>
