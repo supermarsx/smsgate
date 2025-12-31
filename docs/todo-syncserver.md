@@ -92,7 +92,7 @@
 
 ## Operations & release
 - [x] Build Docker image with minimal base + non-root user; publish compose profile with Redis/DB.
-- [ ] Provide migration tool/command for DB adapters and config seeding.
+- [x] Provide migration tool/command for DB adapters and config seeding.
 - [x] Document environment variables, config keys, and failure modes.
-- [ ] Add runbooks for Redis outage fallback/recovery and hot-store migration back to Redis.
-- [ ] Publish cutover plan + compatibility matrix with smsgate2 and smsrelay3 versions.
+- [x] Add runbooks for Redis outage fallback/recovery and hot-store migration back to Redis.
+- [x] Publish cutover plan + compatibility matrix with smsgate2 and smsrelay3 versions.
