@@ -448,6 +448,7 @@ a {
   height: fit-content;
   display: flex;
   flex-direction: column;
+  user-select: none;
 }
 
 .nav-brand-row {
@@ -468,7 +469,7 @@ a {
   font-weight: 100;
   letter-spacing: 0.02em;
   background: transparent;
-  box-shadow: none;
+  box-shadow: 0 0 18px rgba(217, 164, 65, 0.28);
 }
 
 .nav-link {
@@ -481,6 +482,7 @@ a {
   transition:
     background var(--transition),
     border-color var(--transition);
+  user-select: none;
 }
 
 .nav-link.is-active {
@@ -915,6 +917,7 @@ a {
   border-radius: 999px;
   box-shadow: var(--shadow-2);
   z-index: 20;
+  user-select: none;
 }
 
 .status-pill-mini {
@@ -1131,6 +1134,7 @@ a {
   box-shadow: var(--shadow-2);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
   position: relative;
+  user-select: none;
 }
 
 .fab:hover {
@@ -1199,6 +1203,7 @@ a {
   box-shadow: var(--shadow-2);
   z-index: 21;
   min-width: 240px;
+  user-select: none;
 }
 
 .account-row {
