@@ -27,6 +27,12 @@ export default function ConfigPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [diffSummary, setDiffSummary] = useState<string | null>(null);
   const [shapeErrors, setShapeErrors] = useState<string[]>([]);
+  const [authModesDraft, setAuthModesDraft] = useState<{ oauth: boolean; simpleSignin: boolean; domainSignin: boolean } | null>(null);
+  const [rolesDraft, setRolesDraft] = useState<{ order?: string[]; labels?: Record<string, string> } | null>(null);
+  const [wsDraft, setWsDraft] = useState<{ snapshotSize?: number; pingMs?: number; pageSize?: number; maxConnections?: number } | null>(null);
+  const [retentionDraft, setRetentionDraft] = useState<Record<string, unknown> | null>(null);
+  const [relayDraft, setRelayDraft] = useState<Record<string, unknown> | null>(null);
+  const [contactsDraft, setContactsDraft] = useState<Record<string, unknown> | null>(null);
   const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
@@ -115,6 +121,122 @@ export default function ConfigPage() {
             )}
           </p>
         </div>
+        <section className="gg-section">
+          <div className="gg-section__title">{t("configSections", "Sections")}</div>
+          <div className="config-grid">
+            <div>
+              <div className="gg-label">{t("configAuthModesLabel", "Auth modes")}</div>
+              <div className="config-fields">
+                {(["oauth", "simpleSignin", "domainSignin"] as const).map((key) => (
+                  <label key={key} className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={(authModesDraft ?? (beforeConfig as any).authModes ?? {})[key] ?? false}
+                      disabled={!canEdit}
+                      onChange={(e) => {
+                        setAuthModesDraft((prev) => ({ ...(prev ?? (beforeConfig as any).authModes ?? {}), [key]: e.target.checked }));
+                        setDraft("");
+                      }}
+                    />
+                    <span>{key}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="gg-label">{t("configRbac", "RBAC mapping")}</div>
+              <div className="muted small">{t("configRbacOrder", "Role order and labels")}</div>
+              <input
+                className="gg-input"
+                disabled={!canEdit}
+                defaultValue={((beforeConfig as any).roles?.order ?? []).join(",")}
+                onBlur={(e) => {
+                  setRolesDraft((prev) => ({ ...(prev ?? {}), order: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }));
+                  setDraft("");
+                }}
+                placeholder="viewer,verifier,manager,admin"
+              />
+            </div>
+            <div>
+              <div className="gg-label">{t("configWs", "Realtime & WS")}</div>
+              <div className="config-fields">
+                <label className="gg-label">{t("configSnapshot", "Snapshot size")}</label>
+                <input
+                  className="gg-input"
+                  type="number"
+                  disabled={!canEdit}
+                  defaultValue={(beforeConfig as any).presence?.snapshotSize ?? 10}
+                  onBlur={(e) => {
+                    setWsDraft((prev) => ({ ...(prev ?? {}), snapshotSize: Number(e.target.value) }));
+                    setDraft("");
+                  }}
+                />
+                <label className="gg-label">{t("configPing", "WS ping ms")}</label>
+                <input
+                  className="gg-input"
+                  type="number"
+                  disabled={!canEdit}
+                  defaultValue={(beforeConfig as any).presence?.pingMs ?? 15000}
+                  onBlur={(e) => {
+                    setWsDraft((prev) => ({ ...(prev ?? {}), pingMs: Number(e.target.value) }));
+                    setDraft("");
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="gg-label">{t("configRetention", "Retention")}</div>
+              <textarea
+                className="gg-textarea"
+                disabled={!canEdit}
+                defaultValue={JSON.stringify((beforeConfig as any).retention ?? {}, null, 2)}
+                onBlur={(e) => {
+                  try {
+                    setRetentionDraft(JSON.parse(e.target.value));
+                    setParseError(null);
+                  } catch (err) {
+                    setParseError((err as Error).message);
+                  }
+                  setDraft("");
+                }}
+              />
+            </div>
+            <div>
+              <div className="gg-label">{t("configRelay", "smsrelay3 policies")}</div>
+              <textarea
+                className="gg-textarea"
+                disabled={!canEdit}
+                defaultValue={JSON.stringify((beforeConfig as any).relay ?? (beforeConfig as any).smsrelay3 ?? {}, null, 2)}
+                onBlur={(e) => {
+                  try {
+                    setRelayDraft(JSON.parse(e.target.value));
+                    setParseError(null);
+                  } catch (err) {
+                    setParseError((err as Error).message);
+                  }
+                  setDraft("");
+                }}
+              />
+            </div>
+            <div>
+              <div className="gg-label">{t("configContact", "Contact sync")}</div>
+              <textarea
+                className="gg-textarea"
+                disabled={!canEdit}
+                defaultValue={JSON.stringify((beforeConfig as any).contacts ?? {}, null, 2)}
+                onBlur={(e) => {
+                  try {
+                    setContactsDraft(JSON.parse(e.target.value));
+                    setParseError(null);
+                  } catch (err) {
+                    setParseError((err as Error).message);
+                  }
+                  setDraft("");
+                }}
+              />
+            </div>
+          </div>
+        </section>
         <section className="gg-section">
           <div className="gg-label">{t("configAccessLabel", "Access")}</div>
           <div className="gg-value">
@@ -246,7 +368,43 @@ export default function ConfigPage() {
             <button className="ghost" onClick={refresh} disabled={loading}>
               {t("refresh", "Refresh")}
             </button>
-            <button className="login-submit" onClick={handleSave} disabled={saving || !canEdit}>
+            <button
+              className="login-submit"
+              onClick={async () => {
+                if (!config || !canEdit) return;
+                setSaving(true);
+                try {
+                  const base = config.data ?? config;
+                  const merged = {
+                    ...base,
+                    ...(authModesDraft ? { authModes: authModesDraft } : {}),
+                    ...(rolesDraft ? { roles: { ...(base as any).roles, ...rolesDraft } } : {}),
+                    ...(wsDraft ? { presence: { ...(base as any).presence, ...wsDraft } } : {}),
+                    ...(retentionDraft ? { retention: retentionDraft } : {}),
+                    ...(relayDraft ? { relay: relayDraft } : {}),
+                    ...(contactsDraft ? { contacts: contactsDraft } : {})
+                  } as any;
+                  const shapeIssues = validateShape(merged);
+                  setShapeErrors(shapeIssues);
+                  if (shapeIssues.length) throw new Error("Config shape invalid");
+                  await updateConfig(safeSession, { ...config, data: merged }, etag);
+                  await refresh();
+                  setAuthModesDraft(null);
+                  setRolesDraft(null);
+                  setWsDraft(null);
+                  setRetentionDraft(null);
+                  setRelayDraft(null);
+                  setContactsDraft(null);
+                  setDraft("");
+                  setParseError(null);
+                } catch (err) {
+                  setParseError((err as Error).message);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving || !canEdit}
+            >
               {saving ? t("configSaving", "Saving...") : t("save", "Save")}
             </button>
           </div>

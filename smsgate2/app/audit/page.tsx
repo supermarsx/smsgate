@@ -31,6 +31,9 @@ export default function AuditPage() {
   const [numberFilter, setNumberFilter] = useState<string>("");
   const [timeRange, setTimeRange] = useState<"all" | "1h" | "24h">("all");
   const [cutoff, setCutoff] = useState<number | null>(null);
+  const [actorFilter, setActorFilter] = useState<string>("");
+  const [actionFilter, setActionFilter] = useState<string>("__all__");
+  const [targetFilter, setTargetFilter] = useState<string>("__all__");
   useEffect(() => {
     const now = Date.now();
     if (timeRange === "1h") setCutoff(now - 60 * 60 * 1000);
@@ -50,6 +53,8 @@ export default function AuditPage() {
   const pageSize = 10;
   const filtered = useMemo(() => {
     const term = filter.toLowerCase();
+    const actionVal = actionFilter === "__all__" ? null : actionFilter;
+    const targetVal = targetFilter === "__all__" ? null : targetFilter;
     return rows.filter((r) => {
       const matchesText = [r.action, r.actor, r.device, r.number].some((field: any) =>
         String(field ?? "")
@@ -59,10 +64,22 @@ export default function AuditPage() {
       const matchesResult = result === "__all__" ? true : (r.result ?? r.status) === result;
       const matchesDevice = deviceFilter ? String(r.device ?? "").includes(deviceFilter) : true;
       const matchesNumber = numberFilter ? String(r.number ?? "").includes(numberFilter) : true;
+      const matchesActor = actorFilter ? String(r.actor ?? "").toLowerCase().includes(actorFilter.toLowerCase()) : true;
+      const matchesAction = actionVal ? String(r.action ?? "").toLowerCase() === actionVal.toLowerCase() : true;
+      const matchesTarget = targetVal ? String(r.target ?? r.targetType ?? "").toLowerCase() === targetVal.toLowerCase() : true;
       const matchesTime = cutoff ? Date.parse(r.timestamp ?? r.createdAt ?? "") >= cutoff : true;
-      return matchesText && matchesResult && matchesDevice && matchesNumber && matchesTime;
+      return (
+        matchesText &&
+        matchesResult &&
+        matchesDevice &&
+        matchesNumber &&
+        matchesTime &&
+        matchesActor &&
+        matchesAction &&
+        matchesTarget
+      );
     });
-  }, [rows, filter, result, deviceFilter, numberFilter, cutoff]);
+  }, [rows, filter, result, deviceFilter, numberFilter, cutoff, actorFilter, actionFilter, targetFilter]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
 
@@ -143,6 +160,21 @@ export default function AuditPage() {
               </select>
             </div>
             <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-actor">
+                {t("actorLabel", "Actor")}
+              </label>
+              <input
+                id="audit-actor"
+                className="gg-input"
+                value={actorFilter}
+                onChange={(e) => {
+                  setActorFilter(e.target.value);
+                  setPage(0);
+                }}
+                placeholder={t("actorPlaceholder", "user or id")}
+              />
+            </div>
+            <div className="filter-group">
               <label className="gg-label" htmlFor="audit-device">
                 {t("deviceLabel", "Device")}
               </label>
@@ -171,6 +203,48 @@ export default function AuditPage() {
                 }}
                 placeholder={t("auditNumberPlaceholder", "+1555")}
               />
+            </div>
+            <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-action">
+                {t("actionLabel", "Action")}
+              </label>
+              <select
+                id="audit-action"
+                className="gg-select"
+                value={actionFilter}
+                onChange={(e) => {
+                  setActionFilter(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <option value="__all__">{t("all", "All")}</option>
+                {[...new Set(rows.map((r) => r.action).filter(Boolean))].map((act) => (
+                  <option key={act} value={act}>
+                    {act}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-target">
+                {t("targetLabel", "Target")}
+              </label>
+              <select
+                id="audit-target"
+                className="gg-select"
+                value={targetFilter}
+                onChange={(e) => {
+                  setTargetFilter(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <option value="__all__">{t("all", "All")}</option>
+                {[...new Set(rows.map((r) => r.target ?? r.targetType).filter(Boolean))].map((target) => (
+                  <option key={target} value={target}>
+                    {target}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="filter-group">
               <label className="gg-label" htmlFor="audit-time">

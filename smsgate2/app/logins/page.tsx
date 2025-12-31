@@ -30,6 +30,8 @@ export default function LoginsPage() {
   const [ipFilter, setIpFilter] = useState<string>("");
   const [timeRange, setTimeRange] = useState<"all" | "1h" | "24h">("all");
   const [cutoff, setCutoff] = useState<number | null>(null);
+  const [authMode, setAuthMode] = useState<string>("__all__");
+  const [reason, setReason] = useState<string>("__all__");
   useEffect(() => {
     const now = Date.now();
     if (timeRange === "1h") setCutoff(now - 60 * 60 * 1000);
@@ -49,6 +51,8 @@ export default function LoginsPage() {
   const pageSize = 10;
   const filtered = useMemo(() => {
     const term = filter.toLowerCase();
+    const authVal = authMode === "__all__" ? null : authMode;
+    const reasonVal = reason === "__all__" ? null : reason;
     return rows.filter((r) => {
       const matchesText = [r.user, r.username, r.status, r.ip].some((field: any) =>
         String(field ?? "")
@@ -57,10 +61,12 @@ export default function LoginsPage() {
       );
       const matchesResult = result === "__all__" ? true : (r.status ?? r.result) === result;
       const matchesIp = ipFilter ? String(r.ip ?? "").includes(ipFilter) : true;
+      const matchesAuth = authVal ? String(r.authMode ?? r.mode ?? "").toLowerCase() === authVal.toLowerCase() : true;
+      const matchesReason = reasonVal ? String(r.reason ?? r.reasonCode ?? "").toLowerCase() === reasonVal.toLowerCase() : true;
       const matchesTime = cutoff ? Date.parse(r.timestamp ?? r.createdAt ?? "") >= cutoff : true;
-      return matchesText && matchesResult && matchesIp && matchesTime;
+      return matchesText && matchesResult && matchesIp && matchesTime && matchesAuth && matchesReason;
     });
-  }, [rows, filter, result, ipFilter, cutoff]);
+  }, [rows, filter, result, ipFilter, cutoff, authMode, reason]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
 
@@ -140,6 +146,48 @@ export default function LoginsPage() {
             </select>
           </div>
           <div className="filter-group">
+            <label className="gg-label" htmlFor="login-auth">
+              {t("authModeLabel", "Auth mode")}
+            </label>
+            <select
+              id="login-auth"
+              className="gg-select"
+              value={authMode}
+              onChange={(e) => {
+                setAuthMode(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="__all__">{t("all", "All")}</option>
+              {[...new Set(rows.map((r) => r.authMode ?? r.mode).filter(Boolean))].map((mode) => (
+                <option key={mode} value={mode}>
+                  {mode}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="gg-label" htmlFor="login-reason">
+              {t("reasonLabel", "Reason")}
+            </label>
+            <select
+              id="login-reason"
+              className="gg-select"
+              value={reason}
+              onChange={(e) => {
+                setReason(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="__all__">{t("all", "All")}</option>
+              {[...new Set(rows.map((r) => r.reason ?? r.reasonCode).filter(Boolean))].map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
             <label className="gg-label" htmlFor="login-ip">
               {t("ipLabel", "IP")}
             </label>
@@ -178,6 +226,12 @@ export default function LoginsPage() {
                 <div className="muted">
                   {r.user ?? r.username ?? t("userPlaceholder", "user")} @ {r.timestamp ?? "-"} | {t("ipLabel", "IP")}:{" "}
                   {r.ip ?? "-"}
+                </div>
+                <div className="muted small">
+                  {t("authModeLabel", "Auth mode")}: {r.authMode ?? r.mode ?? "-"} | {t("reasonLabel", "Reason")}: {r.reason ?? r.reasonCode ?? "-"}
+                </div>
+                <div className="muted small">
+                  {t("sessionId", "Session")}: {r.sessionId ?? r.session_id ?? "-"} | {t("userAgent", "User agent")}: {r.userAgent ?? r.ua ?? "-"}
                 </div>
               </div>
             </div>
