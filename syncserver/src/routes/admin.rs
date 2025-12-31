@@ -95,9 +95,12 @@ pub async fn create_user(
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::USERS_WRITE)?;
     let role = resolve_role(&state, &payload.role).await?;
-    let created = state
-        .user_store
-        .create_user(&payload.username, &payload.password, role, payload.totp_secret.clone())?;
+    let created = state.user_store.create_user(
+        &payload.username,
+        &payload.password,
+        role,
+        payload.totp_secret.clone(),
+    )?;
     state
         .audit
         .log_action(
@@ -376,10 +379,7 @@ pub async fn list_roles(
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::CONFIG_READ)?;
     let cfg = state.config.read().await;
-    Ok((
-        StatusCode::OK,
-        Json(cfg.config.rbac.roles.clone()),
-    ))
+    Ok((StatusCode::OK, Json(cfg.config.rbac.roles.clone())))
 }
 
 /// POST /api/v1/admin/roles

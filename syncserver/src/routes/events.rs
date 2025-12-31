@@ -31,9 +31,15 @@ pub async fn claim_event(
     ctx: RequestContext,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::EVENTS_CLAIM)?;
-    let updated =
-        transition_event(&state, &user.actor_label(), &ctx, &event_id, EventState::Claimed, "event.claim")
-            .await?;
+    let updated = transition_event(
+        &state,
+        &user.actor_label(),
+        &ctx,
+        &event_id,
+        EventState::Claimed,
+        "event.claim",
+    )
+    .await?;
     Ok((StatusCode::OK, Json(EventResponse::from(updated))))
 }
 

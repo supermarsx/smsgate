@@ -79,7 +79,10 @@ pub fn router(state: AppState) -> Router {
         )
         .route("/api/v1/ws", axum::routing::get(ws::ws_handler))
         .route("/api/v1/admin/users", axum::routing::get(admin::list_users))
-        .route("/api/v1/admin/users", axum::routing::post(admin::create_user))
+        .route(
+            "/api/v1/admin/users",
+            axum::routing::post(admin::create_user),
+        )
         .route(
             "/api/v1/admin/users/:user_id",
             axum::routing::patch(admin::update_user).delete(admin::delete_user),
@@ -109,7 +112,10 @@ pub fn router(state: AppState) -> Router {
             axum::routing::post(admin::unassign_number),
         )
         .route("/api/v1/admin/roles", axum::routing::get(admin::list_roles))
-        .route("/api/v1/admin/roles", axum::routing::post(admin::create_role))
+        .route(
+            "/api/v1/admin/roles",
+            axum::routing::post(admin::create_role),
+        )
         .route(
             "/api/v1/admin/rbac/groups",
             axum::routing::put(admin::update_group_mapping),

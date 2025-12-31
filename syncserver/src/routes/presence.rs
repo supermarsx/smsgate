@@ -26,12 +26,10 @@ pub async fn heartbeat(
 ) -> Result<impl IntoResponse, AppError> {
     let device_id = payload.device_id.clone();
     let now = chrono::Utc::now();
-    let presence = state.presence.upsert(
-        &device_id,
-        now,
-        payload.queue_depth,
-        payload.device_rtt_ms,
-    );
+    let presence =
+        state
+            .presence
+            .upsert(&device_id, now, payload.queue_depth, payload.device_rtt_ms);
 
     if let Some(rtt) = payload.device_rtt_ms {
         state.metrics.observe_device_rtt(&device_id, rtt);
@@ -40,13 +38,15 @@ pub async fn heartbeat(
         .metrics
         .observe_device_queue_depth(&device_id, payload.queue_depth);
 
-    let _ = state.event_tx.send(ServerMessage::PresenceUpdate(PresenceUpdate {
-        device_id: device_id.clone(),
-        state: presence.clone(),
-        queue_depth: payload.queue_depth,
-        last_heartbeat: now,
-        device_rtt_ms: payload.device_rtt_ms,
-    }));
+    let _ = state
+        .event_tx
+        .send(ServerMessage::PresenceUpdate(PresenceUpdate {
+            device_id: device_id.clone(),
+            state: presence.clone(),
+            queue_depth: payload.queue_depth,
+            last_heartbeat: now,
+            device_rtt_ms: payload.device_rtt_ms,
+        }));
 
     if !payload.sims.is_empty() {
         handle_sim_inventory(&state, &device_id, payload.sims, &device).await;
@@ -74,12 +74,12 @@ async fn handle_sim_inventory(
 ) {
     let (updated, changed) = state.sim_inventory.upsert(device_id, sims);
     if changed {
-        let _ = state.event_tx.send(ServerMessage::SimUpdate(
-            crate::ws_types::SimUpdate {
+        let _ = state
+            .event_tx
+            .send(ServerMessage::SimUpdate(crate::ws_types::SimUpdate {
                 device_id: device_id.to_string(),
                 sims: updated.clone(),
-            },
-        ));
+            }));
         state
             .audit
             .log_action(

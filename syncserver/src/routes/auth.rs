@@ -1,6 +1,10 @@
 //! Authentication endpoints for simple_signin, domain_signin, and OAuth callbacks.
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use lettre::{
+    message::Mailbox, transport::smtp::authentication::Credentials, AsyncSmtpTransport,
+    AsyncTransport, Message, Tokio1Executor,
+};
 use serde::Deserialize;
 use totp_rs::{Algorithm, Secret, TOTP};
 use tracing;
@@ -28,6 +32,8 @@ pub struct LoginRequest {
     pub issuer: Option<String>,
     /// OAuth audience/client id (stub).
     pub audience: Option<String>,
+    /// Raw ID token for OAuth/OIDC login.
+    pub id_token: Option<String>,
 }
 
 /// Response payload after successful login.
@@ -83,10 +89,9 @@ pub async fn login(
         let principal = match payload.mode {
             AuthMode::SimpleSignin => {
                 let store = state.user_store.clone();
-                let user = match store.authenticate(
-                    &payload.username,
-                    payload.password.as_deref().unwrap_or(""),
-                ) {
+                let user = match store
+                    .authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
+                {
                     Ok(user) => user,
                     Err(err) => {
                         let locked = store.record_failure(&payload.username);
@@ -117,15 +122,11 @@ pub async fn login(
                 authenticate_domain(&cfg.auth, &payload.username, password)
             }
             AuthMode::Oauth => {
-                let issuer = payload
-                    .issuer
+                let id_token = payload
+                    .id_token
                     .as_deref()
-                    .ok_or_else(|| AppError::Validation("issuer required".into()))?;
-                let audience = payload
-                    .audience
-                    .as_deref()
-                    .ok_or_else(|| AppError::Validation("audience required".into()))?;
-                validate_id_token(&cfg.auth, &payload.username, issuer, audience)
+                    .ok_or_else(|| AppError::Validation("id_token required".into()))?;
+                validate_id_token(&cfg.auth, id_token)
             }
         }?;
         Ok((principal, two_fa_passed))
@@ -291,9 +292,29 @@ pub async fn request_password_reset(
             ctx.user_agent.clone(),
         )
         .await;
+
+    let smtp_cfg = {
+        let guard = state.config.read().await;
+        guard.config.auth.smtp.clone()
+    };
+    if let Some(cfg) = smtp_cfg.as_ref() {
+        if let Err(err) = send_reset_email(cfg, &payload.username, &token).await {
+            tracing::warn!(
+                target: "auth",
+                error = %err,
+                user = %payload.username,
+                "failed to dispatch password reset email"
+            );
+            return Err(err);
+        }
+    }
+
     Ok((
         StatusCode::OK,
-        Json(serde_json::json!({ "reset_token": token })),
+        Json(match smtp_cfg {
+            Some(_) => serde_json::json!({ "status": "email_dispatched" }),
+            None => serde_json::json!({ "reset_token": token }),
+        }),
     ))
 }
 
@@ -367,4 +388,49 @@ fn principal_actor(principal: &Principal) -> String {
         Principal::User { id, .. } => format!("user:{id}"),
         Principal::Device { id } => format!("device:{id}"),
     }
+}
+
+/// Dispatch a password reset email when SMTP is configured.
+async fn send_reset_email(
+    cfg: &crate::config::SmtpConfig,
+    username: &str,
+    token: &str,
+) -> Result<(), AppError> {
+    let to: Mailbox = username.parse().map_err(|_| {
+        AppError::Validation("username must be a valid email for SMTP reset".into())
+    })?;
+    let from: Mailbox = cfg
+        .from
+        .parse()
+        .map_err(|err| AppError::Validation(format!("invalid smtp from address: {err}")))?;
+    let message = Message::builder()
+        .from(from)
+        .to(to)
+        .subject("syncserver password reset")
+        .body(format!(
+            "Use this token to reset your syncserver password: {}\nThis token expires in 15 minutes.",
+            token
+        ))
+        .map_err(|err| AppError::Internal(format!("failed to build reset email: {err}")))?;
+    let transport_builder = if cfg.use_tls {
+        AsyncSmtpTransport::<Tokio1Executor>::relay(&cfg.server)
+            .map_err(|err| AppError::Internal(format!("smtp relay config error: {err}")))?
+            .port(cfg.port)
+    } else {
+        AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&cfg.server).port(cfg.port)
+    };
+    let transport_builder = if let Some(user) = &cfg.username {
+        transport_builder.credentials(Credentials::new(
+            user.clone(),
+            cfg.password.clone().unwrap_or_default(),
+        ))
+    } else {
+        transport_builder
+    };
+    let transport = transport_builder.build();
+    transport
+        .send(message)
+        .await
+        .map_err(|err| AppError::Internal(format!("failed to send reset email: {err}")))?;
+    Ok(())
 }
