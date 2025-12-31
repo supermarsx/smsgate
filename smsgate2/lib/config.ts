@@ -16,6 +16,35 @@ type AuthModes = {
   domainSignin: boolean;
 };
 
+type UiDefaults = {
+  pageSize?: number;
+  dateFormat?: string;
+  showDebug?: boolean;
+};
+
+type FeatureFlags = Record<string, boolean>;
+
+type RealtimeConfig = {
+  pingMs?: number;
+  reconnectCapMs?: number;
+};
+
+type ContactsConfig = {
+  syncIntervalMinutes?: number;
+  conflictStrategy?: "remote" | "local" | "prompt";
+};
+
+type LoggingConfig = {
+  level?: "debug" | "info" | "warn" | "error";
+  console?: boolean;
+};
+
+type TelemetryConfig = {
+  enabled?: boolean;
+  endpoint?: string;
+  sampleRate?: number;
+};
+
 /**
  * Top-level runtime configuration consumed by the UI. Values come from JSON files and env vars.
  */
@@ -35,6 +64,8 @@ export type AppConfig = {
     username?: string;
     password?: string;
     fromEmail?: string;
+    replyTo?: string;
+    rateLimitPerHour?: number;
   };
   offlineReset?: {
     enabled: boolean;
@@ -50,6 +81,12 @@ export type AppConfig = {
     default: ThemeChoice;
     force?: boolean;
   };
+  ui?: UiDefaults;
+  featureFlags?: FeatureFlags;
+  realtime?: RealtimeConfig;
+  contacts?: ContactsConfig;
+  logging?: LoggingConfig;
+  telemetry?: TelemetryConfig;
 };
 
 /**
@@ -198,6 +235,35 @@ function buildConfig(): AppConfig {
     force: mergedFileConfig.theme?.force ?? false
   };
 
+  const ui: AppConfig["ui"] = {
+    pageSize: mergedFileConfig.ui?.pageSize ?? 20,
+    dateFormat: mergedFileConfig.ui?.dateFormat ?? "YYYY-MM-DD",
+    showDebug: mergedFileConfig.ui?.showDebug ?? false
+  };
+
+  const realtime: AppConfig["realtime"] = {
+    pingMs: mergedFileConfig.realtime?.pingMs ?? 15_000,
+    reconnectCapMs: mergedFileConfig.realtime?.reconnectCapMs ?? 30_000
+  };
+
+  const contacts: AppConfig["contacts"] = {
+    syncIntervalMinutes: mergedFileConfig.contacts?.syncIntervalMinutes ?? 30,
+    conflictStrategy: mergedFileConfig.contacts?.conflictStrategy ?? "prompt"
+  };
+
+  const logging: AppConfig["logging"] = {
+    level: mergedFileConfig.logging?.level ?? "info",
+    console: mergedFileConfig.logging?.console ?? true
+  };
+
+  const telemetry: AppConfig["telemetry"] = {
+    enabled: mergedFileConfig.telemetry?.enabled ?? false,
+    endpoint: mergedFileConfig.telemetry?.endpoint,
+    sampleRate: mergedFileConfig.telemetry?.sampleRate ?? 1
+  };
+
+  const featureFlags = mergedFileConfig.featureFlags ?? {};
+
   return {
     apiBaseUrl,
     wsPath,
@@ -211,7 +277,13 @@ function buildConfig(): AppConfig {
     authModes,
     locales,
     defaultLocale,
-    theme
+    theme,
+    ui,
+    featureFlags,
+    realtime,
+    contacts,
+    logging,
+    telemetry
   };
 }
 
