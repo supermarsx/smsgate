@@ -16,6 +16,9 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggle: () => undefined
 });
 
+/**
+ * Provides light/dark theme state and persists preference.
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
@@ -46,6 +49,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
+/**
+ * Hook to read and toggle the current theme.
+ */
 export function useTheme(): ThemeContextValue {
   return useContext(ThemeContext);
 }

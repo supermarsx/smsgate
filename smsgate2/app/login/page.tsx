@@ -7,6 +7,9 @@ import { exchangeOAuthCode, loadSession, saveSession, type Session } from "../..
 import { useSession } from "../../components/session-provider";
 import { getTranslations, getInitialLocale } from "../../lib/i18n";
 
+/**
+ * OAuth callback-aware login page that hydrates sessions and renders login panel.
+ */
 function LoginBody() {
   const router = useRouter();
   const search = useSearchParams();

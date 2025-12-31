@@ -6,6 +6,9 @@ import { useSession } from "../../components/session-provider";
 import { getLoginEvents } from "../../lib/rest";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
+/**
+ * Login events history with filters and CSV/JSON export.
+ */
 export default function LoginsPage() {
   const { session } = useSession();
   const locale = getInitialLocale();

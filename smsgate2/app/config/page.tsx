@@ -9,6 +9,9 @@ import { useMemo, useState } from "react";
 import { fetchContacts, exportContacts, toggleContactSync } from "../../lib/rest";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
+/**
+ * Configuration editor with validation, diff preview, and contact utilities.
+ */
 export default function ConfigPage() {
   const { session } = useSession();
   const { config, etag, refresh, loading, error } = useConfig();

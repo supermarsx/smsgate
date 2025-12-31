@@ -11,6 +11,9 @@ import { useStatus } from "../../components/status-context";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
 import { mapWsErrorKey } from "../../lib/status";
 
+/**
+ * Dashboard streaming view: realtime events feed, presence, and metrics.
+ */
 export default function DashboardPage() {
   const { session } = useSession();
   const { refresh: refreshConfig } = useConfig();

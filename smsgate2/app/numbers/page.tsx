@@ -6,6 +6,9 @@ import { useSession } from "../../components/session-provider";
 import { assignNumber, createNumber, deleteNumber, listNumbers, unassignNumber, updateNumber } from "../../lib/rest";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
+/**
+ * Number management page for CRUD and assignment to users/devices.
+ */
 export default function NumbersPage() {
   const { session } = useSession();
   const locale = getInitialLocale();

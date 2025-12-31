@@ -10,6 +10,9 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 type ContactRecord = Record<string, unknown>;
 
+/**
+ * Contact sync controls with conflict resolution and export.
+ */
 export default function ContactsPage() {
   const { session } = useSession();
   const { config, refresh, loading: configLoading } = useConfig();

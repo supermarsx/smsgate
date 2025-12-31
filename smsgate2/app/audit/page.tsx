@@ -6,6 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import { getAudit } from "../../lib/rest";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
+/**
+ * Audit log table with filtering, paging, and export.
+ */
 export default function AuditPage() {
   const { session } = useSession();
   const locale = getInitialLocale();

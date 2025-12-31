@@ -26,6 +26,9 @@ type PairingState = {
 
 type DeviceTone = "online" | "degraded" | "offline" | "neutral";
 
+/**
+ * Device inventory management with pairing, diagnostics, and actions.
+ */
 export default function DevicesPage() {
   const { session } = useSession();
   const { config } = useConfig();

@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description: "Realtime verification dashboard (migration scaffold)"
 };
 
+/**
+ * App root layout wiring providers and global styling.
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

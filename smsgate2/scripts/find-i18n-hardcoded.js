@@ -9,6 +9,10 @@ const path = require("path");
 const roots = [path.join(__dirname, "..", "app"), path.join(__dirname, "..", "components")];
 const results = [];
 
+/**
+ * Walk a directory tree collecting TSX files to scan.
+ * @param {string} dir absolute directory path
+ */
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith(".")) continue;
@@ -24,6 +28,10 @@ function walk(dir) {
 const JSX_TEXT = />[^<{][^<]{2,}</g;
 const ATTR_TEXT = /\b(?:title|aria-label|placeholder|alt|label)=["']([^{"'<]{3,})["']/g;
 
+/**
+ * Scan a TSX file for likely hardcoded UI strings.
+ * @param {string} file absolute file path
+ */
 function scanFile(file) {
   const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   lines.forEach((line, idx) => {
@@ -41,6 +49,10 @@ function scanFile(file) {
   });
 }
 
+/**
+ * Skip noise and non-language strings.
+ * @param {string} text candidate string content
+ */
 function shouldSkip(text) {
   if (!/[A-Za-z]/.test(text)) return true;
   if (text.length < 3) return true;

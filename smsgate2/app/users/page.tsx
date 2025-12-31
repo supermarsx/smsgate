@@ -17,6 +17,9 @@ import {
 import { DEFAULT_ROLE_ORDER, getRoleLabel } from "../../lib/roles";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
+/**
+ * User management page for roles, status toggles, logout/unlock, and credentials.
+ */
 export default function UsersPage() {
   const { session } = useSession();
   const { config } = useConfig();
