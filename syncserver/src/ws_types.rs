@@ -4,7 +4,6 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use crate::{
-    config::ClientConfigSnapshot,
     domain::{PresenceState, SimSnapshot, SmsEvent},
     metrics::Snapshot as MetricsSnapshot,
 };
@@ -56,6 +55,22 @@ pub struct PresenceUpdate {
     pub device_rtt_ms: Option<u32>,
     #[serde(default)]
     pub sims: Vec<SimSnapshot>,
+}
+
+/// Config update payload shared with clients (subset).
+#[derive(Debug, Clone, Serialize)]
+pub struct ConfigUpdate {
+    pub version: u64,
+    pub auth_modes: Vec<String>,
+    pub roles: Vec<RoleSnapshot>,
+}
+
+/// Role descriptor exposed to clients.
+#[derive(Debug, Clone, Serialize)]
+pub struct RoleSnapshot {
+    pub name: String,
+    pub precedence: u32,
+    pub permissions: Vec<String>,
 }
 
 /// SIM update payload.
