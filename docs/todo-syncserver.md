@@ -64,7 +64,7 @@
 ## Storage: hot store + persistence
 - [ ] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors).
 - [x] Implement in-memory fallback hot store with graceful switch + rehydration toggle.
-- [ ] Implement JSON DB adapter (append-only logs with locking) for small installs.
+- [x] Implement JSON DB adapter (append-only logs) for small installs.
 - [ ] Implement SQL adapters (SQLite/Postgres/MySQL) with migrations for events/audit/login/users/devices/numbers/config.
 - [ ] Wire persistence worker respecting policy, retention, and pruning tasks.
 

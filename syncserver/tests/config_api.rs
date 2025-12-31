@@ -21,7 +21,7 @@ async fn returns_config_snapshot() {
         syncserver::config::AuthMode::Oauth,
     ];
     config.ingest.max_batch = 42;
-    let state = AppState::new(config);
+    let state = AppState::new(config).await;
     let app = app_with_state(state);
 
     let res = app

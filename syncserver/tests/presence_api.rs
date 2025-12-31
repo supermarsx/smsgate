@@ -19,7 +19,7 @@ async fn returns_presence_online_then_degraded() {
     let mut config = AppConfig::default();
     config.presence.online_threshold_ms = 100;
     config.presence.degraded_threshold_ms = 500;
-    let mut state = AppState::new(config);
+    let mut state = AppState::new(config).await;
     state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
     let app = app_with_state(state.clone());
 

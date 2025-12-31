@@ -16,8 +16,10 @@ fn app_with_state(state: AppState) -> Router {
 
 #[tokio::test]
 async fn ingests_event_and_sets_parsed_code() {
-    let config = AppConfig::default();
-    let mut state = AppState::new(config);
+    let mut config = AppConfig::default();
+    let dir = tempfile::tempdir().unwrap();
+    config.database.path = Some(dir.path().join("events.json").display().to_string());
+    let mut state = AppState::new(config).await;
     state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
     let app = app_with_state(state.clone());
 
@@ -58,8 +60,10 @@ async fn ingests_event_and_sets_parsed_code() {
 
 #[tokio::test]
 async fn deduplicates_by_content_hash() {
-    let config = AppConfig::default();
-    let mut state = AppState::new(config);
+    let mut config = AppConfig::default();
+    let dir = tempfile::tempdir().unwrap();
+    config.database.path = Some(dir.path().join("events.json").display().to_string());
+    let mut state = AppState::new(config).await;
     state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
     let app = app_with_state(state.clone());
 

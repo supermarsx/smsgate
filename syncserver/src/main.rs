@@ -8,7 +8,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     syncserver::telemetry::init_tracing();
 
     let config = AppConfig::load()?;
-    let state = AppState::new(config.clone());
+    let state = AppState::new(config.clone()).await;
     let app_state = state.clone();
     let app = router(app_state);
 
