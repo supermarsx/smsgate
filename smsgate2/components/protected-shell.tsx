@@ -24,10 +24,12 @@ export function ProtectedShell({ children }: Props) {
   const { config } = useConfig();
   const [locale, setLocale] = useState<Locale>("en-US");
   const [localeMenuOpen, setLocaleMenuOpen] = useState(false);
+  const [showMoreStatus, setShowMoreStatus] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
+
   useEffect(() => {
     if (!session && typeof window !== "undefined") {
       router.replace("/login");
@@ -195,7 +197,41 @@ export function ProtectedShell({ children }: Props) {
             <span className="dot ok" />
             <span>{status.ingestLatency ?? "-"}</span>
           </div>
+          <button
+            type="button"
+            className="status-pill-mini status-more-btn"
+            onClick={() => setShowMoreStatus((v) => !v)}
+            aria-expanded={showMoreStatus}
+            title={t("showMore", "Show more")}
+          >
+            <span className="dot" />
+            <span>{showMoreStatus ? "-" : "+"}</span>
+          </button>
         </div>
+        {showMoreStatus && (
+          <div className="status-more-panel">
+            <div className="status-row">
+              <span className="muted">{t("rttLabel", "RTT")}</span>
+              <span>{status.clientRtt ?? "-"}</span>
+            </div>
+            <div className="status-row">
+              <span className="muted">{t("deviceRtt", "Device RTT")}</span>
+              <span>{status.deviceRtt ?? "-"}</span>
+            </div>
+            <div className="status-row">
+              <span className="muted">{t("errorsLabel", "Errors")}</span>
+              <span>{status.wsErrors ?? 0}</span>
+            </div>
+            <div className="status-row">
+              <span className="muted">{t("reconnects", "Reconnects")}</span>
+              <span>{status.reconnects ?? 0}</span>
+            </div>
+            <div className="status-row">
+              <span className="muted">{t("roleLabel", "Role")}</span>
+              <span>{session.user.role}</span>
+            </div>
+          </div>
+        )}
         <div className="fab-bar">
           <div className="fab" title={t("themeToggle", "Toggle theme")} onClick={toggle}>
             {theme === "dark" ? "🌙" : "☀️"}
@@ -227,6 +263,19 @@ export function ProtectedShell({ children }: Props) {
               </div>
             )}
           </div>
+        </div>
+        <div className="account-float glass">
+          <div className="account-row">
+            <div>
+              <div className="gg-label">{t("account", "Account")}</div>
+              <div className="gg-value">{session.user.email ?? session.user.name}</div>
+              {session.user.email && <div className="muted small">{session.user.name}</div>}
+            </div>
+            <button className="ghost" onClick={handleLogout}>
+              {t("logout", "Logout")}
+            </button>
+          </div>
+          <div className="muted small">{getRoleLabel(session.user.role, roleLabels)}</div>
         </div>
       </section>
     </div>
