@@ -53,11 +53,12 @@ pub async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
         .metrics
         .observe_http("/healthz", axum::http::StatusCode::OK);
 
+    let cfg = state.config.read().await;
     Json(HealthResponse {
         status: "ok",
         service: "syncserver",
         version: env!("CARGO_PKG_VERSION"),
-        env: state.config.env.as_str(),
+        env: cfg.config.env.as_str(),
         uptime_ms: state.started_at.elapsed().as_millis(),
     })
 }
@@ -65,6 +66,8 @@ pub async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
 /// Readiness probe handler with backend summaries.
 pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
     let snapshot = state.ready_flags.snapshot();
+    let cfg_guard = state.config.read().await;
+    let cfg = &cfg_guard.config;
     let status = if snapshot.http_ready
         && snapshot.config_ready
         && snapshot.hot_store_ready
@@ -82,10 +85,10 @@ pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
 
     let payload = ReadyResponse {
         status,
-        env: state.config.env.as_str(),
+        env: cfg.env.as_str(),
         backends: Backends {
-            hot_store: hot_store_label(&state.config),
-            database: database_label(&state.config),
+            hot_store: hot_store_label(cfg),
+            database: database_label(cfg),
         },
         checks: ReadyChecks {
             http: readiness_label(snapshot.http_ready),

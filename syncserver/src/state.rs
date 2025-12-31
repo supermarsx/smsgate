@@ -15,10 +15,10 @@ use std::{
 };
 
 use crate::metrics::Metrics;
-use tokio::sync::broadcast;
-use tokio::sync::RwLock;
 use chrono::Utc;
 use std::path::PathBuf;
+use tokio::sync::broadcast;
+use tokio::sync::RwLock;
 
 /// Readiness flags to report subsystem health without blocking hot paths.
 #[derive(Debug)]
@@ -216,17 +216,26 @@ impl AppState {
     }
 
     /// Persist the provided versioned config to disk.
-    pub async fn persist_config(&self, cfg: &config::VersionedConfig) -> Result<(), crate::error::AppError> {
+    pub async fn persist_config(
+        &self,
+        cfg: &config::VersionedConfig,
+    ) -> Result<(), crate::error::AppError> {
         if let Some(parent) = self.config_path.parent() {
-            tokio::fs::create_dir_all(parent)
-                .await
-                .map_err(|err| crate::error::AppError::Config(format!("failed to create config dir: {err}")))?;
+            tokio::fs::create_dir_all(parent).await.map_err(|err| {
+                crate::error::AppError::Config(format!("failed to create config dir: {err}"))
+            })?;
         }
-        let json = serde_json::to_string_pretty(&cfg.config)
-            .map_err(|err| crate::error::AppError::Config(format!("failed to serialize config: {err}")))?;
+        let json = serde_json::to_string_pretty(&cfg.config).map_err(|err| {
+            crate::error::AppError::Config(format!("failed to serialize config: {err}"))
+        })?;
         tokio::fs::write(&self.config_path, json)
             .await
-            .map_err(|err| crate::error::AppError::Config(format!("failed to write config to {}: {err}", self.config_path.display())))?;
+            .map_err(|err| {
+                crate::error::AppError::Config(format!(
+                    "failed to write config to {}: {err}",
+                    self.config_path.display()
+                ))
+            })?;
         Ok(())
     }
 }

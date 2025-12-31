@@ -18,7 +18,7 @@ use crate::{
 
 /// Upgrade HTTP requests to WebSocket and spawn session tasks.
 pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
-    if !state.try_acquire_connection() {
+    if !state.try_acquire_connection().await {
         return Response::builder()
             .status(axum::http::StatusCode::TOO_MANY_REQUESTS)
             .body(axum::body::Body::from("max connections reached"))
@@ -29,9 +29,14 @@ pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> 
 
 async fn handle_socket(mut socket: WebSocket, state: AppState) {
     let mut rx = state.subscribe_events();
-    let snapshot_limit = state.config.server.ws_snapshot_limit as usize;
+    let cfg = state.config.read().await;
+    let snapshot_limit = cfg.config.server.ws_snapshot_limit as usize;
+    drop(cfg);
 
     if send_welcome(&mut socket).await.is_err() {
+        return;
+    }
+    if send_config_snapshot(&mut socket, &state).await.is_err() {
         return;
     }
     if send_snapshot(&mut socket, &state, snapshot_limit)
@@ -76,13 +81,19 @@ async fn send_snapshot(socket: &mut WebSocket, state: &AppState, limit: usize) -
     let events = state.hot_store.latest(limit).await;
     let newest_id = events.first().map(|e| e.id.clone());
     let oldest_id = events.last().map(|e| e.id.clone());
+    let cfg = state.config.read().await;
     let message = ServerMessage::Snapshot {
         events,
         newest_id,
         oldest_id,
-        limit: state.config.server.ws_snapshot_limit,
+        limit: cfg.config.server.ws_snapshot_limit,
     };
     send_json(socket, &message).await
+}
+
+async fn send_config_snapshot(socket: &mut WebSocket, state: &AppState) -> Result<(), ()> {
+    let snapshot = state.config_snapshot().await;
+    send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await
 }
 
 async fn handle_client_message(
@@ -140,9 +151,10 @@ async fn send_page(
     anchor_id: String,
     limit: Option<u32>,
 ) -> Result<(), ()> {
+    let cfg = state.config.read().await;
     let limit = limit
-        .unwrap_or(state.config.server.ws_snapshot_limit)
-        .min(state.config.server.ws_snapshot_limit);
+        .unwrap_or(cfg.config.server.ws_snapshot_limit)
+        .min(cfg.config.server.ws_snapshot_limit);
     let events = match direction {
         PageDirection::Before => {
             state

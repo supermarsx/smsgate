@@ -17,7 +17,10 @@ pub fn router(state: AppState) -> Router {
         .route("/readyz", get(health::ready))
         .route("/api/v1/healthz", get(health::health))
         .route("/api/v1/readyz", get(health::ready))
-        .route("/api/v1/config", get(config::get_config))
+        .route(
+            "/api/v1/config",
+            get(config::get_config).patch(config::patch_config),
+        )
         .route(
             "/api/v1/pairing/session",
             axum::routing::post(pairing::create_session),

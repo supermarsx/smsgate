@@ -3,7 +3,10 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-use crate::domain::{PresenceState, SmsEvent};
+use crate::{
+    config::ClientConfigSnapshot,
+    domain::{PresenceState, SmsEvent},
+};
 
 /// Server -> client messages.
 #[derive(Debug, Clone, Serialize)]
@@ -18,10 +21,14 @@ pub enum ServerMessage {
         oldest_id: Option<String>,
         limit: u32,
     },
+    /// Initial configuration snapshot to seed UI gating.
+    ConfigSnapshot { config: ClientConfigSnapshot },
     /// New event appended.
     EventNew { event: SmsEvent },
     /// Presence change or heartbeat update.
     PresenceUpdate(PresenceUpdate),
+    /// Config update broadcast after changes.
+    ConfigUpdate { config: ClientConfigSnapshot },
     /// Pong response to client ping.
     Pong,
     /// Paged events in response to PAGE_BEFORE/PAGE_AFTER.

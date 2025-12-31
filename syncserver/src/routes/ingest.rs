@@ -66,22 +66,25 @@ pub async fn ingest(
     State(state): State<AppState>,
     Json(payload): Json<IngestRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    let cfg = state.config.read().await;
+    let ingest_cfg = cfg.config.ingest.clone();
+
     if payload.events.is_empty() {
         return Err(AppError::Validation(
             "at least one event is required".into(),
         ));
     }
-    if payload.events.len() > state.config.ingest.max_batch {
+    if payload.events.len() > ingest_cfg.max_batch {
         return Err(AppError::Validation(format!(
             "batch too large: received {}, max {}",
             payload.events.len(),
-            state.config.ingest.max_batch
+            ingest_cfg.max_batch
         )));
     }
 
     let mut accepted = 0usize;
     let mut deduped = 0usize;
-    let dedup_ttl = Duration::from_millis(state.config.ingest.dedup_ttl_ms);
+    let dedup_ttl = Duration::from_millis(ingest_cfg.dedup_ttl_ms);
     let now = Utc::now();
 
     for inbound in payload.events {
