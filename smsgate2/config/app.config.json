@@ -3,6 +3,7 @@
   "wsPath": "/api/v1/ws",
   "wsOrigin": "https://api.example.com",
   "qrOrigin": "https://api.qrserver.com",
+  "allowOfflineAdmin": false,
   "smtp": {
     "host": "smtp.example.com",
     "port": 587,

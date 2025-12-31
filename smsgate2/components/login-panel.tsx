@@ -66,6 +66,7 @@ export function LoginPanel({ onLogin }: Props) {
   const [resetOpen, setResetOpen] = useState(false);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
   const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
+  const allowOfflineAdmin = (appConfig.allowOfflineAdmin ?? false) || process.env.NODE_ENV !== "production";
   const networkErrorHint = t("loginNetworkHint", "Server unreachable. Verify API base URL and network.");
   const genericErrorHint = t("loginErrorHelp", "If this keeps happening, check your connection or contact an admin.");
 
@@ -94,6 +95,31 @@ export function LoginPanel({ onLogin }: Props) {
     if (!mode) return;
     setPending(true);
     setError(null);
+    const offlineAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
+    const offlineAdminPass = appConfig.offlineReset?.defaultAdminPassword;
+    const isDefaultAdminCreds =
+      allowOfflineAdmin && offlineAdminPass && form.username === offlineAdminUser && form.password === offlineAdminPass;
+    if (
+      mode === "simple_signin" &&
+      isDefaultAdminCreds &&
+      typeof navigator !== "undefined" &&
+      navigator.onLine === false
+    ) {
+      const now = Date.now();
+      onLogin({
+        accessToken: "offline-admin",
+        expiresAt: now + 60 * 60 * 1000,
+        user: {
+          id: "offline-admin",
+          name: "Offline Admin",
+          email: form.username,
+          role: "admin",
+          authMode: "simple_signin"
+        }
+      });
+      setPending(false);
+      return;
+    }
 
     try {
       if (mode === "oauth") {
@@ -135,17 +161,13 @@ export function LoginPanel({ onLogin }: Props) {
     } catch (err) {
       const message = (err as Error).message ?? "";
       const lower = message.toLowerCase();
-      const offlineAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
-      const offlineAdminPass = appConfig.offlineReset?.defaultAdminPassword;
       const isNetworkError =
-        lower.includes("network") || lower.includes("fetch") || lower.includes("timeout") || message === "";
-      if (
-        mode === "simple_signin" &&
-        isNetworkError &&
-        offlineAdminPass &&
-        form.username === offlineAdminUser &&
-        form.password === offlineAdminPass
-      ) {
+        lower.includes("network") ||
+        lower.includes("fetch") ||
+        lower.includes("timeout") ||
+        lower.includes("failed to fetch") ||
+        message === "";
+      if (mode === "simple_signin" && isNetworkError && allowOfflineAdmin && isDefaultAdminCreds) {
         const now = Date.now();
         const fallbackSession: Session = {
           accessToken: "offline-admin",

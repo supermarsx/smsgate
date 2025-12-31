@@ -3,6 +3,7 @@
   "wsPath": "/api/v1/ws",
   "wsOrigin": "http://localhost:4000",
   "qrOrigin": "https://api.qrserver.com",
+  "allowOfflineAdmin": true,
   "smtp": {
     "host": "localhost",
     "port": 1025,

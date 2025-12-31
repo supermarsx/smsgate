@@ -9,6 +9,7 @@ export type AppConfig = {
   wsPath: string;
   wsOrigin?: string;
   qrOrigin?: string;
+  allowOfflineAdmin?: boolean;
   primaryAuthMode?: "oauth" | "simple_signin" | "domain_signin";
   smtp?: {
     host: string;
@@ -76,6 +77,10 @@ function buildConfig(): AppConfig {
   const qrOrigin = strEnv("NEXT_PUBLIC_QR_ORIGIN", mergedFileConfig.qrOrigin ?? "");
   const envLocale = strEnv("NEXT_PUBLIC_LOCALE_DEFAULT", mergedFileConfig.defaultLocale ?? "en-US");
   const defaultLocale = locales.includes(envLocale) ? envLocale : "en-US";
+  const allowOfflineAdmin = boolEnv(
+    "NEXT_PUBLIC_ALLOW_OFFLINE_ADMIN",
+    mergedFileConfig.allowOfflineAdmin ?? process.env.NODE_ENV !== "production"
+  );
 
   const authModes: AuthModes = {
     oauth: boolEnv("NEXT_PUBLIC_AUTH_OAUTH", mergedFileConfig.authModes?.oauth ?? true),
@@ -92,6 +97,7 @@ function buildConfig(): AppConfig {
     wsPath,
     wsOrigin: wsOrigin || undefined,
     qrOrigin: qrOrigin || undefined,
+    allowOfflineAdmin,
     primaryAuthMode,
     smtp: mergedFileConfig.smtp,
     offlineReset: mergedFileConfig.offlineReset,

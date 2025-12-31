@@ -44,6 +44,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
     - `wsPath` (string): WS path appended to `wsOrigin`.
     - `wsOrigin` (string): WS base (http/https, converted to ws/wss in client).
     - `qrOrigin` (string): kept for compatibility; QR is rendered locally.
+    - `allowOfflineAdmin` (bool): allow default admin to log in locally when the backend is unreachable (typically enable in dev).
     - `authModes` (object): booleans `oauth`, `simpleSignin`, `domainSignin` to gate UI flows.
     - `primaryAuthMode` (string): preferred default mode (`oauth` | `simple_signin` | `domain_signin`); falls back to first enabled.
     - `smtp` (object, optional): `host`, `port`, `secure`, `username`, `password`, `fromEmail` for email-based reset.
