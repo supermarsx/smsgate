@@ -1,3 +1,7 @@
+/**
+ * @fileoverview WebSocket client for realtime events, presence, and metrics.
+ */
+
 import { wsUrl } from "./config";
 import type {
   ClientToServer,
@@ -64,6 +68,7 @@ export class WsClient {
 
   /**
    * Subscribe to state updates; returns an unsubscribe function.
+   * @returns Function to unregister the listener.
    */
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
@@ -80,6 +85,7 @@ export class WsClient {
 
   /**
    * Open (or reopen) the websocket connection respecting visibility and offline tokens.
+   * @returns void
    */
   connect(): void {
     const offlineToken = this.session.accessToken.startsWith("offline-");
@@ -137,6 +143,7 @@ export class WsClient {
 
   /**
    * Close the websocket and remove listeners.
+   * @returns void
    */
   disconnect(): void {
     if (this.ws) {
@@ -152,6 +159,7 @@ export class WsClient {
 
   /**
    * Request a historical page of events.
+   * @returns void
    */
   requestPage(before?: string, limit = 25): void {
     this.send({ type: "PAGE", payload: { before, limit } });
@@ -159,6 +167,7 @@ export class WsClient {
 
   /**
    * Update subscribed numbers on the active connection.
+   * @returns void
    */
   updateSubscription(numbers?: string[]) {
     this.subscribedNumbers = numbers;
@@ -262,6 +271,10 @@ export class WsClient {
   };
 }
 
+/**
+ * Format ingest latency percentiles for display.
+ * @returns Formatted latency string or dash when missing.
+ */
 export function formatLatency(metrics?: MetricsUpdate): string {
   if (!metrics?.ingestToDashboardMs) return String.fromCharCode(45);
   const { p50, p95 } = metrics.ingestToDashboardMs;
