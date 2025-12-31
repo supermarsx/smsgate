@@ -63,36 +63,34 @@ class ScanQrActivity : AppCompatActivity() {
 
     private fun startCamera(errorText: android.widget.TextView, scanner: BarcodeScanner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener(
-            {
-                try {
-                    val cameraProvider = cameraProviderFuture.get()
-                    val preview = androidx.camera.core.Preview.Builder().build().apply {
-                        setSurfaceProvider(previewView.surfaceProvider)
-                    }
-                    val analysis = ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
-                    analysis.setAnalyzer(
-                        cameraExecutor,
-                        QrAnalyzer(scanner) { text ->
-                            if (isHandled.compareAndSet(false, true)) {
-                                val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
-                                setResult(RESULT_OK, data)
-                                finish()
-                            }
-                        }
-                    )
-                    val selector = CameraSelector.DEFAULT_BACK_CAMERA
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(this, selector, preview, analysis)
-                } catch (_: Exception) {
-                    errorText.text = getString(R.string.scan_error_start_failed)
-                    errorText.visibility = android.view.View.VISIBLE
+        val executor = ContextCompat.getMainExecutor(this)
+        cameraProviderFuture.addListener({
+            try {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = androidx.camera.core.Preview.Builder().build().apply {
+                    setSurfaceProvider(previewView.surfaceProvider)
                 }
-            },
-            ContextCompat.getMainExecutor(this)
-        )
+                val analysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                analysis.setAnalyzer(
+                    cameraExecutor,
+                    QrAnalyzer(scanner) { text ->
+                        if (isHandled.compareAndSet(false, true)) {
+                            val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
+                            setResult(RESULT_OK, data)
+                            finish()
+                        }
+                    }
+                )
+                val selector = CameraSelector.DEFAULT_BACK_CAMERA
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(this, selector, preview, analysis)
+            } catch (_: Exception) {
+                errorText.text = getString(R.string.scan_error_start_failed)
+                errorText.visibility = android.view.View.VISIBLE
+            }
+        }, executor)
     }
 
     @OptIn(ExperimentalGetImage::class)
