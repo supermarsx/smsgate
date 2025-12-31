@@ -24,9 +24,10 @@ pub async fn heartbeat(
     State(state): State<AppState>,
     Json(payload): Json<HeartbeatSample>,
 ) -> Result<impl IntoResponse, AppError> {
+    let device_id = payload.device_id.clone();
     let now = chrono::Utc::now();
     let presence = state.presence.upsert(
-        &payload.device_id,
+        &device_id,
         now,
         payload.queue_depth,
         payload.device_rtt_ms,
@@ -36,7 +37,7 @@ pub async fn heartbeat(
         .event_tx
         .send(crate::ws_types::ServerMessage::PresenceUpdate(
             PresenceUpdate {
-                device_id: payload.device_id,
+                device_id: device_id.clone(),
                 state: presence.clone(),
                 queue_depth: payload.queue_depth,
                 last_heartbeat: now,
@@ -49,7 +50,7 @@ pub async fn heartbeat(
         .observe_http("/api/v1/presence/heartbeat", StatusCode::OK);
     tracing::debug!(
         target: "presence",
-        device_id = %payload.device_id,
+        device_id = %device_id,
         queue_depth = payload.queue_depth,
         state = ?presence,
         "heartbeat processed"
