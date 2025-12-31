@@ -24,7 +24,7 @@ export function LoginPanel({ onLogin }: Props) {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
-  const defaultAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
+  const defaultAdminUser = appConfig.adminDefaults?.username ?? appConfig.offlineReset?.defaultAdminUsername ?? "admin";
   const availableModes = useMemo(
     () => [
       { key: "oauth" as Mode, label: t("loginSsoCta", "Sign in with SSO"), enabled: appConfig.authModes.oauth },
@@ -66,6 +66,7 @@ export function LoginPanel({ onLogin }: Props) {
   const [resetOpen, setResetOpen] = useState(false);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
   const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
+  const adminDefaultPassword = appConfig.adminDefaults?.password ?? appConfig.offlineReset?.defaultAdminPassword;
   const smtpEnabled = !!appConfig.smtp && (appConfig.smtp.enabled ?? true);
   const allowOfflineAdmin = (appConfig.allowOfflineAdmin ?? false) || process.env.NODE_ENV !== "production";
   const networkErrorHint = t("loginNetworkHint", "Server unreachable. Verify API base URL and network.");
@@ -97,7 +98,7 @@ export function LoginPanel({ onLogin }: Props) {
     setPending(true);
     setError(null);
     const offlineAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
-    const offlineAdminPass = appConfig.offlineReset?.defaultAdminPassword;
+    const offlineAdminPass = adminDefaultPassword;
     const isDefaultAdminCreds =
       allowOfflineAdmin && offlineAdminPass && form.username === offlineAdminUser && form.password === offlineAdminPass;
     if (mode === "simple_signin" && isDefaultAdminCreds) {

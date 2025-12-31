@@ -1,9 +1,15 @@
 {
-  "apiBaseUrl": "http://localhost:4000/api/v1",
-  "wsPath": "/api/v1/ws",
-  "wsOrigin": "http://localhost:4000",
-  "qrOrigin": "https://api.qrserver.com",
+  "urls": {
+    "apiBaseUrl": "http://localhost:4000/api/v1",
+    "wsPath": "/api/v1/ws",
+    "wsOrigin": "http://localhost:4000",
+    "qrOrigin": "/api/v1/qr"
+  },
   "allowOfflineAdmin": true,
+  "theme": {
+    "default": "system",
+    "force": false
+  },
   "smtp": {
     "enabled": true,
     "allowInvalidCert": false,
@@ -15,9 +21,11 @@
     "fromEmail": "no-reply@example.com"
   },
   "offlineReset": {
-    "enabled": true,
-    "defaultAdminUsername": "admin",
-    "defaultAdminPassword": "changeme"
+    "enabled": true
+  },
+  "adminDefaults": {
+    "username": "admin",
+    "password": "changeme"
   },
   "authModes": {
     "oauth": false,
@@ -25,6 +33,8 @@
     "domainSignin": false
   },
   "primaryAuthMode": "simple_signin",
-  "locales": ["en-US", "pt-PT", "es-ES"],
-  "defaultLocale": "en-US"
+  "localization": {
+    "locales": ["en-US", "pt-PT", "es-ES"],
+    "defaultLocale": "en-US"
+  }
 }
