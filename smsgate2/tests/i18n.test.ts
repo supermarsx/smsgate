@@ -18,4 +18,11 @@ describe("i18n dictionaries", () => {
       });
     });
   });
+
+  it("does not mutate dictionaries when listing", () => {
+    const before = listDictionaries();
+    before[SUPPORTED_LOCALES[0]]!.example_probe = "mutable" as never;
+    const after = listDictionaries();
+    expect(after[SUPPORTED_LOCALES[0]]?.example_probe).toBeUndefined();
+  });
 });
