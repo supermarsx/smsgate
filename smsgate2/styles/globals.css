@@ -1020,6 +1020,38 @@ a {
   overflow-y: auto;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  padding: 20px;
+}
+
+.modal-card {
+  width: min(480px, 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  box-shadow: var(--shadow-2);
+  padding: 18px 18px 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.modal-card .actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-card .actions.end {
+  justify-content: flex-end;
+}
+
 .status-row {
   display: flex;
   justify-content: space-between;

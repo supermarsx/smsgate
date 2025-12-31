@@ -18,6 +18,8 @@
   "last24h": "Last 24h",
   "unauthorized": "Unauthorized for this route; redirecting...",
   "logout": "Logout",
+  "logoutConfirm": "Are you sure you want to log out?",
+  "cancel": "Cancel",
   "account": "Account",
   "devicesLabel": "Devices",
   "latencyLabel": "Latency",

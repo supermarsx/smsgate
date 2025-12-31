@@ -18,6 +18,8 @@
   "last24h": "Últimas 24h",
   "unauthorized": "Sin autorización para esta ruta; redirigiendo...",
   "logout": "Cerrar sesión",
+  "logoutConfirm": "¿Seguro que desea cerrar la sesión?",
+  "cancel": "Cancelar",
   "account": "Cuenta",
   "devicesLabel": "Dispositivos",
   "latencyLabel": "Latencia",

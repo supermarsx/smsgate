@@ -25,6 +25,7 @@ export function ProtectedShell({ children }: Props) {
   const [navOpen, setNavOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
   const [locale] = useState<Locale>(getInitialLocale());
   const t = useMemo(() => {
@@ -76,6 +77,11 @@ export function ProtectedShell({ children }: Props) {
     await logout();
     setSession(null);
     router.replace("/login");
+  }
+
+  async function confirmAndLogout() {
+    setConfirmLogout(false);
+    await handleLogout();
   }
 
   if (!session) return null;
@@ -167,10 +173,18 @@ export function ProtectedShell({ children }: Props) {
               {session.user.email && <div className="muted small">{session.user.name}</div>}
             </div>
             <div className="account-actions">
-              <button className="ghost icon" onClick={() => setDebugOpen((v) => !v)} title={t("debugLabel", "Debug")}>
+              <button
+                className="ghost icon icon-themed"
+                onClick={() => setDebugOpen((v) => !v)}
+                title={t("debugLabel", "Debug")}
+              >
                 🛠
               </button>
-              <button className="ghost icon" onClick={handleLogout} title={t("logout", "Logout")}>
+              <button
+                className="ghost icon icon-themed"
+                onClick={() => setConfirmLogout(true)}
+                title={t("logout", "Logout")}
+              >
                 ⎋
               </button>
             </div>
@@ -180,6 +194,27 @@ export function ProtectedShell({ children }: Props) {
             {session.user.requires2fa ? t("twoFaRequired", "2FA required") : t("twoFaReady", "2FA ready")}
           </div>
         </div>
+        {confirmLogout && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true">
+            <div className="modal-card glass">
+              <div className="modal-head">
+                <div className="modal-icon">⎋</div>
+                <div>
+                  <div className="gg-title small">{t("logout", "Logout")}</div>
+                  <p className="gg-subtitle">{t("logoutConfirm", "Are you sure you want to log out?")}</p>
+                </div>
+              </div>
+              <div className="actions end">
+                <button className="ghost" onClick={() => setConfirmLogout(false)}>
+                  {t("cancel", "Cancel")}
+                </button>
+                <button className="primary strong" onClick={confirmAndLogout}>
+                  {t("logout", "Logout")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
