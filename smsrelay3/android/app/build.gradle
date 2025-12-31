@@ -5,6 +5,28 @@ plugins {
     id "org.jlleitschuh.gradle.ktlint" version "10.2.0"
 }
 
+def buildConfigProps = new Properties()
+def buildConfigPath = project.findProperty("smsrelayBuildConfig") ?: "build-config.properties"
+def buildConfigFile = file(buildConfigPath)
+if (buildConfigFile.exists()) {
+    buildConfigFile.withInputStream { stream -> buildConfigProps.load(stream) }
+}
+
+def propString = { key, defaultValue = null ->
+    buildConfigProps.getProperty(key, defaultValue)
+}
+
+def propBool = { key, defaultValue ->
+    (buildConfigProps.getProperty(key) ?: defaultValue.toString()).toString().toBoolean()
+}
+
+def propList = { key ->
+    buildConfigProps.getProperty(key, "")
+        .split(",")
+        .collect { it.trim() }
+        .findAll { it }
+}
+
 android {
     namespace = "com.smsrelay3"
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -15,6 +37,27 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        def configRes = propList("resConfigs")
+        if (!configRes.isEmpty()) {
+            resConfigs configRes
+        }
+    }
+
+    def releaseSigningConfigured = false
+    signingConfigs {
+        release {
+            def storeFilePath = propString("signing.storeFile")
+            if (storeFilePath) {
+                def store = file(storeFilePath)
+                if (store.exists()) {
+                    storeFile store
+                    storePassword propString("signing.storePassword", "")
+                    keyAlias propString("signing.keyAlias", "")
+                    keyPassword propString("signing.keyPassword", "")
+                    releaseSigningConfigured = true
+                }
+            }
+        }
     }
 
     buildTypes {
@@ -22,8 +65,31 @@ android {
             applicationIdSuffix ".debug"
         }
         release {
-            minifyEnabled false
+            minifyEnabled propBool("release.minifyEnabled", false)
+            shrinkResources propBool("release.shrinkResources", false)
+            if (releaseSigningConfigured) {
+                signingConfig signingConfigs.release
+            }
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    splits {
+        abi {
+            def abis = propList("splits.abi")
+            enable !abis.isEmpty()
+            reset()
+            if (!abis.isEmpty()) {
+                include(*abis)
+            }
+        }
+        density {
+            def densities = propList("splits.density")
+            enable !densities.isEmpty()
+            reset()
+            if (!densities.isEmpty()) {
+                include(*densities)
+            }
         }
     }
 
