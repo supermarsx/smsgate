@@ -3,9 +3,11 @@ use axum::{routing::get, Router};
 use crate::{metrics, state::AppState};
 
 pub mod admin;
+pub mod audit;
 pub mod auth;
 pub mod config;
 pub mod context;
+pub mod contacts;
 pub mod devices;
 pub mod events;
 mod health;
@@ -21,6 +23,7 @@ pub fn router(state: AppState) -> Router {
         .route("/readyz", get(health::ready))
         .route("/api/v1/healthz", get(health::health))
         .route("/api/v1/readyz", get(health::ready))
+        .route("/api/v1/events", get(events::list_events))
         .route(
             "/api/v1/config",
             get(config::get_config).patch(config::patch_config),
@@ -78,6 +81,27 @@ pub fn router(state: AppState) -> Router {
             axum::routing::post(presence::heartbeat),
         )
         .route("/api/v1/ws", axum::routing::get(ws::ws_handler))
+        .route("/api/v1/audit", axum::routing::get(audit::list_audit))
+        .route(
+            "/api/v1/login-events",
+            axum::routing::get(audit::list_login_events),
+        )
+        .route(
+            "/api/v1/contacts",
+            axum::routing::get(contacts::list_contacts),
+        )
+        .route(
+            "/api/v1/contacts/toggle",
+            axum::routing::post(contacts::toggle_contacts),
+        )
+        .route(
+            "/api/v1/contacts/conflicts/:id/resolve",
+            axum::routing::post(contacts::resolve_conflict),
+        )
+        .route(
+            "/api/v1/contacts/export",
+            axum::routing::get(contacts::export_contacts),
+        )
         .route("/api/v1/admin/users", axum::routing::get(admin::list_users))
         .route(
             "/api/v1/admin/users",

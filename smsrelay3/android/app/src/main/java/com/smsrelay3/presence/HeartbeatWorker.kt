@@ -43,18 +43,22 @@ class HeartbeatWorker(appContext: Context, params: WorkerParameters) : Coroutine
 
         val payload = JSONObject()
         payload.put("device_id", deviceId)
-        payload.put("client_time_ms", System.currentTimeMillis())
+        payload.put("client_time", java.time.Instant.now().toString())
         payload.put("queue_depth", queueDepth)
-        payload.put("last_success_send_at_ms", lastSuccess)
+        if (lastSuccess != null) {
+            payload.put("last_successful_ingest_at", java.time.Instant.ofEpochMilli(lastSuccess).toString())
+        }
         payload.put("ws_state", wsState)
         payload.put("network_type", NetworkUtil.networkType(applicationContext))
-        payload.put("battery_percent", BatteryUtil.batteryPercent(applicationContext))
+        payload.put("battery_level", BatteryUtil.batteryPercent(applicationContext))
         payload.put("sim_summary_hash", simSummaryHash)
+        payload.put("sims", org.json.JSONArray())
 
         val body = payload.toString().toRequestBody(JSON_MEDIA)
         val request = Request.Builder()
             .url("$baseUrl/api/v1/presence/heartbeat")
             .addHeader("Authorization", "Bearer $deviceToken")
+            .addHeader("x-device-id", deviceId)
             .post(body)
             .build()
 

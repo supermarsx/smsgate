@@ -1,7 +1,7 @@
 //! Event state transition endpoints (claim/verify/reject).
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
@@ -15,6 +15,36 @@ use crate::{
     state::AppState,
     ws_types::ServerMessage,
 };
+
+/// Query params for event listing.
+#[derive(Debug, serde::Deserialize)]
+pub struct ListEventsQuery {
+    /// Fetch events older than this id.
+    pub before: Option<String>,
+    /// Maximum number of events to return.
+    pub limit: Option<usize>,
+}
+
+/// GET /api/v1/events
+pub async fn list_events(
+    UserAuth(_user): UserAuth,
+    State(state): State<AppState>,
+    Query(query): Query<ListEventsQuery>,
+) -> Result<impl IntoResponse, AppError> {
+    let cfg = state.config.read().await;
+    let default_limit = cfg.config.server.ws_snapshot_limit as usize;
+    let limit = query
+        .limit
+        .unwrap_or(default_limit)
+        .min(default_limit.max(1));
+    drop(cfg);
+    let events = if let Some(anchor) = query.before {
+        state.hot_store.page_before(&anchor, limit).await
+    } else {
+        state.hot_store.latest(limit).await
+    };
+    Ok((StatusCode::OK, Json(serde_json::json!({ "events": events }))))
+}
 
 /// Common response payload for event mutations.
 #[derive(Debug, serde::Serialize)]

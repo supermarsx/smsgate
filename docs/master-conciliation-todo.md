@@ -9,6 +9,8 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [ ] Add audit/login-events endpoints on server to match spec columns and CSV export expectations.
 - [ ] Normalize number/user/device admin paths (UI expects role edit/force-logout/unlock/disable/enable/password reset; server supports a subset under `/api/v1/admin/users`/`/admin/numbers`).
 - [ ] Align pairing: UI needs session watcher (`GET /pairing/session/{id}`) and QR payload; server currently only has create/complete at `/api/v1/pairing/session|complete`.
+- [x] Add `/api/v1/events` list (before/limit) on syncserver for UI backfill.
+- [x] Add stub `/api/v1/audit`, `/api/v1/login-events`, `/api/v1/contacts/*` endpoints to satisfy UI contract (data still empty; needs real persistence).
 
 ## WebSocket protocol
 - [ ] Use header `Authorization: Bearer <session>` for WS auth (UI currently passes `?token=` query; server expects header).
@@ -27,6 +29,7 @@ This list captures the blocking gaps between the three codebases and the specs s
 ## Ingest, presence, device config
 - [ ] Align ingest payload: server expects `{ events:[{id?,device_id,number_e164,sender,content,device_received_at,source}] }` with `x-device-id` header; smsrelay3 sends single message bodies with `device_seq`, `received_at_device_ms`, metadata, and no header. Choose one shape and update both sides.
 - [ ] Heartbeat alignment: server requires `device_id` + bearer + optional SIM snapshots; smsrelay3 sends different field names and lacks `x-device-id`. Add SIM payload and RTT fields per spec and broadcast presence updates.
+- [x] smsrelay3 heartbeat now sends ISO timestamps, battery level, and `x-device-id`; still needs SIM payload per spec.
 - [ ] Add `/api/v1/device/config`, `/api/v1/device/sims`, and `/api/v1/device/contacts` on server, or repoint smsrelay3 to existing routes; include ETag and config versioning.
 - [ ] Pairing response should return config snapshot/version for device bootstrap (currently only id/token).
 - [ ] Implement SIM events (`SIM_*`) and presence broadcast with multi-SIM numbers for UI Devices page.

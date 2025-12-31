@@ -24,6 +24,7 @@ pub async fn ws_handler(
     State(state): State<AppState>,
     ConnectInfo(peer): ConnectInfo<std::net::SocketAddr>,
     headers: HeaderMap,
+    uri: axum::http::Uri,
 ) -> Response {
     if !state.try_acquire_connection().await {
         return Response::builder()
@@ -36,7 +37,8 @@ pub async fn ws_handler(
         .get(axum::http::header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .map(|s| s.trim().to_string());
+        .map(|s| s.trim().to_string())
+        .or_else(|| token_from_query(&uri));
     let auth_ctx = session_token
         .and_then(|t| state.session_store.validate(&t))
         .map(|session| AuthContext {
@@ -273,4 +275,19 @@ fn auth_label(ctx: &AuthContext) -> String {
         Principal::User { id, .. } => format!("user:{id}"),
         Principal::Device { id } => format!("device:{id}"),
     }
+}
+
+fn token_from_query(uri: &axum::http::Uri) -> Option<String> {
+    uri.query().and_then(|query| {
+        query.split('&').find_map(|pair| {
+            let mut parts = pair.splitn(2, '=');
+            let key = parts.next()?;
+            let value = parts.next()?;
+            if key == "token" {
+                Some(value.to_string())
+            } else {
+                None
+            }
+        })
+    })
 }

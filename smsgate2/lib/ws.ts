@@ -13,6 +13,109 @@ import type {
 } from "./contracts";
 import type { Session } from "./auth";
 
+type PresenceStateValue = PresenceUpdate["state"];
+
+function mapEvent(raw: any): Event {
+  const state = (raw?.state ?? "new").toString().toLowerCase() as Event["state"];
+  return {
+    id: raw?.id ?? raw?.event_id ?? crypto.randomUUID(),
+    number: raw?.number ?? raw?.number_e164 ?? raw?.e164 ?? "",
+    contactName: raw?.contactName ?? raw?.contact_name,
+    sender: raw?.sender,
+    content: raw?.content ?? "",
+    parsedCode: raw?.parsedCode ?? raw?.parsed_code,
+    createdAt:
+      raw?.server_received_at ??
+      raw?.createdAt ??
+      raw?.created_at ??
+      raw?.device_received_at ??
+      raw?.device_received_at_ms ??
+      new Date().toISOString(),
+    claimedBy: raw?.claimedBy ?? raw?.claimed_by,
+    claimedAt: raw?.claimedAt ?? raw?.claimed_at,
+    state,
+    deviceId: raw?.deviceId ?? raw?.device_id,
+    latencyMs: raw?.latencyMs ?? raw?.latency_ms
+  };
+}
+
+function mapPresence(raw: any): PresenceUpdate {
+  const state = (raw?.state ?? "offline").toString().toLowerCase() as PresenceStateValue;
+  return {
+    deviceId: raw?.deviceId ?? raw?.device_id ?? "",
+    state,
+    rttMs: raw?.rttMs ?? raw?.device_rtt_ms,
+    lastHeartbeatAt: raw?.lastHeartbeatAt ?? raw?.last_heartbeat ?? raw?.last_heartbeat_at,
+    simSlots: raw?.simSlots ?? raw?.sims,
+    numbers: raw?.numbers,
+    queueDepth: raw?.queueDepth ?? raw?.queue_depth
+  };
+}
+
+function mapMetrics(raw: any): MetricsUpdate | undefined {
+  if (!raw) return undefined;
+  return {
+    serverRttMs: raw.serverRttMs ?? raw.server_rtt_ms,
+    deviceRttMs: raw.deviceRttMs ?? raw.device_rtt_ms,
+    ingestToDashboardMs: raw.ingestToDashboardMs ?? raw.ingest_to_dashboard_ms
+  };
+}
+
+function normalizeMessage(raw: any): ServerToClient | null {
+  const typeRaw = (raw?.type ?? "").toString().toUpperCase();
+  const data = raw?.data ?? raw?.payload ?? raw;
+  switch (typeRaw) {
+    case "WELCOME":
+      return { type: "WELCOME" };
+    case "SNAPSHOT": {
+      const presence = Array.isArray(data?.presence) ? data.presence.map(mapPresence) : [];
+      const events = Array.isArray(data?.events) ? data.events.map(mapEvent) : [];
+      return { type: "SNAPSHOT", payload: { events, presence, metrics: mapMetrics(data?.metrics) } };
+    }
+    case "EVENT_NEW":
+    case "EVENTNEW":
+      return { type: "EVENT_NEW", payload: mapEvent(data?.event ?? data) };
+    case "EVENT_UPDATE":
+    case "EVENTUPDATE":
+      return { type: "EVENT_UPDATE", payload: mapEvent(data?.event ?? data) };
+    case "EVENT_PAGE":
+    case "PAGE":
+    case "PAGE_BEFORE":
+    case "PAGEAFTER":
+      return {
+        type: "EVENT_PAGE",
+        payload: Array.isArray(data?.events) ? data.events.map(mapEvent) : Array.isArray(data) ? data.map(mapEvent) : []
+      };
+    case "PRESENCE_UPDATE":
+    case "PRESENCEUPDATE":
+      return { type: "PRESENCE_UPDATE", payload: mapPresence(data) };
+    case "METRICS_UPDATE":
+      return { type: "METRICS_UPDATE", payload: mapMetrics(data) ?? {} };
+    case "CONFIG_UPDATE":
+    case "CONFIG_SNAPSHOT": {
+      const cfg = data?.config ?? data;
+      const modes: string[] = cfg?.auth_modes ?? cfg?.authModes ?? [];
+      return {
+        type: "CONFIG_UPDATE",
+        payload: {
+          version: String(cfg?.version ?? cfg?.last_updated_at ?? "0"),
+          authModes: {
+            oauth: modes.includes("oauth"),
+            simpleSignin: modes.includes("simple_signin"),
+            domainSignin: modes.includes("domain_signin")
+          }
+        }
+      };
+    }
+    case "DEGRADED":
+      return { type: "ERROR", payload: data?.reason ?? "degraded" };
+    case "ERROR":
+      return { type: "ERROR", payload: data ?? "unknown error" };
+    default:
+      return null;
+  }
+}
+
 /**
  * Live websocket state shared with subscribers.
  */
@@ -111,7 +214,9 @@ export class WsClient {
 
     this.ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data) as ServerToClient;
+        const parsed = JSON.parse(event.data);
+        const data = normalizeMessage(parsed);
+        if (!data) return;
         this.handleMessage(data);
         if (this.lastPingAt) {
           const rtt = Date.now() - this.lastPingAt;
@@ -162,6 +267,9 @@ export class WsClient {
    * @returns void
    */
   requestPage(before?: string, limit = 25): void {
+    if (before) {
+      this.sendRaw({ type: "PageBefore", data: { anchor_id: before, limit } });
+    }
     this.send({ type: "PAGE", payload: { before, limit } });
   }
 
@@ -175,6 +283,11 @@ export class WsClient {
   }
 
   private send(message: ClientToServer) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify(message));
+  }
+
+  private sendRaw(message: Record<string, unknown>) {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify(message));
   }
