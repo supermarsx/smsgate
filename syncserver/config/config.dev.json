@@ -1,0 +1,121 @@
+{
+  "env": "development",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "ws_max_connections": 200,
+    "ws_snapshot_limit": 20,
+    "ws_ping_interval_ms": 15000
+  },
+  "ingest": {
+    "dedup_ttl_ms": 60000,
+    "hot_store_capacity": 2000,
+    "max_batch": 200,
+    "persist_new": true,
+    "persist_states": ["verified", "rejected", "claimed"]
+  },
+  "presence": {
+    "online_threshold_ms": 20000,
+    "degraded_threshold_ms": 60000
+  },
+  "pairing": {
+    "session_ttl_secs": 600,
+    "bootstrap_device": {
+      "id": "dev-bootstrap",
+      "token": "dev-bootstrap-token",
+      "name": "Bootstrap Relay",
+      "enabled": true
+    }
+  },
+  "seeding": {
+    "users": [
+      {
+        "username": "admin-dev@example.com",
+        "password": "DevPass#2025!",
+        "role": "admin",
+        "totp_secret": null
+      }
+    ],
+    "numbers": [
+      {
+        "e164": "+15551234567",
+        "label": "Dev Support",
+        "shared": true,
+        "default_device_id": "dev-bootstrap"
+      }
+    ],
+    "devices": []
+  },
+  "hot_store": {
+    "mode": "memory",
+    "redis_url": null
+  },
+  "database": {
+    "adapter": "json_db",
+    "url": null,
+    "path": "data/syncserver.dev.json",
+    "enable_audit_log": true
+  },
+  "rbac": {
+    "roles": [
+      {
+        "name": "admin",
+        "precedence": 100,
+        "permissions": [
+          "events.read",
+          "events.claim",
+          "events.verify",
+          "events.reject",
+          "devices.read",
+          "devices.write",
+          "devices.disable",
+          "devices.rotate_token",
+          "numbers.read",
+          "numbers.write",
+          "users.read",
+          "users.write",
+          "users.force_logout",
+          "users.unlock",
+          "config.read",
+          "config.write",
+          "audit.read",
+          "logins.read"
+        ]
+      },
+      {
+        "name": "manager",
+        "precedence": 50,
+        "permissions": [
+          "events.read",
+          "events.claim",
+          "events.verify",
+          "devices.read",
+          "numbers.read",
+          "users.read",
+          "audit.read",
+          "logins.read"
+        ]
+      }
+    ],
+    "group_mapping": {}
+  },
+  "auth": {
+    "modes": ["simple_signin"],
+    "password_pepper": "dev-pepper",
+    "password_min_length": 12,
+    "admin_password_min_length": 16,
+    "password_min_entropy_bits": 48,
+    "password_history_size": 5,
+    "weak_passwords": ["password", "123456", "123456789", "qwerty", "letmein"],
+    "max_failed_attempts": 5,
+    "lockout_secs": 120,
+    "bootstrap_admin_username": "admin-dev",
+    "smtp": null,
+    "session_ttl_secs": 86400,
+    "require_admin_totp": false,
+    "oauth_issuer": null,
+    "oauth_audience": null,
+    "oauth_hmac_secret": null,
+    "domain_shared_secret": "dev-shared-secret"
+  }
+}
