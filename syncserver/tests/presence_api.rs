@@ -59,3 +59,52 @@ async fn returns_presence_online_then_degraded() {
     let presence_later = state.presence.evaluate(chrono::Utc::now(), "dev-1");
     assert_eq!(presence_later, syncserver::domain::PresenceState::Degraded);
 }
+
+#[tokio::test]
+async fn sim_inventory_is_tracked_from_heartbeat() {
+    let mut config = AppConfig::default();
+    let dir = tempfile::tempdir().unwrap();
+    config.database.path = Some(dir.path().join("events.json").display().to_string());
+    let mut state = AppState::new(config).await;
+    state.device_auth = DeviceAuthStore::default().with_token("dev-2", "tok");
+    let app = app_with_state(state.clone());
+
+    let payload = json!({
+        "device_id": "dev-2",
+        "queue_depth": 1,
+        "device_rtt_ms": 10,
+        "last_successful_ingest_at": null,
+        "battery_level": null,
+        "network_type": null,
+        "client_time": "2024-12-31T00:00:00Z",
+        "sims": [
+            {
+                "slot_index": 0,
+                "iccid": "123",
+                "msisdn": "+15550001111",
+                "carrier_name": "ACME",
+                "status": "active",
+                "last_seen_at": "2024-12-31T00:00:00Z"
+            }
+        ]
+    });
+
+    let res = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/presence/heartbeat")
+                .method("POST")
+                .header("content-type", "application/json")
+                .header("x-device-id", "dev-2")
+                .header("authorization", "Bearer tok")
+                .body(Body::from(payload.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+
+    let inventory = state.sim_inventory.get("dev-2").unwrap();
+    assert_eq!(inventory.len(), 1);
+    assert_eq!(inventory[0].msisdn.as_deref(), Some("+15550001111"));
+}

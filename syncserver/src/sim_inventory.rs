@@ -30,4 +30,9 @@ impl SimInventoryStore {
             .clone();
         (updated, changed)
     }
+
+    /// Fetch SIM snapshots for a device if present.
+    pub fn get(&self, device_id: &str) -> Option<Vec<SimSnapshot>> {
+        self.sims.get(device_id).map(|v| v.clone())
+    }
 }
