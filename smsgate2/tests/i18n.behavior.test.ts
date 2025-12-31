@@ -32,12 +32,12 @@ describe("i18n behavior", () => {
   });
 
   it("detects browser locale from navigator.languages preference", () => {
-    vi.stubGlobal("navigator", { languages: ["es-MX", "en-US"], language: "en-US" } as Navigator);
+    vi.stubGlobal("navigator", { languages: ["es-MX", "en-US"], language: "en-US" } as unknown as Navigator);
     expect(detectBrowserLocale()).toBe("es-ES");
   });
 
   it("falls back to default when browser locales are unsupported", () => {
-    vi.stubGlobal("navigator", { languages: ["fr-FR"], language: "fr-FR" } as Navigator);
+    vi.stubGlobal("navigator", { languages: ["fr-FR"], language: "fr-FR" } as unknown as Navigator);
     expect(detectBrowserLocale()).toBe(DEFAULT_LOCALE);
   });
 
@@ -68,17 +68,17 @@ describe("i18n behavior", () => {
 
   it("prefers stored locale over browser detection for initial resolve", () => {
     setPreferredLocale("pt-PT");
-    vi.stubGlobal("navigator", { languages: ["es-MX"], language: "es-MX" } as Navigator);
+    vi.stubGlobal("navigator", { languages: ["es-MX"], language: "es-MX" } as unknown as Navigator);
     expect(getInitialLocale()).toBe("pt-PT");
   });
 
   it("uses browser locale when storage is empty", () => {
-    vi.stubGlobal("navigator", { languages: ["es-AR"], language: "es-AR" } as Navigator);
+    vi.stubGlobal("navigator", { languages: ["es-AR"], language: "es-AR" } as unknown as Navigator);
     expect(getInitialLocale()).toBe("es-ES");
   });
 
   it("falls back to default dictionary when locale is unknown", () => {
     const defaultDict = getTranslations(DEFAULT_LOCALE);
-    expect(getTranslations("fr-FR" as SUPPORTED_LOCALES[number])).toEqual(defaultDict);
+    expect(getTranslations("fr-FR" as any)).toEqual(defaultDict);
   });
 });
