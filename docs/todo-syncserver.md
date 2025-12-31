@@ -48,8 +48,8 @@
 - [ ] Add policy-based persistence enqueue for compliance/retention rules.
 
 ## Presence, metrics, SIM inventory
-- [ ] Implement `/api/v1/presence/heartbeat` ingestion with RTT + queue depth.
-- [ ] Compute presence states (online/degraded/offline) and broadcast `PRESENCE_UPDATE`.
+- [x] Implement `/api/v1/presence/heartbeat` ingestion with RTT + queue depth.
+- [x] Compute presence states (online/degraded/offline) (broadcast pending) and track in-memory.
 - [ ] Track SIM inventory diffs and emit `SIM_*` events + audit.
 - [ ] Surface metrics to smsgate2 status bar (WS RTT, device RTT, end-to-end latency).
 

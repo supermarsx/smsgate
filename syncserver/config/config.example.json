@@ -12,6 +12,10 @@
     "hot_store_capacity": 1000,
     "max_batch": 100
   },
+  "presence": {
+    "online_threshold_ms": 20000,
+    "degraded_threshold_ms": 60000
+  },
   "hot_store": {
     "mode": "memory",
     "redis_url": null

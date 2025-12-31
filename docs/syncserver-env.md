@@ -12,6 +12,8 @@ Runtime flags are read from `config/config.json` (see `syncserver/config/config.
 - `SYNC_INGEST_DEDUP_TTL_MS` (`60000`): TTL for ingest deduplication keys.
 - `SYNC_HOTSTORE_CAPACITY` (`1000`): hot store ring buffer capacity for latest events.
 - `SYNC_INGEST_MAX_BATCH` (`100`): maximum events accepted per ingest request.
+- `SYNC_PRESENCE_ONLINE_MS` (`20000`): heartbeat age threshold for online state.
+- `SYNC_PRESENCE_DEGRADED_MS` (`60000`): heartbeat age threshold for degraded state (beyond is offline).
 - `SYNC_HOTSTORE` (`memory`): hot store backend (`memory` | `redis`).
 - `SYNC_REDIS_URL` (required when `SYNC_HOTSTORE=redis`): Redis connection string.
 - `SYNC_DB_ADAPTER` (`json_db`): persistence backend (`json_db` | `sqlite` | `postgres` | `mysql`).

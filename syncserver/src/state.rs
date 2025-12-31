@@ -1,6 +1,7 @@
 use crate::{
     config::AppConfig,
     hot_store::{HotStore, MemoryHotStore},
+    presence::PresenceStore,
 };
 use std::{
     sync::{
@@ -72,6 +73,8 @@ pub struct AppState {
     pub metrics: Metrics,
     /// Hot store implementation used for fanout/paging.
     pub hot_store: Arc<dyn HotStore>,
+    /// Presence tracker used by heartbeat ingest.
+    pub presence: Arc<PresenceStore>,
 }
 
 impl AppState {
@@ -95,6 +98,7 @@ impl AppState {
         let hot_store: Arc<dyn HotStore> =
             Arc::new(MemoryHotStore::new(config.ingest.hot_store_capacity));
         ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
+        let presence = Arc::new(PresenceStore::new(config.presence.clone()));
 
         Self {
             config,
@@ -102,6 +106,7 @@ impl AppState {
             ready_flags: Arc::new(ready_flags),
             metrics,
             hot_store,
+            presence,
         }
     }
 }
