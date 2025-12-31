@@ -4,14 +4,14 @@ Next.js 14 app-directory scaffold to migrate the legacy smsgate UI toward the sm
 
 ## Run
 
-```
+```bash
 bun install
 bun run dev
 ```
 
 For Turbopack (experimental, fastest reloads):
 
-```
+```bash
 bun run dev:turbo
 ```
 
@@ -45,12 +45,13 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
     - `theme` (object): `default` (`light` | `dark` | `system`), `force` (bool) to pin a theme globally.
     - `smtp` (object, optional): `enabled` (bool), `allowInvalidCert` (bool; not recommended, skips TLS validation for SMTP), `host`, `port`, `secure`, `username`, `password`, `fromEmail` for email-based reset; UI disables reset emails when `enabled` is false.
     - `offlineReset` (object, optional): `enabled` (bool) to allow token-based resets without email.
-    - `adminDefaults` (object, optional): `username`, `password` used for offline admin bootstrap and default login hint (moved out of `offlineReset`).
+    - `adminDefaults` (object, optional): `username`, `password` used for offline admin bootstrap and default login hint.
     - `authModes` (object): booleans `oauth`, `simpleSignin`, `domainSignin` to gate UI flows.
     - `primaryAuthMode` (string): preferred default mode (`oauth` | `simple_signin` | `domain_signin`); falls back to first enabled.
     - `localization` (object): `locales` (array) and `defaultLocale` (string).
     - Email templates live in `templates/email/*.html` (reset + verification examples) and can be mounted alongside config.
   - Example (see checked-in files):
+
     ```json
     {
       "urls": {

@@ -61,7 +61,7 @@ type FileConfig = Partial<AppConfig> & {
   localization?: { locales?: string[]; defaultLocale?: string };
   theme?: { default?: ThemeChoice; force?: boolean };
   adminDefaults?: { username?: string; password?: string };
-  offlineReset?: { enabled: boolean; defaultAdminUsername?: string; defaultAdminPassword?: string };
+  offlineReset?: { enabled: boolean };
 };
 
 const baseFileConfig: FileConfig = (baseFileConfigJson as unknown as FileConfig) ?? {};
@@ -168,12 +168,7 @@ function buildConfig(): AppConfig {
         username: mergedFileConfig.adminDefaults.username,
         password: mergedFileConfig.adminDefaults.password
       }
-    : mergedFileConfig.offlineReset?.defaultAdminUsername
-      ? {
-          username: mergedFileConfig.offlineReset.defaultAdminUsername,
-          password: mergedFileConfig.offlineReset.defaultAdminPassword
-        }
-      : undefined;
+    : undefined;
 
   const offlineReset = mergedFileConfig.offlineReset
     ? {

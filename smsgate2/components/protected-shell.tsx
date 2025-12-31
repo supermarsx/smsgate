@@ -32,7 +32,7 @@ export function ProtectedShell({ children }: Props) {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
-  const navLabels = useMemo(
+  const navLabels = useMemo<Record<string, string>>(
     () => ({
       "/dashboard": t("navDashboard", "Dashboard"),
       "/devices": t("navDevices", "Devices"),
