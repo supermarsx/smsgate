@@ -63,7 +63,23 @@ export default function DevicesPage() {
   const deviceLimits = appConfig.limits?.actions?.devices ?? {};
 
   useEffect(() => {
-    if (!session || !realtimeAllowed) return;
+    if (!session) return;
+    if (!realtimeAllowed) {
+      const timer = window.setInterval(() => {
+        listDevices(session)
+          .then((rows) => {
+            setDevices(rows);
+            const pres: Record<string, PresenceUpdate> = {};
+            rows.forEach((d: any) => {
+              if (d.presence) pres[d.id] = d.presence;
+            });
+            setPresence(pres);
+          })
+          .catch(() => undefined);
+      }, 8000);
+      return () => window.clearInterval(timer);
+    }
+
     const client = new WsClient(session, {
       onConfigUpdate: undefined,
       log: (type, detail) => addLog({ ts: Date.now(), type, detail })
@@ -115,11 +131,18 @@ export default function DevicesPage() {
 
   function describeSimSlots(simSlots?: any[]): string {
     if (!simSlots?.length) return "-";
-    return simSlots.map((s: any) => `${s.slotId ?? s.slot ?? "?"}:${s.msisdn ?? s.iccid ?? "-"}`).join(" | ");
+    return simSlots
+      .map((s: any) => {
+        const slot = s.slotId ?? s.slot ?? "?";
+        const number = s.msisdn ?? s.iccid ?? s.lineNumber ?? s.label ?? "-";
+        return `${slot}:${number}`;
+      })
+      .join(" | ");
   }
 
-  function computeDeviceStatus(d: any): { label: string; tone: DeviceTone } {
-    const lastHeartbeat = d.lastHeartbeat ?? d.lastHeartbeatAt ?? d.last_heartbeat ?? d.lastSeen;
+  function computeDeviceStatus(d: any, live?: PresenceUpdate): { label: string; tone: DeviceTone } {
+    const lastHeartbeat =
+      live?.lastHeartbeatAt ?? d.lastHeartbeat ?? d.lastHeartbeatAt ?? d.last_heartbeat ?? d.lastSeen;
     const lastTs = lastHeartbeat ? Date.parse(lastHeartbeat) : undefined;
     const age = lastTs ? Date.now() - lastTs : undefined;
     const thresholds = (config?.data as any)?.presence ?? {};
@@ -127,12 +150,19 @@ export default function DevicesPage() {
     const degradedStale = thresholds.degradedMs ?? 90 * 1000;
     const queueWarn = thresholds.queueWarn ?? 50;
     const queueCrit = thresholds.queueCrit ?? 100;
-    const queue = d.queueDepth ?? d.queue_depth ?? d.queue ?? 0;
-    if (d.state === "disabled") return { label: t("deviceStatusDisabled", "Disabled"), tone: "neutral" };
-    if (d.state === "offline" || (age && age > maxStale))
+    const queue = live?.queueDepth ?? d.queueDepth ?? d.queue_depth ?? d.queue ?? 0;
+    const state = live?.state ?? d.state;
+    if (state === "disabled") return { label: t("deviceStatusDisabled", "Disabled"), tone: "neutral" };
+    if (state === "offline" || (age && age > maxStale))
       return { label: t("deviceStatusOffline", "Offline"), tone: "offline" };
     if (queue >= queueCrit) return { label: t("deviceStatusOffline", "Offline"), tone: "offline" };
-    if (d.state === "degraded" || (age && age > degradedStale) || (d.rttMs && d.rttMs > 1500) || queue > queueWarn) {
+    if (
+      state === "degraded" ||
+      (age && age > degradedStale) ||
+      (live?.rttMs && live.rttMs > 1500) ||
+      (d.rttMs && d.rttMs > 1500) ||
+      queue > queueWarn
+    ) {
       return { label: t("deviceStatusDegraded", "Degraded"), tone: "degraded" };
     }
     return { label: t("deviceStatusOnline", "Online"), tone: "online" };
@@ -239,6 +269,11 @@ export default function DevicesPage() {
       const normalized = normalizePairingStatus(res);
       setPairingStatus(id, normalized);
       if (["completed", "expired", "error"].includes(normalized.state)) {
+        if (normalized.state === "completed") {
+          listDevices(session)
+            .then(setDevices)
+            .catch(() => undefined);
+        }
         return;
       }
     } catch (err) {
@@ -282,6 +317,12 @@ export default function DevicesPage() {
       { label: t("devicesAppUptime", "Uptime"), value: uptimeValue },
       { label: t("devicesAppStorage", "Storage"), value: storageValue }
     ]);
+    const ingest = diag.ingestNumbers ?? diag.ingest_numbers ?? diag.ingest;
+    if (Array.isArray(ingest) && ingest.length) {
+      addCard(t("devicesIngestCard", "Ingest"), [
+        { label: t("ingestNumbers", "Ingest numbers"), value: ingest.join(", ") }
+      ]);
+    }
     const visibleCards = cards.filter((c) => c.rows.length);
     return (
       <div className="diag-section">
@@ -310,8 +351,8 @@ export default function DevicesPage() {
 
   const activePairingState = pairing?.id ? pairingStates[pairing.id] : undefined;
   const simLabel = (d: any) => describeSimSlots(d.sim_slots ?? d.simSlots);
-  const queueDepth = (d: any) => {
-    const val = d.queueDepth ?? d.queue_depth ?? d.queue;
+  const queueDepth = (d: any, live?: PresenceUpdate) => {
+    const val = live?.queueDepth ?? d.queueDepth ?? d.queue_depth ?? d.queue;
     return val === null || val === undefined ? undefined : val;
   };
   const mergedPresence = (deviceId: string) => presence[deviceId];
@@ -401,8 +442,8 @@ export default function DevicesPage() {
         </div>
         <div className="presence-list">
           {devices.map((d) => {
-            const status = computeDeviceStatus(d);
             const live = mergedPresence(d.id) ?? {};
+            const status = computeDeviceStatus(d, live);
             return (
               <div key={d.id} className="device-card">
                 <div className="device-card__head">
@@ -416,9 +457,9 @@ export default function DevicesPage() {
                   </div>
                   <div className="actions">
                     <span className={`badge ${status.tone}`}>{status.label}</span>
-                    {queueDepth(live) !== undefined && (
+                    {queueDepth(d, live) !== undefined && (
                       <span className="badge neutral">
-                        {t("queueLabel", "Queue")} {queueDepth(d)}
+                        {t("queueLabel", "Queue")} {queueDepth(d, live)}
                       </span>
                     )}
                   </div>
@@ -446,6 +487,12 @@ export default function DevicesPage() {
                           : (d.assignedNumbers ?? "-")}
                     </div>
                   </div>
+                  {Array.isArray(d.ingestNumbers) && d.ingestNumbers.length > 0 && (
+                    <div className="kv">
+                      <div className="gg-label">{t("ingestNumbers", "Ingest devices")}</div>
+                      <div className="gg-value">{(d.ingestNumbers as string[]).join(", ")}</div>
+                    </div>
+                  )}
                 </div>
                 <div className="filter-row">
                   <label className="gg-label">{t("renameLabel", "Rename")}</label>
