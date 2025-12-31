@@ -439,6 +439,13 @@ impl AppConfig {
             self.presence.degraded_threshold_ms = degraded_ms;
         }
 
+        if let Some(ttl) = env::var("SYNC_PAIRING_SESSION_TTL_SECS")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.pairing.session_ttl_secs = ttl;
+        }
+
         if let Ok(mode) = env::var("SYNC_HOTSTORE") {
             self.hot_store.mode = match mode.to_ascii_lowercase().as_str() {
                 "redis" => HotStoreMode::Redis,

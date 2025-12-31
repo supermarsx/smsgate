@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 use crate::{
     auth::permissions,
     auth::user::UserAuth,
-    auth::{AuthContext, Principal},
+    auth::AuthContext,
     error::AppError,
-    pairing::{PairingCompleteRequest, PairingStore},
+    pairing::PairingCompleteRequest,
     state::AppState,
 };
 

@@ -6,10 +6,10 @@ use axum::{
     extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
 };
+use dashmap::DashMap;
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
 
 pub mod rbac;
 pub mod user;
@@ -66,7 +66,7 @@ impl AuthContext {
 /// Device token map used for simple header-based auth (placeholder).
 #[derive(Debug, Clone, Default)]
 pub struct DeviceAuthStore {
-    tokens: HashMap<String, String>,
+    tokens: DashMap<String, String>,
 }
 
 impl DeviceAuthStore {
@@ -97,7 +97,7 @@ impl DeviceAuthStore {
     pub fn validate(&self, device_id: &str, token: &str) -> bool {
         self.tokens
             .get(device_id)
-            .map(|stored| stored == hash_token(token))
+            .map(|stored| stored.value() == &hash_token(token))
             .unwrap_or(false)
     }
 }
