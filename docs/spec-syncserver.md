@@ -667,6 +667,9 @@ Configurable:
   - Scripts: `scripts/build-syncserver-all.sh` and `scripts/build-syncserver-all.ps1`.
   - Produce release binaries for `syncserver`, `syncctl`, and `migrate` into `dist/<target>/`.
   - Targets configurable via env/flags; expects Rust targets pre-installed.
+- **Config presets**:
+  - `SYNC_CONFIG_PRESET=dev` -> `config/config.dev.json`, `SYNC_CONFIG_PRESET=prod` -> `config/config.prod.json`.
+  - Otherwise `SYNC_CONFIG_PATH` (default `config/config.json`) is used.
 
 ---
 
