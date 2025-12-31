@@ -24,6 +24,7 @@ export function LoginPanel({ onLogin }: Props) {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
+  const defaultAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
   const [mode, setMode] = useState<Mode | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -32,7 +33,7 @@ export function LoginPanel({ onLogin }: Props) {
     null
   );
   const [form, setForm] = useState({
-    username: "",
+    username: defaultAdminUser,
     password: "",
     domain: "",
     mfaCode: ""
@@ -44,21 +45,21 @@ export function LoginPanel({ onLogin }: Props) {
   const authStatuses = [
     {
       key: "oauth" as Mode,
-      label: "SSO / OAuth",
+      label: t("authSso", "SSO / OAuth"),
       enabled: appConfig.authModes.oauth,
-      hint: "Use your identity provider"
+      hint: t("authSsoHint", "Use your identity provider")
     },
     {
       key: "simple_signin" as Mode,
-      label: "Username / Password",
+      label: t("authPassword", "Username / Password"),
       enabled: appConfig.authModes.simpleSignin,
-      hint: "Local account sign-in"
+      hint: t("authPasswordHint", "Local account sign-in")
     },
     {
       key: "domain_signin" as Mode,
-      label: "Domain Login (LDAP/AD)",
+      label: t("authDomain", "Domain Login (LDAP/AD)"),
       enabled: appConfig.authModes.domainSignin,
-      hint: "Bind against your directory"
+      hint: t("authDomainHint", "Bind against your directory")
     }
   ];
 
@@ -125,7 +126,7 @@ export function LoginPanel({ onLogin }: Props) {
     e.preventDefault();
     if (!passwordChange) return;
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("passwordsMismatch", "Passwords do not match"));
       return;
     }
     setPending(true);
@@ -144,7 +145,7 @@ export function LoginPanel({ onLogin }: Props) {
         return;
       }
       if (res.requiresPasswordChange) {
-        setError("Password change still required");
+        setError(t("passwordChangeStillRequired", "Password change still required"));
         return;
       }
       if (res.session) {
@@ -160,11 +161,11 @@ export function LoginPanel({ onLogin }: Props) {
   async function handleOfflineReset(e: React.FormEvent) {
     e.preventDefault();
     if (!offlineReset.token || !offlineReset.password) {
-      setError("Reset token and new password are required");
+      setError(t("offlineResetRequired", "Reset token and new password are required"));
       return;
     }
     if (offlineReset.password !== offlineReset.confirm) {
-      setError("Passwords do not match");
+      setError(t("passwordsMismatch", "Passwords do not match"));
       return;
     }
     setPending(true);
@@ -172,7 +173,7 @@ export function LoginPanel({ onLogin }: Props) {
     try {
       const res = await changePassword({
         token: offlineReset.token,
-        username: form.username || "admin",
+        username: form.username || defaultAdminUser,
         newPassword: offlineReset.password,
         mfaCode: form.mfaCode || undefined
       });
@@ -207,7 +208,7 @@ export function LoginPanel({ onLogin }: Props) {
             className={`login-mode ${mode === "oauth" ? "is-active" : ""}`}
             onClick={() => handleSelect("oauth")}
           >
-            Sign in with SSO
+            {t("loginSsoCta", "Sign in with SSO")}
           </button>
         )}
         {appConfig.authModes.simpleSignin && (
@@ -216,7 +217,7 @@ export function LoginPanel({ onLogin }: Props) {
             className={`login-mode ${mode === "simple_signin" ? "is-active" : ""}`}
             onClick={() => handleSelect("simple_signin")}
           >
-            Username / Password
+            {t("loginPasswordCta", "Username / Password")}
           </button>
         )}
         {appConfig.authModes.domainSignin && (
@@ -225,7 +226,7 @@ export function LoginPanel({ onLogin }: Props) {
             className={`login-mode ${mode === "domain_signin" ? "is-active" : ""}`}
             onClick={() => handleSelect("domain_signin")}
           >
-            Domain Login
+            {t("loginDomainCta", "Domain Login")}
           </button>
         )}
       </div>
@@ -254,7 +255,7 @@ export function LoginPanel({ onLogin }: Props) {
             />
           </div>
           <button type="submit" className="login-submit" disabled={pending}>
-            {pending ? "Saving..." : "Save new password"}
+            {pending ? t("saving", "Saving...") : t("loginSavePassword", "Save new password")}
           </button>
           <div className="muted small">
             {t("loginResetNote", "Required on first login or when policy forces a reset.")}
@@ -304,7 +305,7 @@ export function LoginPanel({ onLogin }: Props) {
             </div>
           )}
           <button type="submit" className="login-submit" disabled={pending}>
-            {pending ? "Signing in..." : "Sign in"}
+            {pending ? t("loginSubmitting", "Signing in...") : t("loginSubmit", "Sign in")}
           </button>
           <div className="form-row">
             <label htmlFor="reset-email">{t("loginResetEmail", "Password reset email")}</label>
@@ -322,11 +323,13 @@ export function LoginPanel({ onLogin }: Props) {
                   setResetStatus(null);
                   setPending(true);
                   const res = await requestPasswordReset(form.username);
-                  setResetStatus(res.ok ? "Reset link sent" : (res.message ?? "Reset failed"));
+                  setResetStatus(
+                    res.ok ? t("resetLinkSent", "Reset link sent") : (res.message ?? t("resetFailed", "Reset failed"))
+                  );
                   setPending(false);
                 }}
               >
-                Send reset link
+                {t("sendResetLink", "Send reset link")}
               </button>
             </div>
             {resetStatus && <div className="muted small">{resetStatus}</div>}
@@ -349,11 +352,13 @@ export function LoginPanel({ onLogin }: Props) {
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
             />
             <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
-              Reset without email
+              {t("offlineResetCta", "Reset without email")}
             </button>
             <div className="muted small">
-              Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must
-              meet your policy.
+              {t(
+                "offlineResetHelp",
+                "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
+              )}
             </div>
           </div>
         </form>

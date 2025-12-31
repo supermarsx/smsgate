@@ -82,7 +82,11 @@ export default function ConfigPage() {
       const diffKeys = Object.keys(parsed).filter(
         (k) => JSON.stringify((beforeConfig as any)[k]) !== JSON.stringify(parsed[k])
       );
-      setDiffSummary(diffKeys.length ? `Changed: ${diffKeys.join(", ")}` : "No changes vs loaded config");
+      setDiffSummary(
+        diffKeys.length
+          ? `${t("configChangedKeys", "Changed")}: ${diffKeys.join(", ")}`
+          : t("configNoChanges", "No changes vs loaded config")
+      );
     } catch (err) {
       setParseError((err as Error).message);
       setDiffSummary(null);
@@ -97,12 +101,17 @@ export default function ConfigPage() {
           <div className="gg-pill">{t("configTitle", "Config")}</div>
           <h1 className="gg-title">{t("configSubtitle", "Central configuration")}</h1>
           <p className="gg-subtitle">
-            Render syncserver/smsgate2/smsrelay3 config sections with validation; live updates on CONFIG_UPDATE.
+            {t(
+              "configLead",
+              "Render syncserver/smsgate2/smsrelay3 config sections with validation; live updates on CONFIG_UPDATE."
+            )}
           </p>
         </div>
         <section className="gg-section">
           <div className="gg-label">{t("configAccessLabel", "Access")}</div>
-          <div className="gg-value">{canEdit ? "Admin edit enabled" : "Read-only for this role"}</div>
+          <div className="gg-value">
+            {canEdit ? t("configEditEnabled", "Admin edit enabled") : t("configReadOnly", "Read-only for this role")}
+          </div>
         </section>
         <section className="gg-section">
           <div className="gg-label">{t("configStateLabel", "Config state")}</div>
@@ -160,7 +169,9 @@ export default function ConfigPage() {
                     }
                   }}
                 >
-                  Toggle
+                  {contactsCfg.enabled
+                    ? t("contactsDisableSync", "Disable sync")
+                    : t("contactsEnableSync", "Enable sync")}
                 </button>
                 <button
                   className="ghost"
@@ -175,7 +186,7 @@ export default function ConfigPage() {
                     }
                   }}
                 >
-                  Refresh contacts
+                  {t("contactsRefresh", "Refresh contacts")}
                 </button>
                 <button
                   className="ghost"
@@ -195,10 +206,14 @@ export default function ConfigPage() {
                     }
                   }}
                 >
-                  Export contacts
+                  {t("contactsExport", "Export contacts")}
                 </button>
               </div>
-              {contactsError && <div className="login-error">Contacts: {contactsError}</div>}
+              {contactsError && (
+                <div className="login-error">
+                  {t("contactsError", "Contacts")}: {contactsError}
+                </div>
+              )}
               {contacts && (
                 <details className="diag-block">
                   <summary className="gg-label">
@@ -219,10 +234,10 @@ export default function ConfigPage() {
           </div>
           <div className="config-actions">
             <button className="ghost" onClick={refresh} disabled={loading}>
-              Refresh
+              {t("refresh", "Refresh")}
             </button>
             <button className="login-submit" onClick={handleSave} disabled={saving || !canEdit}>
-              {saving ? "Saving..." : "Save"}
+              {saving ? t("configSaving", "Saving...") : t("save", "Save")}
             </button>
           </div>
         </section>

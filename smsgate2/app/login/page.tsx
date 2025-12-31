@@ -48,7 +48,7 @@ function LoginBody() {
   return (
     <main className="gg-panel">
       <header className="gg-panel__header">
-        <div className="gg-pill">Auth</div>
+        <div className="gg-pill">{t("authLabel", "Auth")}</div>
         <h1 className="gg-title">{t("heroTitle")}</h1>
         <p className="gg-subtitle">{t("heroSubtitle")}</p>
       </header>
@@ -61,7 +61,7 @@ function LoginBody() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="gg-panel">Loading login...</div>}>
+    <Suspense fallback={<div className="gg-panel">{getTranslations(getInitialLocale()).loading ?? "Loading..."}</div>}>
       <LoginBody />
     </Suspense>
   );

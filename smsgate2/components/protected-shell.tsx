@@ -80,9 +80,9 @@ export function ProtectedShell({ children }: Props) {
     <div className={`shell ${navOpen ? "nav-open" : ""}`}>
       <aside className="shell-nav">
         <div className="nav-brand-row">
-          <div className="nav-brand">smsgate2</div>
+          <div className="nav-brand">{t("brandName", "smsgate2")}</div>
           <button className="ghost nav-toggle" onClick={() => setNavOpen((v) => !v)}>
-            {navOpen ? "Close" : "Menu"}
+            {navOpen ? t("navClose", "Close") : t("navMenu", "Menu")}
           </button>
         </div>
         <nav>
@@ -108,21 +108,32 @@ export function ProtectedShell({ children }: Props) {
               {session.user.email && <div className="muted small">{session.user.name}</div>}
             </div>
             <span className={`badge ${session.user.requires2fa ? "degraded" : "online"}`}>
-              {session.user.requires2fa ? "2FA required" : "2FA ready"}
+              {session.user.requires2fa ? t("twoFaRequired", "2FA required") : t("twoFaReady", "2FA ready")}
             </span>
           </div>
           <div className="topbar-actions">
-            <div className={`status-chip ${status.connected ? "ok" : "warn"}`} title={status.lastError ?? "WS status"}>
+            <div
+              className={`status-chip ${status.connected ? "ok" : "warn"}`}
+              title={status.lastError ?? t("wsStatusTitle", "WS status")}
+            >
               <span className={`status-dot ${status.connected ? "" : "warn"}`} />
-              <div className="chip-label">WS</div>
-              <div className="chip-value">{status.connected ? "Online" : "Offline"}</div>
-              <div className="muted small">RTT {status.clientRtt ?? "-"}</div>
+              <div className="chip-label">{t("wsLabel", "WS")}</div>
+              <div className="chip-value">
+                {status.connected ? t("onlineLabel", "Online") : t("offlineLabel", "Offline")}
+              </div>
+              <div className="muted small">
+                {t("rttLabel", "RTT")} {status.clientRtt ?? "-"}
+              </div>
             </div>
             <div className="status-chip info" title={t("presenceLabel", "Device presence and RTT")}>
               <span className="status-dot" />
               <div className="chip-label">{t("devicesLabel", "Devices")}</div>
-              <div className="chip-value">{status.devicesOnline ?? 0} online</div>
-              <div className="muted small">RTT {status.deviceRtt ?? "-"}</div>
+              <div className="chip-value">
+                {status.devicesOnline ?? 0} {t("onlineLabel", "online")}
+              </div>
+              <div className="muted small">
+                {t("rttLabel", "RTT")} {status.deviceRtt ?? "-"}
+              </div>
             </div>
             <div className="status-chip ok" title={t("dashboardIngest", "Ingest to render latency")}>
               <span className="status-dot" />
@@ -137,11 +148,11 @@ export function ProtectedShell({ children }: Props) {
               <div className="chip-label">{t("reconnects", "Reconnects")}</div>
               <div className="chip-value">{status.reconnects ?? 0}</div>
               <div className="muted small">
-                {t("navUsers", "Role")} {session.user.role}
+                {t("roleLabel", "Role")} {session.user.role}
               </div>
             </div>
             <button className="ghost" onClick={toggle} title={t("themeToggle", "Toggle theme")}>
-              {t("themeToggle", "Toggle theme")}: {theme === "dark" ? "Dark" : "Light"}
+              {t("themeToggle", "Toggle theme")}: {theme === "dark" ? t("themeDark", "Dark") : t("themeLight", "Light")}
             </button>
             <select
               className="gg-select topbar-select"
@@ -155,16 +166,17 @@ export function ProtectedShell({ children }: Props) {
               ))}
             </select>
             <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>
-              Debug
+              {t("debugLabel", "Debug")}
             </button>
             <button className="ghost" onClick={handleLogout}>
-              Logout
+              {t("logout", "Logout")}
             </button>
           </div>
         </header>
         {!status.connected && (
           <div className="banner warn">
-            Reconnecting to realtime stream... showing cached data. {status.lastError ? `(${status.lastError})` : ""}
+            {t("reconnectingBanner", "Reconnecting to realtime stream... showing cached data.")}{" "}
+            {status.lastError ? `(${status.lastError})` : ""}
           </div>
         )}
         {session.user.requiresPasswordChange && (
@@ -183,7 +195,7 @@ export function ProtectedShell({ children }: Props) {
             <pre className="pairing-pre">{JSON.stringify(status, null, 2)}</pre>
             <div className="actions">
               <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
-                {showLogs ? "Hide logs" : "Show logs"}
+                {showLogs ? t("hideLogs", "Hide logs") : t("showLogs", "Show logs")}
               </button>
             </div>
             {showLogs && status.logs && (
@@ -203,7 +215,10 @@ export function ProtectedShell({ children }: Props) {
           {session.user.requiresPasswordChange || session.user.requires2fa ? (
             <div className="gg-panel">
               <div className="login-error">
-                Account requires password update and/or 2FA enrollment. Please log out and complete the required step.
+                {t(
+                  "accessBlocked",
+                  "Account requires password update and/or 2FA enrollment. Please log out and complete the required step."
+                )}
               </div>
             </div>
           ) : (

@@ -1,12 +1,18 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
-import { useEffect, useMemo, useState } from "react";
 import { getLoginEvents } from "../../lib/rest";
+import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 export default function LoginsPage() {
   const { session } = useSession();
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   const [rows, setRows] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,15 +85,21 @@ export default function LoginsPage() {
     <ProtectedShell>
       <div className="gg-panel">
         <div className="gg-panel__header">
-          <div className="gg-pill">Logins</div>
-          <h1 className="gg-title">Login events</h1>
-          <p className="gg-subtitle">Surface login history, failures, and lockouts to meet spec requirements.</p>
+          <div className="gg-pill">{t("loginsTitle", "Logins")}</div>
+          <h1 className="gg-title">{t("loginsSubtitle", "Login events")}</h1>
+          <p className="gg-subtitle">
+            {t("loginsDescription", "Surface login history, failures, and lockouts to meet spec requirements.")}
+          </p>
         </div>
-        {error && <div className="login-error">Error: {error}</div>}
-        {loading && <div className="muted">Loading...</div>}
+        {error && (
+          <div className="login-error">
+            {t("loginsError", "Error")}: {error}
+          </div>
+        )}
+        {loading && <div className="muted">{t("loginsLoading", "Loading...")}</div>}
         <div className="filter-row">
           <label className="gg-label" htmlFor="login-filter">
-            Filter
+            {t("filter", "Filter")}
           </label>
           <input
             id="login-filter"
@@ -97,12 +109,12 @@ export default function LoginsPage() {
               setFilter(e.target.value);
               setPage(0);
             }}
-            placeholder="Search user/status/ip"
+            placeholder={t("loginsSearch", "Search user/status/ip")}
           />
         </div>
         <div className="filter-row">
           <label className="gg-label" htmlFor="login-result">
-            Result
+            {t("resultLabel", "Result")}
           </label>
           <select
             id="login-result"
@@ -113,12 +125,12 @@ export default function LoginsPage() {
               setPage(0);
             }}
           >
-            <option value="__all__">All</option>
-            <option value="success">success</option>
-            <option value="fail">fail</option>
+            <option value="__all__">{t("all", "All")}</option>
+            <option value="success">{t("auditSuccess", "success")}</option>
+            <option value="fail">{t("auditFail", "fail")}</option>
           </select>
           <label className="gg-label" htmlFor="login-ip">
-            IP
+            {t("ipLabel", "IP")}
           </label>
           <input
             id="login-ip"
@@ -128,10 +140,10 @@ export default function LoginsPage() {
               setIpFilter(e.target.value);
               setPage(0);
             }}
-            placeholder="10.0.0.1"
+            placeholder={t("loginsIpPlaceholder", "10.0.0.1")}
           />
           <label className="gg-label" htmlFor="login-time">
-            Time
+            {t("timeLabel", "Time")}
           </label>
           <select
             id="login-time"
@@ -139,37 +151,38 @@ export default function LoginsPage() {
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
           >
-            <option value="all">All</option>
-            <option value="1h">Last hour</option>
-            <option value="24h">Last 24h</option>
+            <option value="all">{t("all", "All")}</option>
+            <option value="1h">{t("lastHour", "Last hour")}</option>
+            <option value="24h">{t("last24h", "Last 24h")}</option>
           </select>
         </div>
         <div className="presence-list">
           {paged.map((r, idx) => (
             <div key={`${page}-${idx}`} className="presence-row spaced">
               <div>
-                <div className="gg-value">{r.status ?? r.result ?? "unknown"}</div>
+                <div className="gg-value">{r.status ?? r.result ?? t("statusUnknown", "unknown")}</div>
                 <div className="muted">
-                  {r.user ?? r.username ?? "user"} @ {r.timestamp ?? "—"} | IP: {r.ip ?? "—"}
+                  {r.user ?? r.username ?? t("userPlaceholder", "user")} @ {r.timestamp ?? "-"} | {t("ipLabel", "IP")}:{" "}
+                  {r.ip ?? "-"}
                 </div>
               </div>
             </div>
           ))}
-          {!rows.length && !loading && <div className="muted">No login events yet.</div>}
+          {!rows.length && !loading && <div className="muted">{t("loginsNoEvents", "No login events yet.")}</div>}
         </div>
         <div className="pagination">
           <button className="ghost" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
-            Prev
+            {t("prev", "Prev")}
           </button>
           <span className="muted">
-            Page {page + 1} / {pageCount}
+            {t("pageLabel", "Page")} {page + 1} / {pageCount}
           </span>
           <button
             className="ghost"
             disabled={page + 1 >= pageCount}
             onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
           >
-            Next
+            {t("next", "Next")}
           </button>
           <button
             className="ghost"
@@ -183,10 +196,10 @@ export default function LoginsPage() {
               URL.revokeObjectURL(url);
             }}
           >
-            Export JSON
+            {t("exportJson", "Export JSON")}
           </button>
           <button className="ghost" onClick={() => exportCsv(filtered)}>
-            Export CSV
+            {t("exportCsv", "Export CSV")}
           </button>
         </div>
       </div>

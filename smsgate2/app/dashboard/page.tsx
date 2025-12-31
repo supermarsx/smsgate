@@ -130,7 +130,7 @@ export default function DashboardPage() {
       if (!older.length) setHasMore(false);
       setEvents((prev) => [...prev, ...older]);
     } catch {
-      setLastError("REST fallback failed");
+      setLastError(t("dashboardRestFallback", "REST fallback failed"));
     } finally {
       setLoadingPage(false);
     }
@@ -224,13 +224,13 @@ export default function DashboardPage() {
                       <span className={`msg-pill state-${evt.state}`}>{evt.state}</span>
                       <div className="actions">
                         <button className="ghost" onClick={() => handleStateChange(evt.id, "claimed")}>
-                          Claim
+                          {t("dashboardClaim", "Claim")}
                         </button>
                         <button className="ghost" onClick={() => handleStateChange(evt.id, "verified")}>
-                          Verify
+                          {t("dashboardVerify", "Verify")}
                         </button>
                         <button className="ghost" onClick={() => handleStateChange(evt.id, "rejected")}>
-                          Reject
+                          {t("dashboardReject", "Reject")}
                         </button>
                       </div>
                     </div>

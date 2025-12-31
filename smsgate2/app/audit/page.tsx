@@ -101,7 +101,7 @@ export default function AuditPage() {
         {loading && <div className="muted">{t("loading", "Loading...")}</div>}
         <div className="filter-row">
           <label className="gg-label" htmlFor="audit-filter">
-            Filter
+            {t("filter", "Filter")}
           </label>
           <input
             id="audit-filter"
@@ -116,7 +116,7 @@ export default function AuditPage() {
         </div>
         <div className="filter-row">
           <label className="gg-label" htmlFor="audit-result">
-            Result
+            {t("resultLabel", "Result")}
           </label>
           <select
             id="audit-result"
@@ -132,7 +132,7 @@ export default function AuditPage() {
             <option value="fail">{t("auditFail", "fail")}</option>
           </select>
           <label className="gg-label" htmlFor="audit-device">
-            Device
+            {t("deviceLabel", "Device")}
           </label>
           <input
             id="audit-device"
@@ -142,10 +142,10 @@ export default function AuditPage() {
               setDeviceFilter(e.target.value);
               setPage(0);
             }}
-            placeholder="device id"
+            placeholder={t("numbersDeviceIdPlaceholder", "device id")}
           />
           <label className="gg-label" htmlFor="audit-number">
-            Number
+            {t("numbersLabel", "Numbers")}
           </label>
           <input
             id="audit-number"
@@ -155,10 +155,10 @@ export default function AuditPage() {
               setNumberFilter(e.target.value);
               setPage(0);
             }}
-            placeholder="+1555"
+            placeholder={t("auditNumberPlaceholder", "+1555")}
           />
           <label className="gg-label" htmlFor="audit-time">
-            Time
+            {t("timeLabel", "Time")}
           </label>
           <select
             id="audit-time"
@@ -177,7 +177,8 @@ export default function AuditPage() {
               <div>
                 <div className="gg-value">{r.action ?? r.type ?? "event"}</div>
                 <div className="muted">
-                  {r.actor ?? "unknown"} @ {r.timestamp ?? "—"} | {r.device ?? "device"} | {r.number ?? "number"}
+                  {r.actor ?? t("actorUnknown", "unknown")} @ {r.timestamp ?? "-"} |{" "}
+                  {r.device ?? t("devicePlaceholder", "device")} | {r.number ?? t("numberPlaceholder", "number")}
                 </div>
               </div>
             </div>
@@ -186,17 +187,17 @@ export default function AuditPage() {
         </div>
         <div className="pagination">
           <button className="ghost" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
-            Prev
+            {t("prev", "Prev")}
           </button>
           <span className="muted">
-            Page {page + 1} / {pageCount}
+            {t("pageLabel", "Page")} {page + 1} / {pageCount}
           </span>
           <button
             className="ghost"
             disabled={page + 1 >= pageCount}
             onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
           >
-            Next
+            {t("next", "Next")}
           </button>
           <button
             className="ghost"
@@ -210,10 +211,10 @@ export default function AuditPage() {
               URL.revokeObjectURL(url);
             }}
           >
-            Export JSON
+            {t("exportJson", "Export JSON")}
           </button>
           <button className="ghost" onClick={() => exportCsv(filtered)}>
-            Export CSV
+            {t("exportCsv", "Export CSV")}
           </button>
         </div>
       </div>

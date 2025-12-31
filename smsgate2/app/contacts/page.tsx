@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { useConfig } from "../../components/config-provider";
 import { exportContacts, fetchContacts, resolveContactConflict, toggleContactSync } from "../../lib/rest";
 import { hasAtLeast } from "../../lib/roles";
+import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 type ContactRecord = Record<string, unknown>;
 
 export default function ContactsPage() {
   const { session } = useSession();
   const { config, refresh, loading: configLoading } = useConfig();
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   const [contacts, setContacts] = useState<ContactRecord[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,9 +103,9 @@ export default function ContactsPage() {
   }
 
   async function pollImport() {
-    setImportStatus("polling...");
+    setImportStatus(t("contactsPolling", "polling..."));
     await handleRefresh();
-    setImportStatus("refreshed");
+    setImportStatus(t("contactsRefreshed", "refreshed"));
     setTimeout(() => setImportStatus("idle"), 1500);
   }
 
@@ -107,45 +113,60 @@ export default function ContactsPage() {
     <ProtectedShell>
       <div className="gg-panel">
         <div className="gg-panel__header">
-          <div className="gg-pill">Contacts</div>
-          <h1 className="gg-title">Contact sync + conflicts</h1>
+          <div className="gg-pill">{t("contactsTitle", "Contacts")}</div>
+          <h1 className="gg-title">{t("contactsSubtitle", "Contact sync + conflicts")}</h1>
           <p className="gg-subtitle">
-            Toggle contact sync, inspect recent imports, surface conflicts, and export/download mappings.
+            {t(
+              "contactsDescription",
+              "Toggle contact sync, inspect recent imports, surface conflicts, and export/download mappings."
+            )}
           </p>
         </div>
-        {error && <div className="login-error">Error: {error}</div>}
+        {error && (
+          <div className="login-error">
+            {t("contactsError", "Contacts")}: {error}
+          </div>
+        )}
         <section className="gg-section">
           <div className="contact-grid">
             <div>
-              <div className="gg-label">Status</div>
-              <div className="gg-value">{enabled ? "Enabled" : "Disabled"}</div>
-              <div className="muted small">Last import: {contactsCfg.lastImport ?? contactsCfg.last_import ?? "-"}</div>
-            </div>
-            <div>
-              <div className="gg-label">Counts</div>
-              <div className="gg-value">{total ? `${total} contacts` : "No contacts loaded"}</div>
+              <div className="gg-label">{t("contactsStatus", "Status")}</div>
+              <div className="gg-value">
+                {enabled ? t("statusEnabled", "Enabled") : t("statusDisabled", "Disabled")}
+              </div>
               <div className="muted small">
-                Conflicts: {conflicts.length} {conflicts.length ? "(first 5 shown)" : ""}
+                {t("contactsLastImportLabel", "Last import")}:{" "}
+                {contactsCfg.lastImport ?? contactsCfg.last_import ?? "-"}
               </div>
             </div>
             <div>
-              <div className="gg-label">Role</div>
+              <div className="gg-label">{t("contactsCounts", "Counts")}</div>
+              <div className="gg-value">
+                {total ? `${total} ${t("contactsLabel", "contacts")}` : t("contactsNoneLoaded", "No contacts loaded")}
+              </div>
+              <div className="muted small">
+                {t("contactsConflicts", "Conflicts")}: {conflicts.length}{" "}
+                {conflicts.length ? t("contactsConflictsHint", "(first 5 shown)") : ""}
+              </div>
+            </div>
+            <div>
+              <div className="gg-label">{t("contactsRole", "Role")}</div>
               <div className="gg-value">{session.user.role}</div>
-              <div className="muted small">Managers/Admins can toggle and export</div>
+              <div className="muted small">{t("contactsRoleHint", "Managers/Admins can toggle and export")}</div>
             </div>
           </div>
           <div className="config-actions">
             <button className="ghost" disabled={loading || !canToggle || configLoading} onClick={handleToggle}>
-              {enabled ? "Disable sync" : "Enable sync"}
+              {enabled ? t("contactsDisableSync", "Disable sync") : t("contactsEnableSync", "Enable sync")}
             </button>
             <button className="ghost" disabled={loading} onClick={handleRefresh}>
-              Refresh contacts
+              {t("contactsRefresh", "Refresh contacts")}
             </button>
             <button className="ghost" disabled={loading} onClick={pollImport}>
-              Poll import status
+              {t("contactsPoll", "Poll import status")}
             </button>
             <button className="login-submit" disabled={loading} onClick={handleExport}>
-              Export JSON
+              {t("contactsExport", "Export JSON")}
             </button>
             {importStatus !== "idle" && <span className="muted small">{importStatus}</span>}
           </div>
@@ -153,26 +174,33 @@ export default function ContactsPage() {
         {contacts && (
           <section className="gg-section">
             <div className="gg-label">
-              Contacts preview ({Math.min(contacts.length, 5)} of {contacts.length})
+              {t("contactsPreview", "Contacts preview")} ({Math.min(contacts.length, 5)} {t("ofLabel", "of")}{" "}
+              {contacts.length})
             </div>
             <pre className="pairing-pre">{JSON.stringify(contacts.slice(0, 5), null, 2)}</pre>
           </section>
         )}
         {conflicts.length > 0 && (
           <section className="gg-section">
-            <div className="gg-label">Conflicts ({conflicts.length})</div>
+            <div className="gg-label">
+              {t("contactsConflicts", "Conflicts")} ({conflicts.length})
+            </div>
             <div className="conflict-list">
               {conflicts.slice(0, 5).map((c, idx) => (
                 <div key={idx} className="conflict-card">
-                  <div className="gg-value">Entry {idx + 1}</div>
-                  <div className="muted small">Source: {(c as any).source ?? "-"}</div>
+                  <div className="gg-value">
+                    {t("contactsEntry", "Entry")} {idx + 1}
+                  </div>
+                  <div className="muted small">
+                    {t("contactsSource", "Source")}: {(c as any).source ?? "-"}
+                  </div>
                   <pre className="pairing-pre">{JSON.stringify(c, null, 2)}</pre>
                   <div className="actions">
                     <button className="ghost" onClick={() => handleResolve(c, "server")}>
-                      Keep server
+                      {t("keepServer", "Keep server")}
                     </button>
                     <button className="ghost" onClick={() => handleResolve(c, "client")}>
-                      Keep client
+                      {t("keepClient", "Keep client")}
                     </button>
                   </div>
                 </div>

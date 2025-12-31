@@ -1,12 +1,18 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
-import { useEffect, useState } from "react";
 import { assignNumber, createNumber, deleteNumber, listNumbers, unassignNumber, updateNumber } from "../../lib/rest";
+import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 export default function NumbersPage() {
   const { session } = useSession();
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   const [numbers, setNumbers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,23 +41,35 @@ export default function NumbersPage() {
     <ProtectedShell>
       <div className="gg-panel">
         <div className="gg-panel__header">
-          <div className="gg-pill">Numbers</div>
-          <h1 className="gg-title">Assign and manage numbers</h1>
-          <p className="gg-subtitle">CRUD numbers and assign/unassign to users/devices per spec.</p>
+          <div className="gg-pill">{t("numbersTitle", "Numbers")}</div>
+          <h1 className="gg-title">{t("numbersSubtitle", "Assign and manage numbers")}</h1>
+          <p className="gg-subtitle">
+            {t("numbersDescription", "CRUD numbers and assign/unassign to users/devices per spec.")}
+          </p>
         </div>
-        {error && <div className="login-error">Error: {error}</div>}
-        {loading && <div className="muted">Loading...</div>}
+        {error && (
+          <div className="login-error">
+            {t("numbersError", "Error")}: {error}
+          </div>
+        )}
+        {loading && <div className="muted">{t("numbersLoading", "Loading...")}</div>}
         <div className="presence-list">
           {numbers.map((n) => (
             <div key={n.id ?? n.e164} className="presence-row spaced">
               <div>
                 <div className="gg-value">{n.e164 ?? n.number}</div>
-                <div className="muted">Assigned to: {n.assignedTo ?? "-"}</div>
-                <div className="muted">Shared: {n.shared ? "yes" : "no"}</div>
-                <div className="muted">Default device: {n.defaultDeviceId ?? "-"}</div>
+                <div className="muted">
+                  {t("numbersAssignedTo", "Assigned to")}: {n.assignedTo ?? "-"}
+                </div>
+                <div className="muted">
+                  {t("numbersShared", "Shared")}: {n.shared ? t("sharedYes", "yes") : t("sharedNo", "no")}
+                </div>
+                <div className="muted">
+                  {t("numbersDefaultDevice", "Default device")}: {n.defaultDeviceId ?? "-"}
+                </div>
                 <div className="filter-row">
                   <label className="gg-label" htmlFor={`label-${n.e164}`}>
-                    Label
+                    {t("numbersLabelField", "Label")}
                   </label>
                   <input
                     id={`label-${n.e164}`}
@@ -62,7 +80,7 @@ export default function NumbersPage() {
                     }
                   />
                   <label className="gg-label" htmlFor={`shared-${n.e164}`}>
-                    Shared
+                    {t("numbersShared", "Shared")}
                   </label>
                   <input
                     id={`shared-${n.e164}`}
@@ -73,7 +91,7 @@ export default function NumbersPage() {
                     }
                   />
                   <label className="gg-label" htmlFor={`default-device-${n.e164}`}>
-                    Default device
+                    {t("numbersDefaultDevice", "Default device")}
                   </label>
                   <input
                     id={`default-device-${n.e164}`}
@@ -85,7 +103,7 @@ export default function NumbersPage() {
                         [n.e164]: { ...(prev[n.e164] ?? {}), defaultDeviceId: e.target.value }
                       }))
                     }
-                    placeholder="device id"
+                    placeholder={t("numbersDeviceIdPlaceholder", "device id")}
                   />
                 </div>
               </div>
@@ -108,7 +126,7 @@ export default function NumbersPage() {
                     }
                   }}
                 >
-                  Save
+                  {t("save", "Save")}
                 </button>
                 <button
                   className="ghost"
@@ -123,35 +141,35 @@ export default function NumbersPage() {
                     }
                   }}
                 >
-                  Delete
+                  {t("delete", "Delete")}
                 </button>
               </div>
             </div>
           ))}
-          {!numbers.length && !loading && <div className="muted">No numbers yet.</div>}
+          {!numbers.length && !loading && <div className="muted">{t("numbersEmpty", "No numbers yet.")}</div>}
         </div>
         <div className="gg-section">
-          <h3 className="gg-section__title">Add number</h3>
+          <h3 className="gg-section__title">{t("addNumber", "Add number")}</h3>
           <div className="filter-row">
             <label className="gg-label" htmlFor="num-e164">
-              E.164
+              {t("numbersE164Label", "E.164")}
             </label>
             <input
               id="num-e164"
               className="gg-input"
               value={form.e164}
               onChange={(e) => setForm({ ...form, e164: e.target.value })}
-              placeholder="+15551234567"
+              placeholder={t("numbersE164Placeholder", "+15551234567")}
             />
             <label className="gg-label" htmlFor="num-label">
-              Label
+              {t("numbersLabelField", "Label")}
             </label>
             <input
               id="num-label"
               className="gg-input"
               value={form.label}
               onChange={(e) => setForm({ ...form, label: e.target.value })}
-              placeholder="SIM slot or nickname"
+              placeholder={t("simSlot", "SIM slot or nickname")}
             />
             <button
               className="login-submit"
@@ -159,7 +177,7 @@ export default function NumbersPage() {
               onClick={async () => {
                 if (!session) return;
                 if (!validateE164(form.e164)) {
-                  setError("Enter a valid E.164 number");
+                  setError(t("numbersInvalidE164", "Enter a valid E.164 number"));
                   return;
                 }
                 setCreating(true);
@@ -176,15 +194,15 @@ export default function NumbersPage() {
                 }
               }}
             >
-              {creating ? "Adding..." : "Add number"}
+              {creating ? t("numbersAdding", "Adding...") : t("addNumber", "Add number")}
             </button>
           </div>
         </div>
         <div className="gg-section">
-          <h3 className="gg-section__title">Assign/unassign</h3>
+          <h3 className="gg-section__title">{t("assignUnassign", "Assign/unassign")}</h3>
           <div className="filter-row">
             <label className="gg-label" htmlFor="assign-e164">
-              E.164
+              {t("numbersE164Label", "E.164")}
             </label>
             <input
               id="assign-e164"
@@ -193,24 +211,24 @@ export default function NumbersPage() {
               onChange={(e) => setAssignForm({ ...assignForm, e164: e.target.value })}
             />
             <label className="gg-label" htmlFor="assign-user">
-              User ID
+              {t("numbersUserId", "User ID")}
             </label>
             <input
               id="assign-user"
               className="gg-input"
               value={assignForm.userId}
               onChange={(e) => setAssignForm({ ...assignForm, userId: e.target.value })}
-              placeholder="optional"
+              placeholder={t("optional", "optional")}
             />
             <label className="gg-label" htmlFor="assign-device">
-              Device ID
+              {t("numbersDeviceId", "Device ID")}
             </label>
             <input
               id="assign-device"
               className="gg-input"
               value={assignForm.deviceId}
               onChange={(e) => setAssignForm({ ...assignForm, deviceId: e.target.value })}
-              placeholder="optional"
+              placeholder={t("optional", "optional")}
             />
             <div className="actions">
               <button
@@ -219,7 +237,7 @@ export default function NumbersPage() {
                 onClick={async () => {
                   if (!session) return;
                   if (!validateE164(assignForm.e164)) {
-                    setError("Enter a valid E.164 number to assign");
+                    setError(t("numbersInvalidAssign", "Enter a valid E.164 number to assign"));
                     return;
                   }
                   setAssigning(true);
@@ -238,7 +256,7 @@ export default function NumbersPage() {
                   }
                 }}
               >
-                {assigning ? "Assigning..." : "Assign"}
+                {assigning ? t("numbersAssigning", "Assigning...") : t("assign", "Assign")}
               </button>
               <button
                 className="ghost"
@@ -258,7 +276,7 @@ export default function NumbersPage() {
                   }
                 }}
               >
-                Unassign
+                {t("unassign", "Unassign")}
               </button>
             </div>
           </div>
