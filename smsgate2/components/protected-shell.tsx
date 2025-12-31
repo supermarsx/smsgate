@@ -10,6 +10,7 @@ import { useStatus } from "./status-context";
 import { useConfig } from "./config-provider";
 import { mapWsErrorKey } from "../lib/status";
 import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
+import { StatusBar } from "./status-bar";
 
 type Props = {
   children: React.ReactNode;
@@ -96,6 +97,7 @@ export function ProtectedShell({ children }: Props) {
         </nav>
       </aside>
       <section className="shell-main">
+        <StatusBar />
         {!status.connected && (
           <div className="banner warn">
             {t("reconnectingBanner", "Reconnecting to realtime stream... showing cached data.")}{" "}
