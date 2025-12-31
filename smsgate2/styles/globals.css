@@ -420,9 +420,11 @@ a {
   top: 18px;
   padding: 18px;
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
   border: 1px solid var(--border);
   box-shadow: var(--shadow-2);
+  backdrop-filter: blur(calc(var(--blur) + 4px));
+  -webkit-backdrop-filter: blur(calc(var(--blur) + 4px));
   min-height: calc(100vh - 64px);
 }
 
@@ -438,6 +440,14 @@ a {
   letter-spacing: 0.02em;
 }
 
+.nav-brand.small {
+  font-size: 16px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .nav-link {
   display: block;
   padding: 12px 12px;
@@ -451,13 +461,15 @@ a {
 }
 
 .nav-link.is-active {
-  background: rgba(76, 201, 255, 0.16);
-  border: 1px solid rgba(76, 201, 255, 0.28);
-  box-shadow: inset 2px 0 0 var(--primary);
+  background: rgba(76, 201, 255, 0.14);
+  border: 1px solid rgba(76, 201, 255, 0.38);
+  box-shadow:
+    inset 0 0 0 1px rgba(76, 201, 255, 0.45),
+    0 10px 30px rgba(76, 201, 255, 0.16);
 }
 
 .nav-link:not(.is-active):hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .shell-topbar {
@@ -519,6 +531,25 @@ a {
 
 .status-dot.danger {
   background: var(--danger);
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+
+.dot.ok {
+  background: var(--success);
+}
+
+.dot.warn {
+  background: var(--warning);
+}
+
+.dot.info {
+  background: var(--info);
 }
 
 .ghost {
@@ -811,6 +842,57 @@ a {
   border-color: rgba(108, 124, 255, 0.3);
 }
 
+.status-float {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(16, 23, 34, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-2);
+  z-index: 20;
+}
+
+.status-pill-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  position: relative;
+}
+
+.status-pill-mini::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: 120%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+  transition: opacity var(--transition);
+  z-index: 25;
+}
+
+.status-pill-mini:hover::after {
+  opacity: 1;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -935,6 +1017,84 @@ a {
   padding: 10px 12px;
   background: var(--panel-2);
   box-shadow: var(--shadow-2);
+}
+
+.fab-bar {
+  position: fixed;
+  right: 16px;
+  bottom: 18px;
+  display: flex;
+  gap: 10px;
+  z-index: 30;
+}
+
+.fab {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  position: relative;
+}
+
+.fab:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.fab.locale {
+  padding: 0;
+}
+
+.fab-trigger {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.fab-menu {
+  position: absolute;
+  bottom: 48px;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-2);
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+}
+
+.fab-option {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fab-option.active {
+  border-color: rgba(76, 201, 255, 0.4);
+  background: rgba(76, 201, 255, 0.1);
+}
+
+.fab-option:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 @media (max-width: 960px) {

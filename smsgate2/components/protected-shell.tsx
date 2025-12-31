@@ -23,6 +23,7 @@ export function ProtectedShell({ children }: Props) {
   const { theme, toggle } = useTheme();
   const { config } = useConfig();
   const [locale, setLocale] = useState<Locale>("en-US");
+  const [localeMenuOpen, setLocaleMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -80,7 +81,7 @@ export function ProtectedShell({ children }: Props) {
     <div className={`shell ${navOpen ? "nav-open" : ""}`}>
       <aside className="shell-nav">
         <div className="nav-brand-row">
-          <div className="nav-brand">{t("brandName", "smsgate2")}</div>
+          <div className="nav-brand small">{t("brandName", "smsgate2")}</div>
           <button className="ghost nav-toggle" onClick={() => setNavOpen((v) => !v)}>
             {navOpen ? t("navClose", "Close") : t("navMenu", "Menu")}
           </button>
@@ -112,59 +113,6 @@ export function ProtectedShell({ children }: Props) {
             </span>
           </div>
           <div className="topbar-actions">
-            <div
-              className={`status-chip ${status.connected ? "ok" : "warn"}`}
-              title={status.lastError ?? t("wsStatusTitle", "WS status")}
-            >
-              <span className={`status-dot ${status.connected ? "" : "warn"}`} />
-              <div className="chip-label">{t("wsLabel", "WS")}</div>
-              <div className="chip-value">
-                {status.connected ? t("onlineLabel", "Online") : t("offlineLabel", "Offline")}
-              </div>
-              <div className="muted small">
-                {t("rttLabel", "RTT")} {status.clientRtt ?? "-"}
-              </div>
-            </div>
-            <div className="status-chip info" title={t("presenceLabel", "Device presence and RTT")}>
-              <span className="status-dot" />
-              <div className="chip-label">{t("devicesLabel", "Devices")}</div>
-              <div className="chip-value">
-                {status.devicesOnline ?? 0} {t("onlineLabel", "online")}
-              </div>
-              <div className="muted small">
-                {t("rttLabel", "RTT")} {status.deviceRtt ?? "-"}
-              </div>
-            </div>
-            <div className="status-chip ok" title={t("dashboardIngest", "Ingest to render latency")}>
-              <span className="status-dot" />
-              <div className="chip-label">{t("latencyLabel", "Latency")}</div>
-              <div className="chip-value">{status.ingestLatency ?? "-"}</div>
-              <div className="muted small">
-                {t("errorPrefix", "Error")}: {status.wsErrors ?? 0}
-              </div>
-            </div>
-            <div className="status-chip" title={t("reconnects", "WS reconnects")}>
-              <span className="status-dot" />
-              <div className="chip-label">{t("reconnects", "Reconnects")}</div>
-              <div className="chip-value">{status.reconnects ?? 0}</div>
-              <div className="muted small">
-                {t("roleLabel", "Role")} {session.user.role}
-              </div>
-            </div>
-            <button className="ghost" onClick={toggle} title={t("themeToggle", "Toggle theme")}>
-              {t("themeToggle", "Toggle theme")}: {theme === "dark" ? t("themeDark", "Dark") : t("themeLight", "Light")}
-            </button>
-            <select
-              className="gg-select topbar-select"
-              value={locale}
-              onChange={(e) => changeLocale(e.target.value as Locale)}
-            >
-              {SUPPORTED_LOCALES.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
             <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>
               {t("debugLabel", "Debug")}
             </button>
@@ -224,6 +172,61 @@ export function ProtectedShell({ children }: Props) {
           ) : (
             children
           )}
+        </div>
+        <div className="status-float">
+          <div
+            className="status-pill-mini"
+            data-tip={`${t("wsLabel", "WS")}: ${status.connected ? t("onlineLabel", "Online") : t("offlineLabel", "Offline")} · ${status.clientRtt ?? "-"}`}
+          >
+            <span className={`dot ${status.connected ? "ok" : "warn"}`} />
+            <span>{t("wsLabel", "WS")}</span>
+          </div>
+          <div
+            className="status-pill-mini"
+            data-tip={`${t("devicesLabel", "Devices")}: ${status.devicesOnline ?? 0} · ${status.deviceRtt ?? "-"}`}
+          >
+            <span className="dot info" />
+            <span>{status.devicesOnline ?? 0}</span>
+          </div>
+          <div
+            className="status-pill-mini"
+            data-tip={`${t("latencyLabel", "Latency")}: ${status.ingestLatency ?? "-"} · ${t("reconnects", "Reconnects")}: ${status.reconnects ?? 0}`}
+          >
+            <span className="dot ok" />
+            <span>{status.ingestLatency ?? "-"}</span>
+          </div>
+        </div>
+        <div className="fab-bar">
+          <div className="fab" title={t("themeToggle", "Toggle theme")} onClick={toggle}>
+            {theme === "dark" ? "🌙" : "☀️"}
+          </div>
+          <div className={`fab locale ${localeMenuOpen ? "open" : ""}`}>
+            <button
+              type="button"
+              className="fab-trigger"
+              onClick={() => setLocaleMenuOpen((v) => !v)}
+              aria-label={t("localeSelect", "Change language")}
+            >
+              🌐
+            </button>
+            {localeMenuOpen && (
+              <div className="fab-menu">
+                {SUPPORTED_LOCALES.map((loc) => (
+                  <button
+                    key={loc}
+                    className={`fab-option ${locale === loc ? "active" : ""}`}
+                    onClick={() => {
+                      changeLocale(loc as Locale);
+                      setLocaleMenuOpen(false);
+                    }}
+                    type="button"
+                  >
+                    {loc}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>
