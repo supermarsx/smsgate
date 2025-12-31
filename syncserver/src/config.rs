@@ -12,6 +12,11 @@ fn default_true() -> bool {
     true
 }
 
+/// Default states to persist when transitions occur.
+fn default_persist_states() -> Vec<String> {
+    vec!["verified".into(), "rejected".into(), "claimed".into()]
+}
+
 /// Execution environment to allow different defaults and logging levels.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -312,6 +317,12 @@ pub struct IngestConfig {
     pub hot_store_capacity: usize,
     /// Maximum events accepted per ingest request.
     pub max_batch: usize,
+    /// Whether to persist new events immediately on ingest.
+    #[serde(default = "default_true")]
+    pub persist_new: bool,
+    /// Event states that should be persisted when transitions occur.
+    #[serde(default = "default_persist_states")]
+    pub persist_states: Vec<String>,
 }
 
 impl Default for IngestConfig {
@@ -320,6 +331,8 @@ impl Default for IngestConfig {
             dedup_ttl_ms: 60_000,
             hot_store_capacity: 1_000,
             max_batch: 100,
+            persist_new: true,
+            persist_states: default_persist_states(),
         }
     }
 }
@@ -728,6 +741,12 @@ impl AppConfig {
             if let Some(max_batch) = ingest.max_batch {
                 self.ingest.max_batch = max_batch;
             }
+            if let Some(persist_new) = ingest.persist_new {
+                self.ingest.persist_new = persist_new;
+            }
+            if let Some(states) = ingest.persist_states {
+                self.ingest.persist_states = states;
+            }
         }
 
         if let Some(hot) = from.hot_store {
@@ -950,6 +969,8 @@ pub struct PartialIngestConfig {
     pub dedup_ttl_ms: Option<u64>,
     pub hot_store_capacity: Option<usize>,
     pub max_batch: Option<usize>,
+    pub persist_new: Option<bool>,
+    pub persist_states: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
