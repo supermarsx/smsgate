@@ -4,6 +4,7 @@ import { SessionProvider } from "../components/session-provider";
 import { ConfigProvider } from "../components/config-provider";
 import { StatusProvider } from "../components/status-context";
 import { ThemeProvider } from "../components/theme";
+import { GlobalToggles } from "../components/global-toggles";
 
 export const metadata: Metadata = {
   title: "smsgate2",
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ThemeProvider>
               <StatusProvider>
                 <div className="gg-shell">{children}</div>
+                <GlobalToggles />
               </StatusProvider>
             </ThemeProvider>
           </ConfigProvider>
