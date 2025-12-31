@@ -41,6 +41,26 @@ export function LoginPanel({ onLogin }: Props) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetStatus, setResetStatus] = useState<string | null>(null);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
+  const authStatuses = [
+    {
+      key: "oauth" as Mode,
+      label: "SSO / OAuth",
+      enabled: appConfig.authModes.oauth,
+      hint: "Use your identity provider"
+    },
+    {
+      key: "simple_signin" as Mode,
+      label: "Username / Password",
+      enabled: appConfig.authModes.simpleSignin,
+      hint: "Local account sign-in"
+    },
+    {
+      key: "domain_signin" as Mode,
+      label: "Domain Login (LDAP/AD)",
+      enabled: appConfig.authModes.domainSignin,
+      hint: "Bind against your directory"
+    }
+  ];
 
   function handleSelect(next: Mode) {
     setMode(next);
@@ -170,6 +190,16 @@ export function LoginPanel({ onLogin }: Props) {
 
   return (
     <div className="login-panel">
+      <div className="auth-status-grid">
+        {authStatuses.map((s) => (
+          <div key={s.key} className={`status-chip ${s.enabled ? "ok" : "warn"}`}>
+            <span className={`status-dot ${s.enabled ? "ok" : "warn"}`} />
+            <div className="chip-label">{s.label}</div>
+            <div className="chip-value">{s.enabled ? "Enabled" : "Disabled"}</div>
+            <div className="muted small">{s.hint}</div>
+          </div>
+        ))}
+      </div>
       <div className="login-panel__modes">
         {appConfig.authModes.oauth && (
           <button
@@ -246,12 +276,10 @@ export function LoginPanel({ onLogin }: Props) {
           {mode === "domain_signin" && (
             <div className="form-row">
               <label htmlFor="domain">{t("loginDomainOptional", "Domain (optional)")}</label>
-              <input
-                id="domain"
-                value={form.domain}
-                onChange={(e) => setForm({ ...form, domain: e.target.value })}
-                placeholder={t("loginDomainPlaceholder", "corp.local")}
-              />
+              <input id="domain" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
+              <div className="muted small">
+                {t("loginDomainPlaceholder", "Enter your AD/LDAP domain (e.g., corp.local)")}
+              </div>
             </div>
           )}
           <div className="form-row">
@@ -283,7 +311,6 @@ export function LoginPanel({ onLogin }: Props) {
             <div className="reset-row">
               <input
                 id="reset-email"
-                placeholder={t("loginResetPlaceholder", "user@example.com")}
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
               />
@@ -308,19 +335,16 @@ export function LoginPanel({ onLogin }: Props) {
             <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
             <input
               id="offline-reset"
-              placeholder={t("loginTokenPlaceholder", "Paste reset token")}
               value={offlineReset.token}
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
             />
             <input
               type="password"
-              placeholder={t("loginNewPassword", "New password")}
               value={offlineReset.password}
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
             />
             <input
               type="password"
-              placeholder={t("loginConfirmPassword", "Confirm password")}
               value={offlineReset.confirm}
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
             />
@@ -328,7 +352,8 @@ export function LoginPanel({ onLogin }: Props) {
               Reset without email
             </button>
             <div className="muted small">
-              Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset.
+              Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must
+              meet your policy.
             </div>
           </div>
         </form>

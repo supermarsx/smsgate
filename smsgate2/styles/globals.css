@@ -219,6 +219,12 @@ a {
   align-items: center;
 }
 
+.auth-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
 .small {
   font-size: 12px;
 }
