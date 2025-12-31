@@ -24,7 +24,7 @@ function tryMatchLocale(value?: string | null): Locale | null {
 }
 
 const CONFIG_DEFAULT_LOCALE = tryMatchLocale(appConfig.defaultLocale);
-const DEFAULT_LOCALE: Locale = CONFIG_DEFAULT_LOCALE ?? "en-US";
+export const DEFAULT_LOCALE: Locale = CONFIG_DEFAULT_LOCALE ?? "en-US";
 
 export function normalizeLocale(value?: string | null): Locale {
   return tryMatchLocale(value) ?? DEFAULT_LOCALE;
