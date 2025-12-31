@@ -2,6 +2,10 @@ use crate::error::AppError;
 use serde::{Deserialize, Serialize};
 use std::{env, fs, net::SocketAddr, path::PathBuf};
 
+fn default_true() -> bool {
+    true
+}
+
 /// Execution environment to allow different defaults and logging levels.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -243,12 +247,30 @@ impl Default for RbacConfig {
 pub struct PairingConfig {
     /// Session TTL in seconds.
     pub session_ttl_secs: u64,
+    /// Optional bootstrap device credentials for initial bring-up.
+    pub bootstrap_device: Option<BootstrapDevice>,
+}
+
+/// Bootstrap device issued via config/env to allow the first relay to pair.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BootstrapDevice {
+    /// Device identifier granted to the bootstrap relay.
+    pub id: String,
+    /// Raw token that will be hashed server-side.
+    pub token: String,
+    /// Friendly name shown in dashboards.
+    #[serde(default)]
+    pub name: Option<String>,
+    /// Whether the bootstrap device is enabled on startup.
+    #[serde(default = "default_true")]
+    pub enabled: bool,
 }
 
 impl Default for PairingConfig {
     fn default() -> Self {
         Self {
             session_ttl_secs: 600,
+            bootstrap_device: None,
         }
     }
 }
@@ -446,6 +468,22 @@ impl AppConfig {
             self.pairing.session_ttl_secs = ttl;
         }
 
+        let bootstrap_id = env::var("SYNC_BOOTSTRAP_DEVICE_ID").ok();
+        let bootstrap_token = env::var("SYNC_BOOTSTRAP_DEVICE_TOKEN").ok();
+        if let (Some(id), Some(token)) = (bootstrap_id, bootstrap_token) {
+            let name = env::var("SYNC_BOOTSTRAP_DEVICE_NAME").ok();
+            let disabled = env::var("SYNC_BOOTSTRAP_DEVICE_DISABLED")
+                .ok()
+                .map(|v| matches!(v.to_ascii_lowercase().as_str(), "1" | "true" | "yes"))
+                .unwrap_or(false);
+            self.pairing.bootstrap_device = Some(BootstrapDevice {
+                id,
+                token,
+                name,
+                enabled: !disabled,
+            });
+        }
+
         if let Ok(mode) = env::var("SYNC_HOTSTORE") {
             self.hot_store.mode = match mode.to_ascii_lowercase().as_str() {
                 "redis" => HotStoreMode::Redis,
@@ -561,6 +599,25 @@ impl AppConfig {
             ));
         }
 
+        if self.pairing.session_ttl_secs == 0 {
+            return Err(AppError::Validation(
+                "pairing.session_ttl_secs must be greater than zero".into(),
+            ));
+        }
+
+        if let Some(bootstrap) = &self.pairing.bootstrap_device {
+            if bootstrap.id.trim().is_empty() {
+                return Err(AppError::Validation(
+                    "pairing.bootstrap_device.id must not be empty".into(),
+                ));
+            }
+            if bootstrap.token.trim().is_empty() {
+                return Err(AppError::Validation(
+                    "pairing.bootstrap_device.token must not be empty".into(),
+                ));
+            }
+        }
+
         Ok(())
     }
 
@@ -649,6 +706,9 @@ impl AppConfig {
             if let Some(ttl) = pairing.session_ttl_secs {
                 self.pairing.session_ttl_secs = ttl;
             }
+            if let Some(bootstrap) = pairing.bootstrap_device {
+                self.pairing.bootstrap_device = Some(bootstrap);
+            }
         }
     }
 }
@@ -692,6 +752,7 @@ struct PartialPresenceConfig {
 #[derive(Debug, Default, Deserialize)]
 struct PartialPairingConfig {
     pub session_ttl_secs: Option<u64>,
+    pub bootstrap_device: Option<BootstrapDevice>,
 }
 
 #[derive(Debug, Default, Deserialize)]

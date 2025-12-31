@@ -56,6 +56,7 @@ pub async fn complete_session(
     State(state): State<AppState>,
     Json(payload): Json<PairingCompleteRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    let device_name = payload.device_name.clone();
     let completed = state
         .pairing_store
         .complete_session(payload)
@@ -64,7 +65,7 @@ pub async fn complete_session(
     // Store hashed token for device auth.
     state
         .device_auth
-        .set_token(&completed.device_id, &completed.device_token);
+        .register_with_name(&completed.device_id, &completed.device_token, device_name);
 
     Ok((
         StatusCode::OK,

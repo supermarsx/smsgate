@@ -141,6 +141,9 @@ impl AppState {
         let (event_tx, _rx) = broadcast::channel(1024);
         let connection_count = Arc::new(AtomicUsize::new(0));
         let device_auth = DeviceAuthStore::default();
+        if let Some(bootstrap) = config.pairing.bootstrap_device.clone() {
+            device_auth.register_bootstrap(&bootstrap);
+        }
         let persistence: Arc<dyn PersistentStore> = Arc::new(
             JsonDb::new(
                 config
