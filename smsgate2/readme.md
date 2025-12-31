@@ -27,6 +27,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 - `docker build -f Dockerfile -t smsgate2:local .` to build the app image.
 - `docker-compose up` (repo root) brings up smsgate2 + mock syncserver (Wiremock) + Redis + Postgres; drop Wiremock stubs into `docs/mock-syncserver`.
 - Copy `.env.example` to `.env.local` or set `NEXT_PUBLIC_*` env vars for your environment. You can also drop a JSON config instead of envs (see below).
+- The image copies `config/` and `locales/` so they can be volume-mounted for overrides (see `docker-compose.yml` volumes).
 
 ## Notes
 
@@ -34,6 +35,8 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 - Auth entry lives at `/login` with config-driven auth modes (SSO/local/domain), PKCE scaffold, and session persistence; root `/` redirects based on session.
 - Protected shell with role-aware nav/topbar is scaffolded under `/dashboard` and other routes.
 - See `docs/spec-smsgate2.md` and `docs/spec-syncserver.md` for contract details.
+- i18n dictionaries live in `locales/*.json`; `lib/i18n` loads them and `bun run scan:i18n` flags hardcoded UI strings.
+- Pairing QR codes are rendered locally (no external QR server); CSP allows inline scripts for Next runtime while keeping other sources tight.
 - Configuration:
   - Default JSON config lives at `config/app.config.json`. It includes `apiBaseUrl`, `wsPath`, `wsOrigin`, `qrOrigin`, `authModes` (oauth/simpleSignin/domainSignin booleans), and locale settings (`locales`, `defaultLocale`).
   - Optional SMTP/offline reset config lives in the same JSON (`smtp` block for host/port/secure/username/password/fromEmail, `offlineReset` for enabling offline reset and default admin credentials).

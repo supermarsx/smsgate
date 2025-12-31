@@ -44,7 +44,7 @@ function scanFile(file) {
 function shouldSkip(text) {
   if (!/[A-Za-z]/.test(text)) return true;
   if (text.length < 3) return true;
-  const allowed = ["--", "===", ":::"]; // common separators to ignore
+  const allowed = ["--", "===", ":::", "Promise"]; // common separators to ignore
   if (allowed.some((a) => text.includes(a))) return true;
   return false;
 }
