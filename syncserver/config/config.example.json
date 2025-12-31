@@ -20,6 +20,11 @@
     "session_ttl_secs": 600,
     "bootstrap_device": null
   },
+  "seeding": {
+    "users": [],
+    "numbers": [],
+    "devices": []
+  },
   "hot_store": {
     "mode": "memory",
     "redis_url": null
@@ -75,10 +80,20 @@
   "auth": {
     "modes": ["simple_signin"],
     "password_pepper": null,
+    "password_min_length": 12,
+    "admin_password_min_length": 16,
+    "password_min_entropy_bits": 48,
+    "password_history_size": 5,
+    "weak_passwords": ["password", "123456", "123456789", "qwerty", "letmein"],
+    "max_failed_attempts": 5,
+    "lockout_secs": 300,
+    "bootstrap_admin_username": "admin",
+    "smtp": null,
     "session_ttl_secs": 86400,
     "require_admin_totp": true,
     "oauth_issuer": null,
     "oauth_audience": null,
+    "oauth_hmac_secret": null,
     "domain_shared_secret": null
   }
 }
