@@ -148,9 +148,33 @@ a {
   }
 }
 
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 
 .page-transition {
   animation: fadeIn 220ms ease-in;
+}
+
+.gg-panel,
+.gg-section,
+.presence-row,
+.device-card,
+.account-float,
+.status-float,
+.status-more-panel,
+.modal-card,
+.fab {
+  animation: fadeScale 240ms ease-out;
+  animation-fill-mode: both;
 }
 
 .page-transition.fade-out {
@@ -1305,6 +1329,14 @@ a {
 .fab:focus-visible {
   box-shadow: 0 12px 30px rgba(76, 201, 255, 0.25);
   border-color: rgba(76, 201, 255, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+  }
 }
 
 .emoji-tint {
