@@ -17,8 +17,8 @@ fn app_with_state(state: AppState) -> Router {
 #[tokio::test]
 async fn returns_presence_online_then_degraded() {
     let mut config = AppConfig::default();
-    config.presence.online_threshold_ms = 10;
-    config.presence.degraded_threshold_ms = 30;
+    config.presence.online_threshold_ms = 100;
+    config.presence.degraded_threshold_ms = 500;
     let state = AppState::new(config);
     let app = app_with_state(state.clone());
 
@@ -50,7 +50,7 @@ async fn returns_presence_online_then_degraded() {
     assert_eq!(presence_now, syncserver::domain::PresenceState::Online);
 
     // Advance simulated time by sleeping past online threshold but within degraded.
-    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
     let presence_later = state.presence.evaluate(chrono::Utc::now(), "dev-1");
     assert_eq!(presence_later, syncserver::domain::PresenceState::Degraded);
 }
