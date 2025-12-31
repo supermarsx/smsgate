@@ -9,7 +9,7 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
-use headers::{authorization::Bearer, Authorization};
+use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -110,7 +110,7 @@ impl DeviceAuthStore {
     }
 
     pub fn from_rbac_config(roles: &[crate::config::RoleDefinition]) -> Self {
-        let mut store = DeviceAuthStore::default();
+        let store = DeviceAuthStore::default();
         // Placeholder: seed a demo device token based on role name if provided via env later.
         for role in roles {
             if role.name == "device" {
@@ -120,7 +120,7 @@ impl DeviceAuthStore {
         store
     }
 
-    pub fn with_token(mut self, device_id: &str, token: &str) -> Self {
+    pub fn with_token(self, device_id: &str, token: &str) -> Self {
         self.set_token(device_id, token);
         self
     }

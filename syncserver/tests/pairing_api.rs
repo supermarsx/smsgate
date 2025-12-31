@@ -1,4 +1,5 @@
 use axum::{
+    body,
     body::Body,
     http::{Request, StatusCode},
     routing::post,
@@ -44,7 +45,7 @@ async fn pairing_issues_device_token_and_ingest_works() {
         .unwrap();
     assert_eq!(session_res.status(), StatusCode::OK);
     let body: serde_json::Value = serde_json::from_slice(
-        &hyper::body::to_bytes(session_res.into_body())
+        &body::to_bytes(session_res.into_body(), usize::MAX)
             .await
             .unwrap(),
     )
@@ -67,7 +68,7 @@ async fn pairing_issues_device_token_and_ingest_works() {
         .unwrap();
     assert_eq!(complete_res.status(), StatusCode::OK);
     let complete_body: serde_json::Value = serde_json::from_slice(
-        &hyper::body::to_bytes(complete_res.into_body())
+        &body::to_bytes(complete_res.into_body(), usize::MAX)
             .await
             .unwrap(),
     )
