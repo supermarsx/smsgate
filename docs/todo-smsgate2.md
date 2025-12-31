@@ -93,6 +93,6 @@
 - [x] Cutover plan from legacy `smsgate/`: redirects or link to new UI, config migration notes, and deprecation timeline.
 
 ## Follow-ups
-- [ ] Manual i18n sweep for filters/status/pagination labels across all pages to catch any lingering literals the scanner misses (contact/conflict tooltips, diagnostics labels, pagination labels).
-- [ ] Add UI tests covering inline filters (dashboard/logins/audit) and status bar error mapping for offline/network WS cases.
-- [ ] Expand e2e to cover light-theme golden palette regressions and account/logout controls.
+- [x] Manual i18n sweep for filters/status/pagination labels across all pages to catch any lingering literals the scanner misses (contact/conflict tooltips, diagnostics labels, pagination labels).
+- [x] Add UI tests covering inline filters (dashboard/logins/audit) and status bar error mapping for offline/network WS cases.
+- [x] Expand e2e to cover light-theme golden palette regressions and account/logout controls.
