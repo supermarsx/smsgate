@@ -22,6 +22,7 @@ import { useConfig } from "../../components/config-provider";
 import { getTranslations, useLocale } from "../../lib/i18n";
 import { WsClient } from "../../lib/ws";
 import type { PresenceUpdate } from "../../lib/contracts";
+import { appConfig } from "../../lib/config";
 
 type PairingState = {
   state: "pending" | "waiting" | "completed" | "expired" | "error";
@@ -57,9 +58,12 @@ export default function DevicesPage() {
   const pairingTimers = useRef<Record<string, number>>({});
   const wsRef = useRef<WsClient | null>(null);
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
+  const routeAllowed = appConfig.limits?.routes?.devices ?? false;
+  const realtimeAllowed = appConfig.limits?.realtime?.enabled ?? true;
+  const deviceLimits = appConfig.limits?.actions?.devices ?? {};
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !realtimeAllowed) return;
     const client = new WsClient(session, {
       onConfigUpdate: undefined,
       log: (type, detail) => addLog({ ts: Date.now(), type, detail })
@@ -73,16 +77,16 @@ export default function DevicesPage() {
       unsubscribe();
       client.disconnect();
     };
-  }, [session, addLog]);
+  }, [realtimeAllowed, session, addLog]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !routeAllowed) return;
     setLoading(true);
     listDevices(session)
       .then(setDevices)
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [routeAllowed, session]);
 
   useEffect(() => {
     return () => {
@@ -160,6 +164,10 @@ export default function DevicesPage() {
   }
 
   async function handleAction(id: string, action: "enable" | "disable" | "rotate-token") {
+    if (!deviceLimits.toggle) {
+      setError(t("accessBlocked", "Access disabled by configuration."));
+      return;
+    }
     if (!session) return;
     setError(null);
     try {
@@ -172,6 +180,10 @@ export default function DevicesPage() {
   }
 
   async function handleRename(id: string, name: string) {
+    if (!deviceLimits.rename) {
+      setError(t("accessBlocked", "Access disabled by configuration."));
+      return;
+    }
     if (!session) return;
     setError(null);
     try {
@@ -188,6 +200,10 @@ export default function DevicesPage() {
   }
 
   async function startPairing() {
+    if (!deviceLimits.pair) {
+      setError(t("accessBlocked", "Access disabled by configuration."));
+      return;
+    }
     if (!session) return;
     setError(null);
     setLoading(true);
@@ -302,6 +318,20 @@ export default function DevicesPage() {
 
   if (!session) return null;
 
+  if (!routeAllowed) {
+    return (
+      <ProtectedShell>
+        <div className="gg-panel">
+          <div className="gg-panel__header">
+            <div className="gg-pill">{t("devicesTitle", "Devices")}</div>
+            <h1 className="gg-title">{t("accessBlocked", "Access disabled by configuration.")}</h1>
+          </div>
+          <p className="gg-subtitle">{t("wsOfflineMode", "This module is turned off by policy.")}</p>
+        </div>
+      </ProtectedShell>
+    );
+  }
+
   const pairingStateLabel = activePairingState
     ? t(`pairingState_${activePairingState.state}`, activePairingState.state)
     : t("pairingPending", "Pending scan");
@@ -323,7 +353,7 @@ export default function DevicesPage() {
         )}
         {loading && <div className="muted">{t("devicesLoading", "Loading...")}</div>}
         <div className="config-actions">
-          <button className="login-submit" onClick={startPairing} disabled={loading}>
+          <button className="login-submit" onClick={startPairing} disabled={loading || !deviceLimits.pair}>
             {t("devicesStartPairing", "Start pairing session")}
           </button>
           {pairing && (

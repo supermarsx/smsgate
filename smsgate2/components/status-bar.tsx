@@ -7,6 +7,7 @@
 import { useMemo, useState } from "react";
 import { useStatus } from "./status-context";
 import { getTranslations, useLocale } from "../lib/i18n";
+import { appConfig } from "../lib/config";
 
 /**
  * Compact websocket status indicator with expandable metrics.
@@ -21,7 +22,8 @@ export function StatusBar() {
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
 
-  if (!status) return null;
+  const statusBarAllowed = appConfig.limits?.realtime?.statusBar ?? true;
+  if (!status || !statusBarAllowed) return null;
 
   const metrics = [
     { key: "ingestLatency", label: t("latencyLabel", "Latency"), value: status.ingestLatency, tone: "info" as const },

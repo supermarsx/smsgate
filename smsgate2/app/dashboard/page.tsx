@@ -14,6 +14,7 @@ import { useConfig } from "../../components/config-provider";
 import { useStatus } from "../../components/status-context";
 import { getTranslations, useLocale } from "../../lib/i18n";
 import { mapWsErrorKey } from "../../lib/status";
+import { appConfig } from "../../lib/config";
 
 /**
  * Dashboard streaming view: realtime events feed, presence, and metrics.
@@ -54,6 +55,8 @@ export default function DashboardPage() {
     if (key) return t(key, lastError ?? key);
     return lastError;
   }, [lastError, t]);
+  const routeAllowed = appConfig.limits?.routes?.dashboard ?? true;
+  const realtimeAllowed = appConfig.limits?.realtime?.enabled ?? true;
 
   const orderedEvents = useMemo(() => {
     const filtered = filterNumber === "__all__" ? events : events.filter((ev) => ev.number === filterNumber);
@@ -64,7 +67,7 @@ export default function DashboardPage() {
   }, [events, filterNumber, timeRange]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !realtimeAllowed) return;
     const client = new WsClient(session, {
       numbers: session.user.numbers,
       onConfigUpdate: () => refreshConfig(),
@@ -96,7 +99,14 @@ export default function DashboardPage() {
       unsubscribe();
       client.disconnect();
     };
-  }, [session, refreshConfig]);
+  }, [session, refreshConfig, realtimeAllowed]);
+
+  useEffect(() => {
+    if (!session || realtimeAllowed) return;
+    listEvents(session, { limit: 50 })
+      .then((older) => setEvents(older))
+      .catch(() => setLastError(t("dashboardRestFallback", "REST fallback failed")));
+  }, [realtimeAllowed, session, t]);
 
   useEffect(() => {
     const target = scrollRef.current;
@@ -186,6 +196,19 @@ export default function DashboardPage() {
   }
 
   if (!session) return null;
+  if (!routeAllowed) {
+    return (
+      <ProtectedShell>
+        <div className="gg-panel">
+          <div className="gg-panel__header">
+            <div className="gg-pill">{t("navDashboard", "Dashboard")}</div>
+            <h1 className="gg-title">{t("accessBlocked", "Access disabled by configuration.")}</h1>
+          </div>
+          <p className="gg-subtitle">{t("reconnectingBanner", "Realtime is disabled by policy.")}</p>
+        </div>
+      </ProtectedShell>
+    );
+  }
 
   return (
     <ProtectedShell>
