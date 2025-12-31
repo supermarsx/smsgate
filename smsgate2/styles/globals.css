@@ -1213,7 +1213,7 @@ a {
   -webkit-backdrop-filter: blur(10px);
   display: grid;
   place-items: center;
-  color: var(--text);
+  color: var(--primary);
   cursor: pointer;
   box-shadow: var(--shadow-2);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
@@ -1272,6 +1272,12 @@ a {
 
 .fab-option:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+.fab:hover,
+.fab:focus-visible {
+  box-shadow: 0 12px 30px rgba(76, 201, 255, 0.25);
+  border-color: rgba(76, 201, 255, 0.4);
 }
 
 .account-float {

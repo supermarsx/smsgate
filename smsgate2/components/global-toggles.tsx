@@ -38,7 +38,7 @@ export function GlobalToggles() {
   return (
     <div className="fab-bar global">
       <div className="fab" title={t("themeToggle", "Toggle theme")} onClick={toggle}>
-        {theme === "dark" ? "🌙" : "☀️"}
+        {theme === "dark" ? "☾" : "☼"}
       </div>
       <div className={`fab locale ${menuOpen ? "open" : ""}`}>
         <button
@@ -47,7 +47,7 @@ export function GlobalToggles() {
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={t("localeSelect", "Change language")}
         >
-          🌐
+          ⌖
         </button>
         {menuOpen && (
           <div className="fab-menu">
