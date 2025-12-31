@@ -725,6 +725,14 @@ impl AppConfig {
             }
         }
     }
+
+    /// Produce a new config by applying the given patch and re-validating.
+    pub fn merged(&self, patch: PartialConfig) -> Result<Self, AppError> {
+        let mut next = self.clone();
+        next.merge(patch);
+        next.validate()?;
+        Ok(next)
+    }
 }
 
 /// Versioned configuration with monotonic version and last update time.
@@ -746,6 +754,94 @@ impl VersionedConfig {
             version: 1,
             last_updated_at: Utc::now(),
         }
+    }
+}
+
+/// Payload exposed to clients describing the effective configuration.
+#[derive(Debug, Clone, Serialize)]
+pub struct ClientConfigSnapshot {
+    /// Monotonic version.
+    pub version: u64,
+    /// ISO8601 timestamp of last update.
+    pub last_updated_at: DateTime<Utc>,
+    /// Environment label.
+    pub env: String,
+    /// Enabled authentication modes.
+    pub auth_modes: Vec<String>,
+    /// Presence thresholds (ms).
+    pub presence: PresenceSnapshot,
+    /// Ingest limits and dedup TTLs.
+    pub ingest: IngestSnapshot,
+    /// Hot store backend label.
+    pub hot_store: String,
+    /// Role definitions for UI gating.
+    pub roles: Vec<RoleSnapshot>,
+}
+
+/// Presence thresholds exposed to clients.
+#[derive(Debug, Clone, Serialize)]
+pub struct PresenceSnapshot {
+    pub online_threshold_ms: u64,
+    pub degraded_threshold_ms: u64,
+}
+
+/// Ingest limits exposed to clients.
+#[derive(Debug, Clone, Serialize)]
+pub struct IngestSnapshot {
+    pub dedup_ttl_ms: u64,
+    pub hot_store_capacity: usize,
+    pub max_batch: usize,
+}
+
+/// Role descriptor exposed to clients.
+#[derive(Debug, Clone, Serialize)]
+pub struct RoleSnapshot {
+    pub name: String,
+    pub precedence: u32,
+    pub permissions: Vec<String>,
+}
+
+impl ClientConfigSnapshot {
+    /// Build a client-facing snapshot from the versioned config.
+    pub fn from_versioned(versioned: &VersionedConfig) -> Self {
+        let cfg = &versioned.config;
+        Self {
+            version: versioned.version,
+            last_updated_at: versioned.last_updated_at,
+            env: cfg.env.as_str().to_string(),
+            auth_modes: cfg.auth.modes.iter().map(mode_label).collect(),
+            presence: PresenceSnapshot {
+                online_threshold_ms: cfg.presence.online_threshold_ms,
+                degraded_threshold_ms: cfg.presence.degraded_threshold_ms,
+            },
+            ingest: IngestSnapshot {
+                dedup_ttl_ms: cfg.ingest.dedup_ttl_ms,
+                hot_store_capacity: cfg.ingest.hot_store_capacity,
+                max_batch: cfg.ingest.max_batch,
+            },
+            hot_store: match cfg.hot_store.mode {
+                HotStoreMode::Redis => "redis".into(),
+                HotStoreMode::Memory => "memory".into(),
+            },
+            roles: cfg
+                .rbac
+                .roles
+                .iter()
+                .map(|role| RoleSnapshot {
+                    name: role.name.clone(),
+                    precedence: role.precedence,
+                    permissions: role.permissions.clone(),
+                })
+                .collect(),
+        }
+    }
+}
+
+fn mode_label(mode: &AuthMode) -> String {
+    match mode {
+        AuthMode::Oauth => "oauth".into(),
+        AuthMode::SimpleSignin => "simple_signin".into(),
+        AuthMode::DomainSignin => "domain_signin".into(),
     }
 }
 
