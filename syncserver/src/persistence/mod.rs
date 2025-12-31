@@ -87,9 +87,13 @@ impl PersistentStore for JsonDb {
         let serialized = serde_json::to_string(login)
             .map_err(|err| format!("failed to serialize login event: {}", err))?;
         let mut file = self.file.lock().await;
-        file.write_all(serialized.as_bytes())
-            .await
-            .map_err(|err| format!("failed to write login event to {}: {}", self.path.display(), err))?;
+        file.write_all(serialized.as_bytes()).await.map_err(|err| {
+            format!(
+                "failed to write login event to {}: {}",
+                self.path.display(),
+                err
+            )
+        })?;
         file.write_all(b"\n")
             .await
             .map_err(|err| format!("failed to write newline: {}", err))?;

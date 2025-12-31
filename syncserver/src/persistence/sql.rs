@@ -113,7 +113,7 @@ impl PersistentStore for SqlStore {
             r#"
             INSERT INTO audit_log (id, actor, action, target, result, correlation_id, payload, occurred_at, ip, user_agent)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-            ON CONFLICT(id) DO UPDATE SET payload=excluded.payload, occurred_at=excluded.occurred_at
+            ON CONFLICT(id) DO NOTHING
             "#,
         )
         .bind(&audit.id)
@@ -155,7 +155,7 @@ impl PersistentStore for SqlStore {
             r#"
             INSERT INTO login_events (id, identity, mode, result, ip, user_agent, two_fa_passed, occurred_at)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-            ON CONFLICT(id) DO UPDATE SET result=excluded.result, occurred_at=excluded.occurred_at
+            ON CONFLICT(id) DO NOTHING
             "#,
         )
         .bind(&login.id)
