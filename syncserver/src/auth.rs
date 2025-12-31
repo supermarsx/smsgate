@@ -12,6 +12,7 @@ use dashmap::DashMap;
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::sync::Arc;
 
 pub mod rbac;
 pub mod user;
@@ -100,13 +101,15 @@ pub enum DeviceAuthError {
 /// Device token map used for header-based auth with enable/disable controls.
 #[derive(Debug, Clone, Default)]
 pub struct DeviceAuthStore {
-    devices: DashMap<String, DeviceRecord>,
+    devices: Arc<DashMap<String, DeviceRecord>>,
 }
 
 impl DeviceAuthStore {
     /// Create a new, empty device auth store.
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            devices: Arc::new(DashMap::new()),
+        }
     }
 
     pub fn from_rbac_config(roles: &[crate::config::RoleDefinition]) -> Self {

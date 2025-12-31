@@ -36,6 +36,7 @@ async fn pairing_issues_device_token_and_ingest_works() {
             Request::builder()
                 .uri("/api/v1/pairing/session")
                 .method("POST")
+                .header("content-type", "application/json")
                 .header("x-user-id", "admin-1")
                 .header("x-user-role", "admin")
                 .body(Body::from("{}"))
