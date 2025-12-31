@@ -61,7 +61,6 @@ class ScanQrActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    @ExperimentalGetImage
     private fun startCamera(errorText: android.widget.TextView, scanner: BarcodeScanner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         val executor = ContextCompat.getMainExecutor(this)
@@ -94,11 +93,11 @@ class ScanQrActivity : AppCompatActivity() {
         }, executor)
     }
 
-    @ExperimentalGetImage
     private class QrAnalyzer(
         private val scanner: BarcodeScanner,
         private val onResult: (String) -> Unit
     ) : ImageAnalysis.Analyzer {
+        @ExperimentalGetImage
         override fun analyze(imageProxy: ImageProxy) {
             val mediaImage = imageProxy.image
             if (mediaImage == null) {
