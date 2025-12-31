@@ -18,7 +18,9 @@
     "secure": false,
     "username": "",
     "password": "",
-    "fromEmail": "no-reply@example.com"
+    "fromEmail": "no-reply@example.com",
+    "replyTo": "support@example.com",
+    "rateLimitPerHour": 500
   },
   "offlineReset": {
     "enabled": true
@@ -36,5 +38,31 @@
   "localization": {
     "locales": ["en-US", "pt-PT", "es-ES"],
     "defaultLocale": "en-US"
+  },
+  "ui": {
+    "pageSize": 20,
+    "dateFormat": "YYYY-MM-DD",
+    "showDebug": true
+  },
+  "featureFlags": {
+    "newDashboard": true,
+    "betaRealtime": true
+  },
+  "realtime": {
+    "pingMs": 12000,
+    "reconnectCapMs": 20000
+  },
+  "contacts": {
+    "syncIntervalMinutes": 20,
+    "conflictStrategy": "prompt"
+  },
+  "logging": {
+    "level": "debug",
+    "console": true
+  },
+  "telemetry": {
+    "enabled": false,
+    "sampleRate": 1,
+    "endpoint": ""
   }
 }
