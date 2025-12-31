@@ -66,6 +66,7 @@ class ContactsSyncWorker(appContext: Context, params: WorkerParameters) : Corout
         val request = Request.Builder()
             .url("$baseUrl/api/v1/device/contacts")
             .addHeader("Authorization", "Bearer $deviceToken")
+            .addHeader("x-device-id", deviceId)
             .post(body)
             .build()
 

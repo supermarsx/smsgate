@@ -12,25 +12,23 @@ use crate::{
 /// GET /api/v1/audit
 pub async fn list_audit(
     UserAuth(user): UserAuth,
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
 ) -> Result<impl IntoResponse, AppError> {
     if !user.has_permission(permissions::AUDIT_READ) {
         return Err(AppError::Validation("forbidden".into()));
     }
-    // Future: load from persistence; currently returns an empty list placeholder.
-    let entries: Vec<AuditEntry> = Vec::new();
+    let entries: Vec<AuditEntry> = state.audit.list_audit().await;
     Ok((StatusCode::OK, Json(entries)))
 }
 
 /// GET /api/v1/login-events
 pub async fn list_login_events(
     UserAuth(user): UserAuth,
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
 ) -> Result<impl IntoResponse, AppError> {
     if !user.has_permission(permissions::LOGINS_READ) {
         return Err(AppError::Validation("forbidden".into()));
     }
-    // Future: load from persistence; currently returns an empty list placeholder.
-    let entries: Vec<LoginEvent> = Vec::new();
+    let entries: Vec<LoginEvent> = state.audit.list_logins().await;
     Ok((StatusCode::OK, Json(entries)))
 }

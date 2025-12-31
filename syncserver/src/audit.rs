@@ -5,6 +5,7 @@
 use std::sync::Arc;
 
 use chrono::Utc;
+use std::collections::VecDeque;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
@@ -25,17 +26,26 @@ enum AuditTask {
 pub struct AuditService {
     enabled: bool,
     tx: mpsc::Sender<AuditTask>,
+    audits: std::sync::Arc<tokio::sync::Mutex<VecDeque<AuditEntry>>>,
+    logins: std::sync::Arc<tokio::sync::Mutex<VecDeque<LoginEvent>>>,
+    capacity: usize,
 }
 
 impl AuditService {
     /// Create a new audit service and spawn the worker task.
     pub fn new(store: Arc<dyn PersistentStore>, enabled: bool) -> Self {
+        let audits = std::sync::Arc::new(tokio::sync::Mutex::new(VecDeque::with_capacity(512)));
+        let logins = std::sync::Arc::new(tokio::sync::Mutex::new(VecDeque::with_capacity(512)));
+        let capacity = 512usize;
+        let audits_clone = audits.clone();
+        let logins_clone = logins.clone();
         let (tx, mut rx) = mpsc::channel::<AuditTask>(512);
         if enabled {
             tokio::spawn(async move {
                 while let Some(task) = rx.recv().await {
                     match task {
                         AuditTask::Audit(entry) => {
+                            push_ring(&audits_clone, entry.clone(), capacity).await;
                             if let Err(err) = store.persist_audit(&entry).await {
                                 tracing::warn!(
                                     target: "storage",
@@ -46,6 +56,7 @@ impl AuditService {
                             }
                         }
                         AuditTask::Login(event) => {
+                            push_ring(&logins_clone, event.clone(), capacity).await;
                             if let Err(err) = store.persist_login(&event).await {
                                 tracing::warn!(
                                     target: "storage",
@@ -63,6 +74,7 @@ impl AuditService {
                 while let Some(task) = rx.recv().await {
                     match task {
                         AuditTask::Audit(entry) => {
+                            push_ring(&audits_clone, entry.clone(), capacity).await;
                             tracing::debug!(
                                 target: "audit",
                                 audit_id = %entry.id,
@@ -70,6 +82,7 @@ impl AuditService {
                             );
                         }
                         AuditTask::Login(event) => {
+                            push_ring(&logins_clone, event.clone(), capacity).await;
                             tracing::debug!(
                                 target: "audit",
                                 login_id = %event.id,
@@ -81,7 +94,13 @@ impl AuditService {
             });
         }
 
-        Self { enabled, tx }
+        Self {
+            enabled,
+            tx,
+            audits,
+            logins,
+            capacity,
+        }
     }
 
     /// Returns true when audit logging is active.
@@ -169,4 +188,24 @@ impl AuditService {
                 .await;
         }
     }
+
+    /// Return recent audit entries (in-memory ring, newest last).
+    pub async fn list_audit(&self) -> Vec<AuditEntry> {
+        let guard = self.audits.lock().await;
+        guard.iter().cloned().collect()
+    }
+
+    /// Return recent login events (in-memory ring, newest last).
+    pub async fn list_logins(&self) -> Vec<LoginEvent> {
+        let guard = self.logins.lock().await;
+        guard.iter().cloned().collect()
+    }
+}
+
+async fn push_ring<T: Clone>(ring: &tokio::sync::Mutex<VecDeque<T>>, value: T, capacity: usize) {
+    let mut guard = ring.lock().await;
+    if guard.len() >= capacity {
+        guard.pop_front();
+    }
+    guard.push_back(value);
 }

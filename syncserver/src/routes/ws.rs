@@ -297,12 +297,17 @@ fn map_presence(
     entry: PresenceEntry,
     state: crate::domain::PresenceState,
 ) -> crate::ws_types::PresenceUpdate {
+    let sims = state
+        .sim_inventory
+        .get(device_id)
+        .unwrap_or_default();
     crate::ws_types::PresenceUpdate {
         device_id: device_id.to_string(),
         state,
         queue_depth: entry.queue_depth,
         last_heartbeat: entry.last_heartbeat,
         device_rtt_ms: entry.device_rtt_ms,
+        sims,
     }
 }
 

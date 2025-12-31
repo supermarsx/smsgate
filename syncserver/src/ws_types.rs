@@ -54,6 +54,8 @@ pub struct PresenceUpdate {
     pub queue_depth: u32,
     pub last_heartbeat: DateTime<Utc>,
     pub device_rtt_ms: Option<u32>,
+    #[serde(default)]
+    pub sims: Vec<SimSnapshot>,
 }
 
 /// SIM update payload.

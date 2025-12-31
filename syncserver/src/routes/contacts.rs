@@ -18,9 +18,19 @@ pub struct ContactRecord {
 /// GET /api/v1/contacts
 pub async fn list_contacts(
     UserAuth(_user): UserAuth,
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
 ) -> Result<impl IntoResponse, AppError> {
-    Ok((StatusCode::OK, Json(Vec::<ContactRecord>::new())))
+    let contacts = state
+        .contacts
+        .list()
+        .into_iter()
+        .map(|(number, name)| ContactRecord {
+            id: number.clone(),
+            number,
+            name: Some(name),
+        })
+        .collect::<Vec<ContactRecord>>();
+    Ok((StatusCode::OK, Json(contacts)))
 }
 
 /// POST /api/v1/contacts/toggle

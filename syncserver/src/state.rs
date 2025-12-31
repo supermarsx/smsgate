@@ -2,6 +2,7 @@ use crate::{
     audit::AuditService,
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
+    contact_store::ContactStore,
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
     management::NumberStore,
     persistence::{sql::SqlStore, worker::PersistenceWorker, JsonDb, PersistentStore},
@@ -116,6 +117,8 @@ pub struct AppState {
     pub numbers: Arc<NumberStore>,
     /// SIM inventory tracker for devices.
     pub sim_inventory: Arc<SimInventoryStore>,
+    /// Contact mapping store for UI listing and uploads.
+    pub contacts: Arc<ContactStore>,
 }
 
 impl AppState {
@@ -246,6 +249,7 @@ impl AppState {
         let audit = AuditService::new(persistence.clone(), config.database.enable_audit_log);
         let numbers = Arc::new(NumberStore::default());
         let sim_inventory = Arc::new(SimInventoryStore::default());
+        let contacts = Arc::new(ContactStore::default());
 
         let state = Self {
             config: versioned_config,
@@ -267,6 +271,7 @@ impl AppState {
             audit,
             numbers,
             sim_inventory,
+            contacts,
         };
 
         state.apply_seeding(&config).await;

@@ -11,6 +11,9 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [ ] Align pairing: UI needs session watcher (`GET /pairing/session/{id}`) and QR payload; server currently only has create/complete at `/api/v1/pairing/session|complete`.
 - [x] Add `/api/v1/events` list (before/limit) on syncserver for UI backfill.
 - [x] Add stub `/api/v1/audit`, `/api/v1/login-events`, `/api/v1/contacts/*` endpoints to satisfy UI contract (data still empty; needs real persistence).
+- [x] Add `/api/v1/device/config` and `/api/v1/device/sims` for device clients; `/api/v1/device/contacts` now accepts uploads (no server-side storage yet).
+- [x] Pairing complete now returns config snapshot version to bootstrap device clients.
+- [ ] Persist and expose contact uploads in a real store (currently in-memory only).
 
 ## WebSocket protocol
 - [ ] Use header `Authorization: Bearer <session>` for WS auth (UI currently passes `?token=` query; server expects header).

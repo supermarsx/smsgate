@@ -27,6 +27,7 @@ pub struct PairingSessionResponseBody {
 pub struct PairingCompleteBody {
     pub device_id: String,
     pub device_token: String,
+    pub config: crate::config::ClientConfigSnapshot,
 }
 
 /// POST /api/v1/pairing/session
@@ -85,6 +86,7 @@ pub async fn complete_session(
         &completed.device_token,
         device_name,
     );
+    let cfg_snapshot = state.config_snapshot().await;
     tracing::info!(
         target: "auth",
         device_id = %completed.device_id,
@@ -109,6 +111,7 @@ pub async fn complete_session(
         Json(PairingCompleteBody {
             device_id: completed.device_id,
             device_token: completed.device_token,
+            config: cfg_snapshot,
         }),
     ))
 }

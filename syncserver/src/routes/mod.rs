@@ -91,6 +91,10 @@ pub fn router(state: AppState) -> Router {
                 "/api/v1/device/sims",
                 axum::routing::post(device::update_sims),
             )
+            .route(
+                "/api/v1/device/contacts",
+                axum::routing::post(device::update_contacts),
+            )
             .route("/api/v1/audit", axum::routing::get(audit::list_audit))
         .route(
             "/api/v1/login-events",

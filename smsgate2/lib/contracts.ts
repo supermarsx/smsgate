@@ -17,6 +17,8 @@ export type Event = {
   state: EventState;
   deviceId?: string;
   latencyMs?: number;
+  simSlotIndex?: number;
+  iccid?: string;
 };
 
 export type PresenceState = "online" | "degraded" | "offline" | "disabled";
@@ -34,6 +36,7 @@ export type PresenceUpdate = {
   }>;
   numbers?: string[];
   queueDepth?: number;
+  deviceRttMs?: number;
 };
 
 export type MetricsUpdate = {

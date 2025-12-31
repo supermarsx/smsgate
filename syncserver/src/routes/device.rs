@@ -76,6 +76,56 @@ pub async fn update_sims(
     Ok((StatusCode::OK, Json(serde_json::json!({ "updated": updated.len() }))))
 }
 
+/// Contact sync payload from device.
+#[derive(Debug, serde::Deserialize)]
+pub struct DeviceContactsPayload {
+    pub device_id: Option<String>,
+    #[serde(default)]
+    pub contacts: Vec<DeviceContact>,
+    #[serde(default)]
+    pub removed: Vec<String>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct DeviceContact {
+    pub number: String,
+    pub name: Option<String>,
+}
+
+/// POST /api/v1/device/contacts
+pub async fn update_contacts(
+    DeviceAuth(device): DeviceAuth,
+    State(state): State<AppState>,
+    Json(body): Json<DeviceContactsPayload>,
+) -> Result<impl IntoResponse, AppError> {
+    let device_id = match &device.principal {
+        crate::auth::Principal::Device { id } => id.clone(),
+        _ => body.device_id.unwrap_or_else(|| "unknown".into()),
+    };
+    let upserts: Vec<(String, String)> = body
+        .contacts
+        .iter()
+        .filter_map(|c| c.name.as_ref().map(|name| (c.number.clone(), name.clone())))
+        .collect();
+    if !upserts.is_empty() {
+        state.contacts.upsert_all(&upserts);
+    }
+    if !body.removed.is_empty() {
+        state.contacts.remove_all(&body.removed);
+    }
+    tracing::info!(
+        target: "contacts",
+        device = %device_id,
+        uploaded = body.contacts.len(),
+        removed = body.removed.len(),
+        "device contacts sync received"
+    );
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({ "status": "ok", "contacts": body.contacts.len() })),
+    ))
+}
+
 fn map_sim(input: IncomingSimSnapshot, now: chrono::DateTime<Utc>) -> SimSnapshot {
     let status = match input.status.to_ascii_lowercase().as_str() {
         "inactive" => SimStatus::Inactive,
