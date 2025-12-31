@@ -180,23 +180,31 @@ async fn handle_client_message(
     message: Message,
 ) -> Result<(), ()> {
     match message {
-        Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
-            Ok(ClientMessage::Ping) => send_json(socket, &ServerMessage::Pong).await?,
-            Ok(ClientMessage::ConfigRefresh) => {
-                let snapshot = state.config_snapshot().await;
-                send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await?;
-            }
-            Ok(ClientMessage::PageBefore { anchor_id, limit }) => {
-                send_page(socket, state, PageDirection::Before, anchor_id, limit).await?;
-            }
-            Ok(ClientMessage::PageAfter { anchor_id, limit }) => {
-                send_page(socket, state, PageDirection::After, anchor_id, limit).await?;
-            }
-            Err(_) => {
-                if text.trim().eq_ignore_ascii_case("ping") {
-                    send_json(socket, &ServerMessage::Pong).await?;
+            Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
+                Ok(ClientMessage::Ping) => send_json(socket, &ServerMessage::Pong).await?,
+                Ok(ClientMessage::ConfigRefresh) => {
+                    let snapshot = state.config_snapshot().await;
+                    send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await?;
                 }
-            }
+                Ok(ClientMessage::Subscribe { .. }) => {
+                    // No-op for now; subscriptions will be enforced when number scoping is added.
+                }
+                Ok(ClientMessage::PageBefore { anchor_id, limit }) => {
+                    send_page(socket, state, PageDirection::Before, anchor_id, limit).await?;
+                }
+                Ok(ClientMessage::PageAfter { anchor_id, limit }) => {
+                    send_page(socket, state, PageDirection::After, anchor_id, limit).await?;
+                }
+                Ok(ClientMessage::Page { before, limit }) => {
+                    if let Some(anchor) = before {
+                        send_page(socket, state, PageDirection::Before, anchor, limit).await?;
+                    }
+                }
+                Err(_) => {
+                    if text.trim().eq_ignore_ascii_case("ping") {
+                        send_json(socket, &ServerMessage::Pong).await?;
+                    }
+                }
         },
         Message::Ping(_) => {
             // Respond with Pong to keep connection alive.

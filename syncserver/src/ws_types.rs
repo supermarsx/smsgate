@@ -100,6 +100,8 @@ pub enum ClientMessage {
     Ping,
     /// Client requests a refresh of config snapshot.
     ConfigRefresh,
+    /// Client requests a subscription update (numbers currently ignored).
+    Subscribe { numbers: Option<Vec<String>> },
     /// Request a page of events older than the given anchor.
     PageBefore {
         anchor_id: String,
@@ -108,6 +110,11 @@ pub enum ClientMessage {
     /// Request a page of events newer than the given anchor.
     PageAfter {
         anchor_id: String,
+        limit: Option<u32>,
+    },
+    /// Generic page request with optional before cursor (alias for PageBefore).
+    Page {
+        before: Option<String>,
         limit: Option<u32>,
     },
 }
