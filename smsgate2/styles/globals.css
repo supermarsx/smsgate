@@ -342,10 +342,11 @@ a {
 }
 
 .login-foot {
-  display: flex;
-  justify-content: space-between;
+  margin-top: 12px;
+  display: grid;
+  gap: 4px;
   color: var(--text-3);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .login-error {

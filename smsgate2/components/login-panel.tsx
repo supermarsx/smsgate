@@ -360,12 +360,6 @@ export function LoginPanel({ onLogin }: Props) {
         </div>
       )}
 
-      <div className="login-foot">
-        <span>
-          {t("loginWsEndpoint", "WS Endpoint")}: {wsUrl()}
-        </span>
-        <span className="muted">{t("loginTokensStored", "Tokens stored locally; logout clears them.")}</span>
-      </div>
       <div className="login-help">
         <button type="button" className="ghost" onClick={() => setResetOpen((v) => !v)}>
           {resetOpen ? t("loginResetHide", "Hide password reset") : t("loginResetShow", "Need a password reset?")}
@@ -440,6 +434,12 @@ export function LoginPanel({ onLogin }: Props) {
           {t("errorPrefix", "Error")}: {error}
         </div>
       )}
+      <div className="login-foot">
+        <div className="muted small">
+          {t("loginWsEndpoint", "WS Endpoint")}: {wsUrl()}
+        </div>
+        <div className="muted small">{t("loginTokensStored", "Tokens stored locally; logout clears them.")}</div>
+      </div>
     </div>
   );
 }
