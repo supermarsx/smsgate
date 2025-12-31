@@ -68,7 +68,7 @@ impl UserStore {
                     permissions: permissions::all_permissions(),
                 });
             let _ = store
-                .create_user(&bootstrap_username, "ChangeMePlease1!", admin_role, None)
+                .create_user(&bootstrap_username, "SmsgateSync#2025!", admin_role, None)
                 .map_err(|err| tracing::warn!(error = %err, "failed to create bootstrap admin"));
         }
         store
@@ -106,17 +106,7 @@ impl UserStore {
         role: Role,
         totp_secret: Option<String>,
     ) -> Result<UserRecord, AppError> {
-        let min_len = if role.name == "admin" {
-            self.config.admin_password_min_length
-        } else {
-            self.config.password_min_length
-        };
-        if password.len() < min_len as usize {
-            return Err(AppError::Validation("password too short".into()));
-        }
-        if self.estimate_entropy(password) < self.config.password_min_entropy_bits as f64 {
-            return Err(AppError::Validation("password too weak".into()));
-        }
+        self.enforce_password_policy(password, &role)?;
         if self.contains_username(username) {
             return Err(AppError::Validation("username already exists".into()));
         }
@@ -150,7 +140,7 @@ impl UserStore {
         let entry = found.ok_or_else(|| AppError::Validation("invalid credentials".into()))?;
         let mut user = entry.value().clone();
         drop(entry);
-        if user.locked || self.is_temporarily_locked(&user.username) {
+        if user.locked || self.is_temporarily_locked(&user.username, &user.lock_until) {
             return Err(AppError::Validation("account locked".into()));
         }
         self.verify_password(password, &user.password_hash)?;
@@ -205,12 +195,6 @@ impl UserStore {
 
     /// Reset a user's password using a reset token.
     pub fn reset_password(&self, token: &str, new_password: &str) -> Result<String, AppError> {
-        if new_password.len() < self.config.password_min_length as usize {
-            return Err(AppError::Validation("password too short".into()));
-        }
-        if self.estimate_entropy(new_password) < self.config.password_min_entropy_bits as f64 {
-            return Err(AppError::Validation("password too weak".into()));
-        }
         let entry = self
             .resets
             .get(token)
@@ -227,21 +211,12 @@ impl UserStore {
 
     /// Directly set a user's password (admin path).
     pub fn set_password(&self, user_id: &str, new_password: &str) -> Result<UserRecord, AppError> {
-        if new_password.len() < self.config.password_min_length as usize {
-            return Err(AppError::Validation("password too short".into()));
-        }
-        if self.estimate_entropy(new_password) < self.config.password_min_entropy_bits as f64 {
-            return Err(AppError::Validation("password too weak".into()));
-        }
-        let hash = self.hash_password(new_password)?;
         if let Some(mut user) = self.users.get_mut(user_id) {
-            if user
-                .password_history
-                .iter()
-                .any(|h| h == &hash || h == &user.password_hash)
-            {
+            self.enforce_password_policy(new_password, &user.role)?;
+            if self.password_in_history(new_password, &user) {
                 return Err(AppError::Validation("password was recently used".into()));
             }
+            let hash = self.hash_password(new_password)?;
             user.password_hash = hash.clone();
             user.password_history.insert(0, hash);
             user.password_history
@@ -264,6 +239,10 @@ impl UserStore {
     pub fn set_locked(&self, user_id: &str, locked: bool) -> Result<UserRecord, AppError> {
         if let Some(mut user) = self.users.get_mut(user_id) {
             user.locked = locked;
+            if !locked {
+                self.failed_attempts.remove(&user.username);
+                user.lock_until = None;
+            }
             return Ok(user.clone());
         }
         Err(AppError::Validation("user not found".into()))
@@ -291,20 +270,91 @@ impl UserStore {
             .or_insert((0, Utc::now()));
         attempts.0 += 1;
         if attempts.0 >= self.config.max_failed_attempts {
-            attempts.1 = Utc::now() + chrono::Duration::seconds(self.config.lockout_secs as i64);
+            let until = Utc::now() + chrono::Duration::seconds(self.config.lockout_secs as i64);
+            attempts.1 = until;
+            if let Some(mut user) = self.users.iter_mut().find(|u| u.username == username) {
+                user.lock_until = Some(until);
+            }
             true
         } else {
             false
         }
     }
 
-    fn is_temporarily_locked(&self, username: &str) -> bool {
+    fn is_temporarily_locked(&self, username: &str, lock_until: &Option<DateTime<Utc>>) -> bool {
+        if let Some(until) = lock_until {
+            if Utc::now() < *until {
+                return true;
+            }
+        }
         if let Some((_, until)) = self.failed_attempts.get(username).map(|v| v.clone()) {
             if Utc::now() < until {
                 return true;
             }
         }
         false
+    }
+
+    fn enforce_password_policy(&self, password: &str, role: &Role) -> Result<(), AppError> {
+        let min_len = if role.name == "admin" {
+            self.config.admin_password_min_length
+        } else {
+            self.config.password_min_length
+        };
+        if password.len() < min_len as usize {
+            return Err(AppError::Validation("password too short".into()));
+        }
+        if self.estimate_entropy(password) < self.config.password_min_entropy_bits as f64 {
+            return Err(AppError::Validation("password too weak".into()));
+        }
+        if self.is_breached_password(password) {
+            return Err(AppError::Validation(
+                "password too weak (breached/denylisted)".into(),
+            ));
+        }
+        Ok(())
+    }
+
+    fn is_breached_password(&self, password: &str) -> bool {
+        let lower = password.to_ascii_lowercase();
+        if self
+            .config
+            .weak_passwords
+            .iter()
+            .any(|w| lower == w.to_ascii_lowercase())
+        {
+            return true;
+        }
+        let common_patterns = [
+            "password",
+            "letmein",
+            "welcome",
+            "qwerty",
+            "abc123",
+            "iloveyou",
+            "admin",
+            "changeme",
+            "111111",
+            "123456",
+            "123456789",
+            "000000",
+        ];
+        if common_patterns.iter().any(|p| lower.contains(p)) {
+            return true;
+        }
+        if password.len() >= 8 && password.chars().all(|c| c.is_ascii_digit()) {
+            return true;
+        }
+        false
+    }
+
+    fn password_in_history(&self, password: &str, user: &UserRecord) -> bool {
+        if self.verify_password(password, &user.password_hash).is_ok() {
+            return true;
+        }
+        user.password_history
+            .iter()
+            .any(|hash| self.verify_password(password, hash).is_ok())
     }
 
     /// Rough entropy estimator based on length and character classes.
