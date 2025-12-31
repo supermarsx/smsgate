@@ -15,11 +15,23 @@ export function StatusBar() {
 
   if (!status) return null;
 
-  const moreItems = [
-    { label: t("wsErrors", "WS errors"), value: status.wsErrors ?? 0 },
-    { label: t("reconnects", "Reconnects"), value: status.reconnects ?? 0 },
-    { label: t("lastError", "Last error"), value: status.lastError ?? t("statusUnknown", "unknown") }
+  const metrics = [
+    { key: "ingestLatency", label: t("latencyLabel", "Latency"), value: status.ingestLatency, tone: "info" as const },
+    { key: "clientRtt", label: t("clientLatency", "Client RTT"), value: status.clientRtt, tone: "info" as const },
+    { key: "deviceRtt", label: t("deviceRttLabel", "Device RTT"), value: status.deviceRtt, tone: "ok" as const },
+    {
+      key: "devicesOnline",
+      label: t("devicesOnline", "Devices online"),
+      value: typeof status.devicesOnline === "number" ? status.devicesOnline : undefined,
+      tone: "ok" as const
+    },
+    { key: "wsErrors", label: t("wsErrors", "WS errors"), value: status.wsErrors, tone: "warn" as const },
+    { key: "reconnects", label: t("reconnects", "Reconnects"), value: status.reconnects, tone: "warn" as const },
+    { key: "lastError", label: t("lastError", "Last error"), value: status.lastError, tone: "warn" as const }
   ];
+
+  const quickIndicators = metrics.filter((m) => m.value !== undefined && m.value !== null && m.value !== "").slice(0, 3);
+  const moreItems = metrics.filter((m) => m.value !== undefined && m.value !== null && m.value !== "");
 
   return (
     <div className="status-float" aria-live="polite">
@@ -33,54 +45,12 @@ export function StatusBar() {
         <span>{status.connected ? t("onlineLabel", "Online") : t("offlineLabel", "Offline")}</span>
       </div>
 
-      {status.ingestLatency && (
-        <div className="status-pill-mini" data-tip={t("latencyLabel", "Latency")}>
-          <span className="dot info" />
-          <span>{status.ingestLatency}</span>
+      {quickIndicators.map((item) => (
+        <div key={item.key} className="status-pill-mini" data-tip={item.label}>
+          <span className={`dot ${item.tone}`} />
+          <span>{item.value}</span>
         </div>
-      )}
-
-      {status.clientRtt && (
-        <div className="status-pill-mini" data-tip={t("latencyLabel", "Latency") + " (client)"}>
-          <span className="dot info" />
-          <span>{status.clientRtt}</span>
-        </div>
-      )}
-
-      {status.deviceRtt && (
-        <div className="status-pill-mini" data-tip={t("devicesLabel", "Devices") + " RTT"}>
-          <span className="dot ok" />
-          <span>{status.deviceRtt}</span>
-        </div>
-      )}
-
-      {typeof status.wsErrors === "number" && status.wsErrors > 0 && (
-        <div className="status-pill-mini" data-tip={t("wsErrors", "WS errors")}>
-          <span className="dot warn" />
-          <span>{status.wsErrors}</span>
-        </div>
-      )}
-
-      {typeof status.reconnects === "number" && status.reconnects > 0 && (
-        <div className="status-pill-mini" data-tip={t("reconnects", "Reconnects")}>
-          <span className="dot warn" />
-          <span>{status.reconnects}</span>
-        </div>
-      )}
-
-      {status.lastError && (
-        <div className="status-pill-mini" data-tip={t("lastError", "Last error")}> 
-          <span className="dot warn" />
-          <span>{status.lastError}</span>
-        </div>
-      )}
-
-      {typeof status.devicesOnline === "number" && (
-        <div className="status-pill-mini" data-tip={t("devicesOnline", "Devices online")}>
-          <span className="dot ok" />
-          <span>{status.devicesOnline}</span>
-        </div>
-      )}
+      ))}
 
       <div
         className="status-pill-mini status-more-btn"
@@ -96,7 +66,7 @@ export function StatusBar() {
       {open && (
         <div className="status-more-panel">
           {moreItems.map((item) => (
-            <div key={item.label} className="status-row">
+            <div key={item.key} className="status-row">
               <span className="muted">{item.label}</span>
               <span>{item.value}</span>
             </div>
