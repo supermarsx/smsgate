@@ -51,6 +51,50 @@ impl HotStore for RedisHotStore {
             .unwrap_or_default();
     }
 
+    async fn update_event(&self, event: SmsEvent) -> Option<SmsEvent> {
+        let mut entries = self.latest(self.capacity).await;
+        let mut found = false;
+        for existing in entries.iter_mut() {
+            if existing.id == event.id {
+                *existing = event.clone();
+                found = true;
+                break;
+            }
+        }
+        if !found {
+            return None;
+        }
+
+        // Rewrite list with updated entries.
+        let mut conn = self.client.clone();
+        let _: () = redis::cmd("DEL").arg(&self.list_key).query_async(&mut conn).await.unwrap_or_default();
+        if !entries.is_empty() {
+            let payloads: Vec<String> = entries
+                .into_iter()
+                .map(|e| serde_json::to_string(&e).unwrap())
+                .collect();
+            let _: () = redis::cmd("RPUSH")
+                .arg(&self.list_key)
+                .arg(payloads)
+                .query_async(&mut conn)
+                .await
+                .unwrap_or_default();
+            let _: () = redis::cmd("LTRIM")
+                .arg(&self.list_key)
+                .arg(0)
+                .arg((self.capacity as isize) - 1)
+                .query_async(&mut conn)
+                .await
+                .unwrap_or_default();
+        }
+        Some(event)
+    }
+
+    async fn get_event(&self, id: &str) -> Option<SmsEvent> {
+        let entries = self.latest(self.capacity).await;
+        entries.into_iter().find(|e| e.id == id)
+    }
+
     async fn latest(&self, limit: usize) -> Vec<SmsEvent> {
         let mut conn = self.client.clone();
         let values: Vec<String> = conn

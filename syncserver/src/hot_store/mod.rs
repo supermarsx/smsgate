@@ -21,6 +21,10 @@ const DEFAULT_CAPACITY: usize = 1_000;
 pub trait HotStore: Send + Sync {
     /// Append an event into the hot store, trimming to retention window.
     async fn append_event(&self, event: SmsEvent);
+    /// Update an existing event by id, returning the updated record if present.
+    async fn update_event(&self, event: SmsEvent) -> Option<SmsEvent>;
+    /// Fetch an event by id from the hot store window.
+    async fn get_event(&self, id: &str) -> Option<SmsEvent>;
     /// Return the newest events up to `limit`, ordered newest -> oldest.
     async fn latest(&self, limit: usize) -> Vec<SmsEvent>;
     /// Return events older than the anchor (exclusive), newest -> oldest, up to `limit`.
@@ -64,6 +68,22 @@ impl HotStore for MemoryHotStore {
             events.pop_front();
         }
         events.push_back(event);
+    }
+
+    async fn update_event(&self, event: SmsEvent) -> Option<SmsEvent> {
+        let mut events = self.events.lock().await;
+        for existing in events.iter_mut() {
+            if existing.id == event.id {
+                *existing = event.clone();
+                return Some(event);
+            }
+        }
+        None
+    }
+
+    async fn get_event(&self, id: &str) -> Option<SmsEvent> {
+        let events = self.events.lock().await;
+        events.iter().find(|e| e.id == id).cloned()
     }
 
     async fn latest(&self, limit: usize) -> Vec<SmsEvent> {

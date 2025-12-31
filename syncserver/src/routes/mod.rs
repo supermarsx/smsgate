@@ -6,6 +6,7 @@ pub mod config;
 pub mod devices;
 mod health;
 pub mod ingest;
+pub mod events;
 pub mod pairing;
 pub mod presence;
 pub mod ws;
@@ -45,6 +46,18 @@ pub fn router(state: AppState) -> Router {
         .route(
             "/api/v1/devices/:device_id/diagnostics",
             axum::routing::get(devices::diagnostics),
+        )
+        .route(
+            "/api/v1/events/:event_id/claim",
+            axum::routing::post(events::claim_event),
+        )
+        .route(
+            "/api/v1/events/:event_id/verify",
+            axum::routing::post(events::verify_event),
+        )
+        .route(
+            "/api/v1/events/:event_id/reject",
+            axum::routing::post(events::reject_event),
         )
         .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
         .route(

@@ -25,6 +25,8 @@ pub enum ServerMessage {
     ConfigSnapshot { config: ClientConfigSnapshot },
     /// New event appended.
     EventNew { event: SmsEvent },
+    /// Existing event updated (state transitions).
+    EventUpdate { event: SmsEvent },
     /// Presence change or heartbeat update.
     PresenceUpdate(PresenceUpdate),
     /// Config update broadcast after changes.
