@@ -509,6 +509,13 @@ impl Default for AppConfig {
 impl AppConfig {
     /// Resolve the configuration path from environment (or default).
     pub fn config_path_from_env() -> PathBuf {
+        if let Ok(flag) = env::var("SYNC_CONFIG_PRESET") {
+            match flag.to_ascii_lowercase().as_str() {
+                "dev" | "development" => return "config/config.dev.json".into(),
+                "prod" | "production" => return "config/config.prod.json".into(),
+                _ => {}
+            }
+        }
         env::var("SYNC_CONFIG_PATH")
             .unwrap_or_else(|_| "config/config.json".into())
             .into()
