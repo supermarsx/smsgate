@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Locale helpers for dictionary resolution and persistence.
+ */
+
 import enUS from "../locales/en-US.json";
 import esES from "../locales/es-ES.json";
 import ptPT from "../locales/pt-PT.json";
@@ -14,6 +18,10 @@ export const SUPPORTED_LOCALES = Object.keys(DICTIONARIES) as Locale[];
 
 const STORAGE_KEY = "smsgate2_locale_v1";
 
+/**
+ * Attempt to match a locale to the supported list by exact or language prefix.
+ * @returns Matched locale or null when not found.
+ */
 function tryMatchLocale(value?: string | null): Locale | null {
   if (!value) return null;
   const normalized = value.toLowerCase();
@@ -28,6 +36,7 @@ export const DEFAULT_LOCALE: Locale = CONFIG_DEFAULT_LOCALE ?? "en-US";
 
 /**
  * Normalize a locale value to the closest supported locale.
+ * @returns Supported locale selection.
  */
 export function normalizeLocale(value?: string | null): Locale {
   return tryMatchLocale(value) ?? DEFAULT_LOCALE;
@@ -35,6 +44,7 @@ export function normalizeLocale(value?: string | null): Locale {
 
 /**
  * Detect a browser locale from navigator hints.
+ * @returns Best-match locale from browser hints.
  */
 export function detectBrowserLocale(): Locale {
   if (typeof navigator === "undefined") return DEFAULT_LOCALE;
@@ -48,6 +58,7 @@ export function detectBrowserLocale(): Locale {
 
 /**
  * Load a persisted locale preference from storage.
+ * @returns Locale preference or null when unavailable.
  */
 export function loadPreferredLocale(): Locale | null {
   if (typeof window === "undefined") return null;
@@ -64,6 +75,7 @@ export function loadPreferredLocale(): Locale | null {
 
 /**
  * Persist a locale preference to storage.
+ * @returns void
  */
 export function setPreferredLocale(locale: Locale): void {
   if (typeof window === "undefined") return;
@@ -76,6 +88,7 @@ export function setPreferredLocale(locale: Locale): void {
 
 /**
  * Resolve initial locale from storage or browser fallback.
+ * @returns Initial locale for the UI.
  */
 export function getInitialLocale(): Locale {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
@@ -84,6 +97,7 @@ export function getInitialLocale(): Locale {
 
 /**
  * Retrieve translations for a locale.
+ * @returns Translation dictionary.
  */
 export function getTranslations(locale?: Locale): Record<string, string> {
   const resolved = normalizeLocale(locale);
@@ -92,6 +106,7 @@ export function getTranslations(locale?: Locale): Record<string, string> {
 
 /**
  * Return a shallow copy of all dictionaries.
+ * @returns Map of locale to translation dictionary.
  */
 export function listDictionaries(): Record<Locale, Record<string, string>> {
   return { ...DICTIONARIES };
