@@ -13,9 +13,9 @@ A new smsgate2 Next.js 14 scaffold (app router, bun-first) lives in `./smsgate2`
 
 ![smsgate](https://github.com/supermarsx/smsgate/raw/master/media/smsgate.gif)
 
-2. Android application screenshot
+1. Android application screenshot
 
-<img src="https://github.com/supermarsx/smsgate/raw/master/media/smsrelay3.png" width=300px>
+![Android application screenshot](https://github.com/supermarsx/smsgate/raw/master/media/smsrelay3.png)
 
 ## Main specification/features
 
@@ -46,6 +46,7 @@ $ cd ../smsrelay3/android
 ```
 
 ## App walkthrough (Android)
+
 1) Open the app and grant SMS permissions.
 2) Configure server URL, client ID, PIN, and salt in Settings.
 3) Pair the device using a QR code from syncserver.
@@ -53,13 +54,14 @@ $ cd ../smsrelay3/android
 5) Send an SMS to the device and verify it appears in the web UI.
 
 In-app settings (recommended):
+
 - Settings > Behavior: enable SMS listener, foreground relay, start on boot, and WebSocket presence.
 - Settings > Server: set Remote config URL (optional) plus auth header/value and signature header/secret if you secure provisioning.
   - Signature format: HMAC SHA-256 of the response body, sent as hex or `sha256=<hex>` in the chosen header.
 
 Change the variables to suit your preferences, on these files:
 
-```
+```text
 Android application: configure in-app settings or remote JSON
 smsgate client config: ./smsgate/src/lib/config.ts
 smsgate server config: ./smsgate/src/config.ts
@@ -76,16 +78,19 @@ To build and run, open `smsrelay3/android` in Android Studio and run on a physic
 To maximize SMS capture reliability, enable the app's foreground relay and apply OEM battery/auto-start exemptions. Menus vary by OS version; use the closest match.
 
 Programmatic settings (in-app):
+
 - Enable foreground service.
 - Enable boot receiver.
 - Enable WebSocket presence if you want a persistent online indicator.
 
 ## Permissions (Android app)
+
 - Required: `RECEIVE_SMS`, `READ_SMS`, `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`.
 - Optional but recommended: `RECEIVE_BOOT_COMPLETED` (rehydrate on boot), `POST_NOTIFICATIONS` (foreground relay banner), `READ_PHONE_STATE` (SIM metadata), `CAMERA` (QR pairing), `READ_CONTACTS` (optional contact upload), `ACCESS_WIFI_STATE` (network diagnostics).
 - The app requests required permissions on first launch and will surface a blocking entry page if missing.
 
 ## Configuration keys (defaults)
+
 - Server: `server_url=https://syncserver.local`, `api_path=/api/v1/ingest`, `http_method=POST`.
 - Auth: `client_id_header=x-clientid`, `client_id_value=#XCLIENTID1`, `auth_header=Authorization`, `auth_prefix=Bearer`, `pin=#PIN1`, `salt=#SALT`.
 - Remote config (optional): `remote_config_url`, `remote_config_auth_header/value`, `remote_config_signature_header/secret`, `discovery_port=3000`.
@@ -93,20 +98,24 @@ Programmatic settings (in-app):
 - Features: `enableListener=true`, `enableForegroundService=true`, `enableBootReceiver=true`, `enableSocketPresence=true`, `notificationEnabled=true`, `servicesEnabled=true`.
 
 ## Troubleshooting (Android)
+
 - Missed SMS on OEM devices: disable battery optimizations and allow auto-start; keep foreground relay enabled.
 - Sync stalls after network loss: app auto-enqueues a catch-up sync when connectivity returns; you can also tap the Status tab's refresh.
 - QR scan jank: camera is lazy-loaded; if issues persist, force-close and reopen Scan tab to re-init camera.
 
 Samsung (One UI):
+
 - Settings > Apps > smsrelay3 > Battery: set to Unrestricted.
 - Settings > Battery and device care > Battery > Background usage limits: add smsrelay3 to Never sleeping apps.
 
 Xiaomi (MIUI/HyperOS):
+
 - Settings > Apps > Manage apps > smsrelay3 > Battery saver: No restrictions.
 - Security app > Autostart: allow smsrelay3.
 - Lock the app in Recents to prevent it from being killed.
 
 Oppo (ColorOS):
+
 - Settings > Battery > App battery management: set smsrelay3 to Unrestricted.
 - Settings > Apps > Auto-launch: allow smsrelay3.
 - Disable Sleep standby optimization if present.
@@ -117,12 +126,13 @@ Oppo (ColorOS):
 - Config keys: `docs/smsrelay3-config-keys.md`
 - OEM battery guidance: `docs/smsrelay3-oem-guide.md`
 
-### smsgate
+### smsgate server
 
 smsgate receives messages from devices that are authenticated by the `authorization` and `x-clientid` headers included in every communication with the server. The server retains the latest messages it receives and broadcasts them to every connected client via WebSockets. Every connected client has to be authorized by using a valid token generated from the login page.
 
 Server settings can be overridden via environment variables:
-```
+
+```bash
 SMSGATE_PORT, SMSGATE_WS_PATH, SMSGATE_CLIENT_IDS, SMSGATE_ACCESS_CODES,
 SMSGATE_USE_HASHED, SMSGATE_SALT, SMSGATE_MESSAGES_KEEP, SMSGATE_MESSAGES_PURGE,
 SMSGATE_PERSISTENCE_TYPE, SMSGATE_PERSISTENCE_FILE,
@@ -130,7 +140,8 @@ SMSGATE_HTTP_LEGACY_PUSH, SMSGATE_HTTP_SYNC
 ```
 
 Client settings can be overridden via Next.js public env vars:
-```
+
+```bash
 NEXT_PUBLIC_SMS_LANG, NEXT_PUBLIC_SMS_SALT, NEXT_PUBLIC_SMS_STORAGE,
 NEXT_PUBLIC_SMS_PERSISTENT, NEXT_PUBLIC_SMS_SEND_LOGIN, NEXT_PUBLIC_SMS_KEEP_LOCAL,
 NEXT_PUBLIC_SMS_KEEP_FROM_SERVER, NEXT_PUBLIC_SMS_SHOW_LATEST, NEXT_PUBLIC_SMS_INVERT,
@@ -141,15 +152,15 @@ NEXT_PUBLIC_SMS_SOUND_PATH, NEXT_PUBLIC_SMS_SOUND_EXT
 
 To run the smsgate server:
 
-```
-$ bun run dev
+```bash
+bun run dev
 ```
 
 To build for production:
 
-```
-$ bun run build
-$ bun run start
+```bash
+bun run build
+bun run start
 ```
 
 ## Considerations
@@ -162,11 +173,13 @@ A way of avoiding white screen flash when changing pages is implemented using pr
 ## Tooling and dependencies
 
 Server:
+
 - Node.js with Next.js 14.2.5 and React 18.2.0.
 - WebSockets: `ws` 8.17.0.
 - Tooling: TypeScript 5.4.5, ts-node 10.9.2, ESLint 8.57.0.
 
 Android:
+
 - Gradle: 9.2.1 (`gradle-9.2.1-all.zip`).
 - Android Gradle Plugin: 8.6.1.
 - Kotlin: 2.0.21.

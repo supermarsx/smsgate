@@ -1,4 +1,7 @@
-use crate::config::AppConfig;
+use crate::{
+    config::AppConfig,
+    hot_store::{HotStore, MemoryHotStore},
+};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -64,6 +67,8 @@ pub struct AppState {
     pub ready_flags: Arc<ReadyFlags>,
     /// Prometheus metrics registry and counters.
     pub metrics: Metrics,
+    /// Hot store implementation used for fanout/paging.
+    pub hot_store: Arc<dyn HotStore>,
 }
 
 impl AppState {
@@ -84,12 +89,15 @@ impl AppState {
         ready_flags.config_ready.store(true, Ordering::Relaxed);
 
         let metrics = Metrics::new().expect("failed to initialize metrics");
+        let hot_store: Arc<dyn HotStore> = Arc::new(MemoryHotStore::default());
+        ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
 
         Self {
             config,
             started_at: Arc::new(Instant::now()),
             ready_flags: Arc::new(ready_flags),
             metrics,
+            hot_store,
         }
     }
 }

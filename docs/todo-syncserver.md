@@ -44,7 +44,7 @@
 - [ ] Compute content hash + optional parsed_code extraction for OTPs.
 - [ ] Append events to hot store ring buffer and emit `EVENT_NEW` over WS.
 - [ ] Implement state transitions (`claim/verify/reject`) with validation + audit + broadcast.
-- [x] Support batch ingest and backpressure hints to devices.
+ - [ ] Support batch ingest and backpressure hints to devices.
 - [ ] Add policy-based persistence enqueue for compliance/retention rules.
 
 ## Presence, metrics, SIM inventory
@@ -62,7 +62,7 @@
 
 ## Storage: hot store + persistence
 - [ ] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors).
-- [ ] Implement in-memory fallback hot store with graceful switch + rehydration toggle.
+- [x] Implement in-memory fallback hot store with graceful switch + rehydration toggle.
 - [ ] Implement JSON DB adapter (append-only logs with locking) for small installs.
 - [ ] Implement SQL adapters (SQLite/Postgres/MySQL) with migrations for events/audit/login/users/devices/numbers/config.
 - [ ] Wire persistence worker respecting policy, retention, and pruning tasks.
