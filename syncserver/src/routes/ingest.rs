@@ -3,12 +3,7 @@
 
 use std::{sync::OnceLock, time::Duration};
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use chrono::{DateTime, Utc};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -16,7 +11,6 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::{
-    config::AuthMode,
     domain::{EventSource, EventState, SmsEvent},
     error::AppError,
     state::AppState,
@@ -70,7 +64,9 @@ pub async fn ingest(
     Json(payload): Json<IngestRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     if payload.events.is_empty() {
-        return Err(AppError::Validation("at least one event is required".into()));
+        return Err(AppError::Validation(
+            "at least one event is required".into(),
+        ));
     }
     if payload.events.len() > state.config.ingest.max_batch {
         return Err(AppError::Validation(format!(
@@ -98,9 +94,7 @@ pub async fn ingest(
         accepted += 1;
     }
 
-    state
-        .metrics
-        .observe_http("/api/v1/ingest", StatusCode::OK);
+    state.metrics.observe_http("/api/v1/ingest", StatusCode::OK);
 
     Ok((
         StatusCode::OK,
@@ -136,10 +130,12 @@ fn hash_content(content: &str) -> String {
     hex::encode(hasher.finalize())
 }
 
+fn dedup_key(event: &SmsEvent) -> String {
+    format!("{}:{}", event.device_id, event.content_hash)
+}
+
 fn extract_code(content: &str) -> Option<String> {
     static RE: OnceLock<Regex> = OnceLock::new();
     let regex = RE.get_or_init(|| Regex::new(r"\b\d{4,8}\b").expect("compile regex"));
-    regex
-        .find(content)
-        .map(|m| m.as_str().to_string())
+    regex.find(content).map(|m| m.as_str().to_string())
 }

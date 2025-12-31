@@ -7,6 +7,11 @@
     "ws_snapshot_limit": 10,
     "ws_ping_interval_ms": 15000
   },
+  "ingest": {
+    "dedup_ttl_ms": 60000,
+    "hot_store_capacity": 1000,
+    "max_batch": 100
+  },
   "hot_store": {
     "mode": "memory",
     "redis_url": null

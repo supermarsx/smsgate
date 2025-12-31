@@ -9,6 +9,9 @@ Runtime flags are read from `config/config.json` (see `syncserver/config/config.
 - `SYNC_WS_SNAPSHOT_LIMIT` (`10`): initial events sent on `SNAPSHOT`.
 - `SYNC_WS_MAX_CONNECTIONS` (`5000`): hard cap on concurrent WS clients.
 - `SYNC_WS_PING_INTERVAL_MS` (`15000`): WS ping interval in milliseconds.
+- `SYNC_INGEST_DEDUP_TTL_MS` (`60000`): TTL for ingest deduplication keys.
+- `SYNC_HOTSTORE_CAPACITY` (`1000`): hot store ring buffer capacity for latest events.
+- `SYNC_INGEST_MAX_BATCH` (`100`): maximum events accepted per ingest request.
 - `SYNC_HOTSTORE` (`memory`): hot store backend (`memory` | `redis`).
 - `SYNC_REDIS_URL` (required when `SYNC_HOTSTORE=redis`): Redis connection string.
 - `SYNC_DB_ADAPTER` (`json_db`): persistence backend (`json_db` | `sqlite` | `postgres` | `mysql`).

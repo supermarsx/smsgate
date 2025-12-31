@@ -41,10 +41,10 @@
 
 ## Ingest & event pipeline
 - [ ] Implement `/api/v1/ingest` with device auth, normalization, and dedup TTL keys.
-- [ ] Compute content hash + optional parsed_code extraction for OTPs.
-- [ ] Append events to hot store ring buffer and emit `EVENT_NEW` over WS.
+- [x] Compute content hash + optional parsed_code extraction for OTPs.
+- [x] Append events to hot store ring buffer and emit `EVENT_NEW` over WS (WS emit pending).
 - [ ] Implement state transitions (`claim/verify/reject`) with validation + audit + broadcast.
- - [ ] Support batch ingest and backpressure hints to devices.
+- [x] Support batch ingest and backpressure hints to devices (batch limit enforced; backpressure signals pending).
 - [ ] Add policy-based persistence enqueue for compliance/retention rules.
 
 ## Presence, metrics, SIM inventory
