@@ -3,7 +3,7 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 
-use crate::{error::AppError, state::AppState};
+use crate::{auth::user::UserAuth, error::AppError, state::AppState};
 
 /// Public config snapshot returned to clients.
 #[derive(Debug, Serialize)]
@@ -46,8 +46,14 @@ pub struct RoleSnapshot {
 }
 
 /// GET /api/v1/config
-pub async fn get_config(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+pub async fn get_config(
+    UserAuth(user): UserAuth,
+    State(state): State<AppState>,
+) -> Result<impl IntoResponse, AppError> {
     let config = &state.config;
+    if !user.has_permission("config.read") {
+        return Err(AppError::Validation("forbidden".into()));
+    }
     let body = ConfigSnapshot {
         env: config.env.as_str(),
         auth_modes: config.auth.modes.iter().map(mode_label).collect(),

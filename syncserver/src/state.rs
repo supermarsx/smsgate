@@ -1,5 +1,5 @@
 use crate::{
-    auth::DeviceAuthStore,
+    auth::{rbac::RbacStore, DeviceAuthStore},
     config::AppConfig,
     hot_store::{HotStore, MemoryHotStore},
     persistence::{JsonDb, PersistentStore},
@@ -87,6 +87,8 @@ pub struct AppState {
     pub device_auth: DeviceAuthStore,
     /// Persistent store for events/audit.
     pub persistence: Arc<dyn PersistentStore>,
+    /// RBAC store for user roles and group mapping.
+    pub rbac: Arc<RbacStore>,
 }
 
 impl AppState {
@@ -126,6 +128,7 @@ impl AppState {
             .await
             .expect("init json db"),
         );
+        let rbac = Arc::new(RbacStore::from_config(&config.rbac));
 
         Self {
             config,
@@ -138,6 +141,7 @@ impl AppState {
             connection_count,
             device_auth,
             persistence,
+            rbac,
         }
     }
 

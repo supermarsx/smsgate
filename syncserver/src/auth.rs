@@ -10,6 +10,9 @@ use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+pub mod rbac;
+pub mod user;
+
 /// Actor types recognized by the system.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Principal {

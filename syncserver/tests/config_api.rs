@@ -28,6 +28,8 @@ async fn returns_config_snapshot() {
         .oneshot(
             Request::builder()
                 .uri("/api/v1/config")
+                .header("x-user-id", "user-1")
+                .header("x-user-role", "admin")
                 .body(Body::empty())
                 .unwrap(),
         )
