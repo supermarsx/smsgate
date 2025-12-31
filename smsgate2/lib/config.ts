@@ -69,6 +69,8 @@ const devFileConfig: FileConfig = (devFileConfigJson as unknown as FileConfig) ?
 
 /**
  * Read a boolean env var ("true"/"1") with a fallback.
+ * @param key Environment variable name.
+ * @param fallback Value to use when env is absent.
  */
 const boolEnv = (key: string, fallback: boolean): boolean => {
   const raw = process.env[key];
@@ -78,6 +80,8 @@ const boolEnv = (key: string, fallback: boolean): boolean => {
 
 /**
  * Read a string env var with trimming and fallback.
+ * @param key Environment variable name.
+ * @param fallback Value to use when env is absent.
  */
 const strEnv = (key: string, fallback: string): string => {
   const raw = process.env[key];
@@ -87,6 +91,8 @@ const strEnv = (key: string, fallback: string): string => {
 
 /**
  * Validate an http(s) URL when provided; allow relative paths unchanged.
+ * @param value Value to validate.
+ * @param label Error label for reporting.
  */
 function validateUrlish(value: string, label: string): string {
   try {

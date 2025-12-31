@@ -1,12 +1,19 @@
 import { appConfig } from "./config";
 import type { Session } from "./auth";
 
+/**
+ * Normalized HTTP error shape for API calls.
+ */
 export type HttpError = {
   status: number;
   message: string;
   code?: string;
 };
 
+/**
+ * Fetch wrapper that injects auth headers and normalizes error responses.
+ * @throws HttpError when the response is not ok.
+ */
 export async function http<T>(session: Session, path: string, init: RequestInit = {}): Promise<T> {
   const traceId = crypto.randomUUID();
   const res = await fetch(`${appConfig.apiBaseUrl}${path}`, {

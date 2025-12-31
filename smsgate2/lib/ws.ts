@@ -9,6 +9,9 @@ import type {
 } from "./contracts";
 import type { Session } from "./auth";
 
+/**
+ * Live websocket state shared with subscribers.
+ */
 export type StreamState = {
   events: Event[];
   presence: Record<string, PresenceUpdate>;
@@ -26,6 +29,9 @@ type Listener = (state: StreamState) => void;
 
 type LogFn = (type: string, detail?: string) => void;
 
+/**
+ * Thin websocket client with reconnection, ping, and snapshot handling.
+ */
 export class WsClient {
   private ws: WebSocket | null = null;
   private listeners = new Set<Listener>();
@@ -56,6 +62,9 @@ export class WsClient {
     }
   }
 
+  /**
+   * Subscribe to state updates; returns an unsubscribe function.
+   */
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     listener(this.state);
@@ -69,6 +78,9 @@ export class WsClient {
     this.listeners.forEach((l) => l(this.state));
   }
 
+  /**
+   * Open (or reopen) the websocket connection respecting visibility and offline tokens.
+   */
   connect(): void {
     const offlineToken = this.session.accessToken.startsWith("offline-");
     if (offlineToken) {
@@ -123,6 +135,9 @@ export class WsClient {
     };
   }
 
+  /**
+   * Close the websocket and remove listeners.
+   */
   disconnect(): void {
     if (this.ws) {
       this.ws.onclose = null;
@@ -135,10 +150,16 @@ export class WsClient {
     this.ws = null;
   }
 
+  /**
+   * Request a historical page of events.
+   */
   requestPage(before?: string, limit = 25): void {
     this.send({ type: "PAGE", payload: { before, limit } });
   }
 
+  /**
+   * Update subscribed numbers on the active connection.
+   */
   updateSubscription(numbers?: string[]) {
     this.subscribedNumbers = numbers;
     this.send({ type: "SUBSCRIBE", payload: { numbers } });

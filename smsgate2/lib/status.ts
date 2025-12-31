@@ -1,3 +1,6 @@
+/**
+ * Map low-level websocket errors to translation keys.
+ */
 export function mapWsErrorKey(error?: string): string | undefined {
   if (!error) return undefined;
   const lower = error.toLowerCase();

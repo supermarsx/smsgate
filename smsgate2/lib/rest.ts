@@ -3,11 +3,17 @@ import { http } from "./http";
 import type { Event } from "./contracts";
 import type { Session } from "./auth";
 
+/**
+ * Optional paging parameters for listing events.
+ */
 type ListEventsParams = {
   before?: string;
   limit?: number;
 };
 
+/**
+ * Fetch events with optional cursor and limit.
+ */
 export async function listEvents(session: Session, params: ListEventsParams = {}): Promise<Event[]> {
   const url = new URL(`${appConfig.apiBaseUrl}/events`);
   if (params.before) url.searchParams.set("before", params.before);
@@ -20,6 +26,9 @@ export async function listEvents(session: Session, params: ListEventsParams = {}
   return [];
 }
 
+/**
+ * Update the state of an event (claimed/verified/rejected).
+ */
 export async function updateEventState(
   session: Session,
   id: string,
@@ -31,10 +40,16 @@ export async function updateEventState(
   });
 }
 
+/**
+ * Retrieve devices for the authenticated user.
+ */
 export async function listDevices(session: Session): Promise<any[]> {
   return http<any[]>(session, "/devices", { method: "GET" });
 }
 
+/**
+ * Update a device friendly name.
+ */
 export async function updateDeviceName(session: Session, id: string, name: string): Promise<void> {
   await http<void>(session, `/devices/${id}`, {
     method: "PATCH",
@@ -42,14 +57,23 @@ export async function updateDeviceName(session: Session, id: string, name: strin
   });
 }
 
+/**
+ * Retrieve provisioned numbers.
+ */
 export async function listNumbers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/numbers", { method: "GET" });
 }
 
+/**
+ * Create a new number entry with optional label.
+ */
 export async function createNumber(session: Session, payload: { e164: string; label?: string }): Promise<any> {
   return http(session, "/numbers", { method: "POST", body: JSON.stringify(payload) });
 }
 
+/**
+ * Assign a number to a user or device.
+ */
 export async function assignNumber(
   session: Session,
   e164: string,
@@ -61,10 +85,16 @@ export async function assignNumber(
   });
 }
 
+/**
+ * Remove number assignment.
+ */
 export async function unassignNumber(session: Session, e164: string): Promise<void> {
   await http<void>(session, `/numbers/${encodeURIComponent(e164)}/assign`, { method: "DELETE" });
 }
 
+/**
+ * Update number metadata.
+ */
 export async function updateNumber(
   session: Session,
   e164: string,
@@ -76,34 +106,58 @@ export async function updateNumber(
   });
 }
 
+/**
+ * Delete a number entry.
+ */
 export async function deleteNumber(session: Session, e164: string): Promise<void> {
   await http<void>(session, `/numbers/${encodeURIComponent(e164)}`, { method: "DELETE" });
 }
 
+/**
+ * Fetch users list.
+ */
 export async function listUsers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/users", { method: "GET" });
 }
 
+/**
+ * Change a user's role.
+ */
 export async function updateUserRole(session: Session, id: string, role: string): Promise<void> {
   await http<void>(session, `/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) });
 }
 
+/**
+ * Force a user session logout.
+ */
 export async function forceLogoutUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/force-logout`, { method: "POST" });
 }
 
+/**
+ * Unlock a user account.
+ */
 export async function unlockUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/unlock`, { method: "POST" });
 }
 
+/**
+ * Disable a user account.
+ */
 export async function disableUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/disable`, { method: "POST" });
 }
 
+/**
+ * Enable a previously disabled user account.
+ */
 export async function enableUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/enable`, { method: "POST" });
 }
 
+/**
+ * Reset a user's password to a provided value.
+ */
 export async function resetUserPassword(session: Session, id: string, password: string): Promise<void> {
   await http<void>(session, `/users/${id}/reset-password`, {
     method: "POST",
@@ -111,22 +165,37 @@ export async function resetUserPassword(session: Session, id: string, password: 
   });
 }
 
+/**
+ * Map a device phone number for a user.
+ */
 export async function mapDevicePhone(session: Session, id: string, devicePhone: string): Promise<void> {
   await http<void>(session, `/users/${id}/device-phone`, { method: "POST", body: JSON.stringify({ devicePhone }) });
 }
 
+/**
+ * Fetch diagnostics for a device.
+ */
 export async function fetchDiagnostics(session: Session, deviceId: string): Promise<any> {
   return http<any>(session, `/devices/${deviceId}/diagnostics`, { method: "GET" });
 }
 
+/**
+ * Retrieve contact list.
+ */
 export async function fetchContacts(session: Session): Promise<any[]> {
   return http<any[]>(session, "/contacts", { method: "GET" });
 }
 
+/**
+ * Toggle contact sync on or off.
+ */
 export async function toggleContactSync(session: Session, enabled: boolean): Promise<void> {
   await http<void>(session, "/contacts/toggle", { method: "POST", body: JSON.stringify({ enabled }) });
 }
 
+/**
+ * Resolve a contact conflict with a given resolution.
+ */
 export async function resolveContactConflict(session: Session, conflictId: string, resolution: string): Promise<void> {
   await http<void>(session, `/contacts/conflicts/${conflictId}/resolve`, {
     method: "POST",
@@ -134,6 +203,9 @@ export async function resolveContactConflict(session: Session, conflictId: strin
   });
 }
 
+/**
+ * Export contacts as a binary blob.
+ */
 export async function exportContacts(session: Session): Promise<Blob> {
   const res = await fetch(`${appConfig.apiBaseUrl}/contacts/export`, {
     method: "GET",
@@ -146,22 +218,37 @@ export async function exportContacts(session: Session): Promise<Blob> {
   return await res.blob();
 }
 
+/**
+ * Fetch audit events.
+ */
 export async function getAudit(session: Session): Promise<any[]> {
   return http<any[]>(session, "/audit", { method: "GET" });
 }
 
+/**
+ * Fetch login events.
+ */
 export async function getLoginEvents(session: Session): Promise<any[]> {
   return http<any[]>(session, "/login-events", { method: "GET" });
 }
 
+/**
+ * Create a pairing session for device onboarding.
+ */
 export async function createPairingSession(session: Session): Promise<any> {
   return http(session, "/pairing/session", { method: "POST", body: JSON.stringify({}) });
 }
 
+/**
+ * Retrieve a pairing session by id.
+ */
 export async function getPairingSession(session: Session, id: string): Promise<any> {
   return http<any>(session, `/pairing/session/${id}`, { method: "GET" });
 }
 
+/**
+ * Toggle a device state (enable/disable/rotate-token).
+ */
 export async function toggleDevice(
   session: Session,
   id: string,
@@ -175,6 +262,9 @@ export type ConfigPayload = {
   data: Record<string, unknown>;
 };
 
+/**
+ * Fetch the merged configuration with optional ETag caching.
+ */
 export async function fetchConfig(
   session: Session,
   etag?: string
@@ -197,6 +287,9 @@ export async function fetchConfig(
   return { config, etag: nextEtag, notModified: false };
 }
 
+/**
+ * Update configuration with optional ETag precondition.
+ */
 export async function updateConfig(session: Session, payload: ConfigPayload, etag?: string): Promise<ConfigPayload> {
   return http<ConfigPayload>(session, "/config", {
     method: "PATCH",

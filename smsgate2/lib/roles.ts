@@ -10,17 +10,26 @@ export function configureRoles(opts?: { order?: Role[]; labels?: Record<string, 
   runtimeRoleLabels = opts?.labels ?? {};
 }
 
+/**
+ * Return the rank index for a role within an order.
+ */
 export function roleRank(role: Role, order?: Role[]): number {
   const effectiveOrder = order?.length ? order : runtimeRoleOrder;
   const idx = effectiveOrder.indexOf(role);
   return idx === -1 ? 0 : idx;
 }
 
+/**
+ * True when `role` is at or above `minimum` in the ordering.
+ */
 export function hasAtLeast(role: Role, minimum: Role, order?: Role[]): boolean {
   const effectiveOrder = order?.length ? order : runtimeRoleOrder;
   return roleRank(role, effectiveOrder) >= roleRank(minimum, effectiveOrder);
 }
 
+/**
+ * Filter navigation entries allowed for a role.
+ */
 export function allowedNav(role: Role, order?: Role[]): Array<{ label: string; path: string; minRole: Role }> {
   const effectiveOrder = order?.length ? order : runtimeRoleOrder;
   const items: Array<{ label: string; path: string; minRole: Role }> = [
@@ -36,6 +45,9 @@ export function allowedNav(role: Role, order?: Role[]): Array<{ label: string; p
   return items.filter((item) => hasAtLeast(role, item.minRole, effectiveOrder));
 }
 
+/**
+ * Resolve a display label for a role using provided labels or runtime defaults.
+ */
 export function getRoleLabel(role: Role, labels?: Record<string, string>): string {
   if (labels && labels[role]) return labels[role];
   return runtimeRoleLabels[role] ?? role;

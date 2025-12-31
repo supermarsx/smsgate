@@ -26,10 +26,16 @@ function tryMatchLocale(value?: string | null): Locale | null {
 const CONFIG_DEFAULT_LOCALE = tryMatchLocale(appConfig.defaultLocale);
 export const DEFAULT_LOCALE: Locale = CONFIG_DEFAULT_LOCALE ?? "en-US";
 
+/**
+ * Normalize a locale value to the closest supported locale.
+ */
 export function normalizeLocale(value?: string | null): Locale {
   return tryMatchLocale(value) ?? DEFAULT_LOCALE;
 }
 
+/**
+ * Detect a browser locale from navigator hints.
+ */
 export function detectBrowserLocale(): Locale {
   if (typeof navigator === "undefined") return DEFAULT_LOCALE;
   const candidates = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
@@ -40,6 +46,9 @@ export function detectBrowserLocale(): Locale {
   return DEFAULT_LOCALE;
 }
 
+/**
+ * Load a persisted locale preference from storage.
+ */
 export function loadPreferredLocale(): Locale | null {
   if (typeof window === "undefined") return null;
   try {
@@ -53,6 +62,9 @@ export function loadPreferredLocale(): Locale | null {
   }
 }
 
+/**
+ * Persist a locale preference to storage.
+ */
 export function setPreferredLocale(locale: Locale): void {
   if (typeof window === "undefined") return;
   try {
@@ -62,16 +74,25 @@ export function setPreferredLocale(locale: Locale): void {
   }
 }
 
+/**
+ * Resolve initial locale from storage or browser fallback.
+ */
 export function getInitialLocale(): Locale {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
   return loadPreferredLocale() ?? detectBrowserLocale();
 }
 
+/**
+ * Retrieve translations for a locale.
+ */
 export function getTranslations(locale?: Locale): Record<string, string> {
   const resolved = normalizeLocale(locale);
   return DICTIONARIES[resolved];
 }
 
+/**
+ * Return a shallow copy of all dictionaries.
+ */
 export function listDictionaries(): Record<Locale, Record<string, string>> {
   return { ...DICTIONARIES };
 }
