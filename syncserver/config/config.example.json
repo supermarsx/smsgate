@@ -16,6 +16,9 @@
     "online_threshold_ms": 20000,
     "degraded_threshold_ms": 60000
   },
+  "pairing": {
+    "session_ttl_secs": 600
+  },
   "hot_store": {
     "mode": "memory",
     "redis_url": null

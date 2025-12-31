@@ -238,6 +238,21 @@ impl Default for RbacConfig {
     }
 }
 
+/// Pairing configuration.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PairingConfig {
+    /// Session TTL in seconds.
+    pub session_ttl_secs: u64,
+}
+
+impl Default for PairingConfig {
+    fn default() -> Self {
+        Self {
+            session_ttl_secs: 600,
+        }
+    }
+}
+
 /// Ingest configuration for deduplication and buffering.
 #[derive(Debug, Clone, Deserialize)]
 pub struct IngestConfig {
@@ -290,6 +305,8 @@ pub struct AppConfig {
     pub presence: PresenceConfig,
     /// RBAC roles and group mappings.
     pub rbac: RbacConfig,
+    /// Pairing/session configuration.
+    pub pairing: PairingConfig,
     /// Hot store backend selection.
     pub hot_store: HotStoreConfig,
     /// Durable persistence controls.
@@ -306,6 +323,7 @@ impl Default for AppConfig {
             ingest: IngestConfig::default(),
             presence: PresenceConfig::default(),
             rbac: RbacConfig::default(),
+            pairing: PairingConfig::default(),
             hot_store: HotStoreConfig::default(),
             database: DatabaseConfig::default(),
             auth: AuthConfig::default(),
@@ -619,6 +637,12 @@ impl AppConfig {
                 self.rbac.group_mapping = mapping;
             }
         }
+
+        if let Some(pairing) = from.pairing {
+            if let Some(ttl) = pairing.session_ttl_secs {
+                self.pairing.session_ttl_secs = ttl;
+            }
+        }
     }
 }
 
@@ -630,6 +654,7 @@ struct PartialConfig {
     pub ingest: Option<PartialIngestConfig>,
     pub presence: Option<PartialPresenceConfig>,
     pub rbac: Option<PartialRbacConfig>,
+    pub pairing: Option<PartialPairingConfig>,
     pub hot_store: Option<PartialHotStoreConfig>,
     pub database: Option<PartialDatabaseConfig>,
     pub auth: Option<PartialAuthConfig>,
@@ -655,6 +680,11 @@ struct PartialIngestConfig {
 struct PartialPresenceConfig {
     pub online_threshold_ms: Option<u64>,
     pub degraded_threshold_ms: Option<u64>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PartialPairingConfig {
+    pub session_ttl_secs: Option<u64>,
 }
 
 #[derive(Debug, Default, Deserialize)]
