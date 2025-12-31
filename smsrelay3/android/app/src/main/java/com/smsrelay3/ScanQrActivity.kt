@@ -13,12 +13,12 @@ import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ScanQrActivity : AppCompatActivity() {
     private lateinit var previewView: PreviewView
@@ -61,6 +61,7 @@ class ScanQrActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    @ExperimentalGetImage
     private fun startCamera(errorText: android.widget.TextView, scanner: BarcodeScanner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         val executor = ContextCompat.getMainExecutor(this)
@@ -93,7 +94,7 @@ class ScanQrActivity : AppCompatActivity() {
         }, executor)
     }
 
-    @OptIn(ExperimentalGetImage::class)
+    @ExperimentalGetImage
     private class QrAnalyzer(
         private val scanner: BarcodeScanner,
         private val onResult: (String) -> Unit
