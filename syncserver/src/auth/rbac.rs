@@ -26,6 +26,14 @@ impl RbacStore {
         }
     }
 
+    /// Provide a clone for axum state extraction.
+    pub fn clone_store(&self) -> Self {
+        Self {
+            roles: self.roles.clone(),
+            group_mapping: self.group_mapping.clone(),
+        }
+    }
+
     /// Resolve a role by explicit name.
     pub fn role_by_name(&self, name: &str) -> Option<Role> {
         self.roles.get(name).cloned()
@@ -53,5 +61,11 @@ fn to_role(def: &RoleDefinition) -> Role {
         name: def.name.clone(),
         precedence: def.precedence,
         permissions: def.permissions.clone(),
+    }
+}
+
+impl axum::extract::FromRef<crate::state::AppState> for RbacStore {
+    fn from_ref(state: &crate::state::AppState) -> Self {
+        state.rbac.as_ref().clone_store()
     }
 }

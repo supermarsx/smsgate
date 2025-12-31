@@ -23,6 +23,7 @@ dashmap = "6"
 futures = "0.3"
 axum-extra = { version = "0.9", features = ["typed-header"] }
 headers = "0.4"
+redis = { version = "0.25", features = ["aio", "tokio-comp", "connection-manager"] }
 
 [dev-dependencies]
 tempfile = "3"

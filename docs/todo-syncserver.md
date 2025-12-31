@@ -24,9 +24,9 @@
 - [x] Scaffold device auth extractor (header-based placeholder) and RBAC role struct; wire ingest/presence through auth guard.
 
 ## RBAC & roles
-- [ ] Define configurable roles/permissions with precedence and labels.
-- [ ] Implement directory group -> role mapping resolver with audit trail.
-- [ ] Enforce permission checks across REST/WS endpoints; return role metadata for smsgate2 gating.
+- [x] Define configurable roles/permissions with precedence and labels.
+- [x] Implement directory group -> role mapping resolver (audit trail pending).
+- [x] Enforce permission checks across REST/WS endpoints (config read guarded) and return role metadata for smsgate2 gating.
 
 ## Device pairing & credentials
 - [ ] Implement pairing session endpoints (`/api/v1/pairing/session`, `/complete`) that emit QR payloads.
