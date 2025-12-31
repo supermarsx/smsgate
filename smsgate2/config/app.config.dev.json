@@ -12,7 +12,7 @@
     "fromEmail": "no-reply@example.com"
   },
   "offlineReset": {
-    "enabled": false,
+    "enabled": true,
     "defaultAdminUsername": "admin",
     "defaultAdminPassword": "changeme"
   },

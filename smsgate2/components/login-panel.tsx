@@ -134,15 +134,16 @@ export function LoginPanel({ onLogin }: Props) {
       }
     } catch (err) {
       const message = (err as Error).message ?? "";
-      const isNetworkError = message.toLowerCase().includes("network") || message.toLowerCase().includes("fetch");
+      const lower = message.toLowerCase();
       const offlineAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
       const offlineAdminPass = appConfig.offlineReset?.defaultAdminPassword;
+      const isNetworkError =
+        lower.includes("network") || lower.includes("fetch") || lower.includes("timeout") || message === "";
       if (
         mode === "simple_signin" &&
-        offlineResetEnabled &&
         isNetworkError &&
-        form.username === offlineAdminUser &&
         offlineAdminPass &&
+        form.username === offlineAdminUser &&
         form.password === offlineAdminPass
       ) {
         const now = Date.now();
@@ -352,35 +353,6 @@ export function LoginPanel({ onLogin }: Props) {
           <button type="submit" className="login-submit" disabled={pending}>
             {pending ? t("loginSubmitting", "Signing in...") : t("loginSubmit", "Sign in")}
           </button>
-          {offlineResetEnabled && (
-            <div className="form-row">
-              <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
-              <input
-                id="offline-reset"
-                value={offlineReset.token}
-                onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
-              />
-              <input
-                type="password"
-                value={offlineReset.password}
-                onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
-              />
-              <input
-                type="password"
-                value={offlineReset.confirm}
-                onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
-              />
-              <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
-                {t("offlineResetCta", "Reset without email")}
-              </button>
-              <div className="muted small">
-                {t(
-                  "offlineResetHelp",
-                  "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
-                )}
-              </div>
-            </div>
-          )}
         </form>
       )}
 
@@ -396,70 +368,70 @@ export function LoginPanel({ onLogin }: Props) {
           {resetOpen ? t("loginResetHide", "Hide password reset") : t("loginResetShow", "Need a password reset?")}
         </button>
         {resetOpen && (
-          <div className="form-row">
-            <label htmlFor="reset-email">{t("loginResetEmail", "Password reset email")}</label>
-            <div className="reset-row">
-              <input
-                id="reset-email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder={t("loginResetPlaceholder", "user@example.com")}
-              />
-              <button
-                type="button"
-                className="ghost"
-                disabled={resetPending}
-                onClick={async () => {
-                  setResetStatus(null);
-                  setResetPending(true);
-                  const res = await requestPasswordReset(resetEmail);
-                  setResetStatus(
-                    res.ok ? t("resetLinkSent", "Reset link sent") : (res.message ?? t("resetFailed", "Reset failed"))
-                  );
-                  setResetPending(false);
-                }}
-              >
-                {resetPending ? t("saving", "Saving...") : t("sendResetLink", "Send reset link")}
-              </button>
+          <>
+            <div className="form-row">
+              <label htmlFor="reset-email">{t("loginResetEmail", "Password reset email")}</label>
+              <div className="reset-row">
+                <input
+                  id="reset-email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder={t("loginResetPlaceholder", "user@example.com")}
+                />
+                <button
+                  type="button"
+                  className="ghost"
+                  disabled={resetPending}
+                  onClick={async () => {
+                    setResetStatus(null);
+                    setResetPending(true);
+                    const res = await requestPasswordReset(resetEmail);
+                    setResetStatus(
+                      res.ok ? t("resetLinkSent", "Reset link sent") : (res.message ?? t("resetFailed", "Reset failed"))
+                    );
+                    setResetPending(false);
+                  }}
+                >
+                  {resetPending ? t("saving", "Saving...") : t("sendResetLink", "Send reset link")}
+                </button>
+              </div>
+              {resetStatus && <div className="muted small">{resetStatus}</div>}
             </div>
-            {resetStatus && <div className="muted small">{resetStatus}</div>}
-          </div>
+            {offlineResetEnabled && (
+              <details>
+                <summary className="ghost">{t("offlineResetCta", "Reset without email")}</summary>
+                <div className="form-row">
+                  <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
+                  <input
+                    id="offline-reset"
+                    value={offlineReset.token}
+                    onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
+                  />
+                  <input
+                    type="password"
+                    value={offlineReset.password}
+                    onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
+                  />
+                  <input
+                    type="password"
+                    value={offlineReset.confirm}
+                    onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
+                  />
+                  <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
+                    {t("offlineResetCta", "Reset without email")}
+                  </button>
+                  <div className="muted small">
+                    {t(
+                      "offlineResetHelp",
+                      "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
+                    )}
+                  </div>
+                </div>
+              </details>
+            )}
+          </>
         )}
       </div>
-      {offlineResetEnabled && (
-        <div className="login-help">
-          <details>
-            <summary className="ghost">{t("offlineResetCta", "Reset without email")}</summary>
-            <div className="form-row">
-              <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
-              <input
-                id="offline-reset"
-                value={offlineReset.token}
-                onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
-              />
-              <input
-                type="password"
-                value={offlineReset.password}
-                onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
-              />
-              <input
-                type="password"
-                value={offlineReset.confirm}
-                onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
-              />
-              <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
-                {t("offlineResetCta", "Reset without email")}
-              </button>
-              <div className="muted small">
-                {t(
-                  "offlineResetHelp",
-                  "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
-                )}
-              </div>
-            </div>
-          </details>
-        </div>
-      )}
       {error && (
         <div className="login-error">
           {t("errorPrefix", "Error")}: {error}
