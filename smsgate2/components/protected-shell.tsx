@@ -15,6 +15,7 @@ import { useConfig } from "./config-provider";
 import { mapWsErrorKey } from "../lib/status";
 import { getTranslations, useLocale } from "../lib/i18n";
 import { StatusBar } from "./status-bar";
+import { appConfig } from "../lib/config";
 
 type Props = {
   children: React.ReactNode;
@@ -59,12 +60,15 @@ export function ProtectedShell({ children }: Props) {
     return status.lastError;
   }, [status.lastError, t]);
 
+  const routeLimits = appConfig.limits?.routes ?? {};
+  const debugAllowed = appConfig.limits?.debug?.ui ?? true;
+  const logsAllowed = appConfig.limits?.debug?.logs ?? debugAllowed;
+
   useEffect(() => {
     if (!session && typeof window !== "undefined") {
       router.replace("/login");
     }
   }, [router, session]);
-import { appConfig } from "../lib/config";
 
   const rolesConfig = useMemo(() => ((config?.data as any)?.roles ?? {}) as any, [config]);
   const roleOrder = rolesConfig?.order;
@@ -128,9 +132,6 @@ import { appConfig } from "../lib/config";
     return (
       <div className="gg-panel">
         <div className="login-error">{t("unauthorized", "Unauthorized for this route; redirecting...")}</div>
-  const routeLimits = appConfig.limits?.routes ?? {};
-  const debugAllowed = appConfig.limits?.debug?.ui ?? true;
-  const logsAllowed = appConfig.limits?.debug?.logs ?? debugAllowed;
       </div>
     );
   }
@@ -181,12 +182,14 @@ import { appConfig } from "../lib/config";
           <div className="debug-overlay">
             <div className="gg-label">{t("debugSnapshot", "Debug snapshot")}</div>
             <pre className="pairing-pre">{JSON.stringify(status, null, 2)}</pre>
-            <div className="actions">
-              <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
-                {showLogs ? t("hideLogs", "Hide logs") : t("showLogs", "Show logs")}
-              </button>
-            </div>
-            {showLogs && status.logs && (
+            {logsAllowed && (
+              <div className="actions">
+                <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
+                  {showLogs ? t("hideLogs", "Hide logs") : t("showLogs", "Show logs")}
+                </button>
+              </div>
+            )}
+            {showLogs && logsAllowed && status.logs && (
               <div className="log-grid">
                 {status.logs.map((log, idx) => (
                   <div key={idx} className="log-row">
@@ -211,38 +214,29 @@ import { appConfig } from "../lib/config";
             </div>
           ) : (
             children
-              {debugAllowed && debugOpen && (
-                <button
-                  className="ghost"
-                  onClick={() => setShowLogs((v) => !v)}
-                >
-                    {logsAllowed && (
-                      <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
-                        {showLogs ? t("hideLogs", "Hide logs") : t("showLogs", "Show logs")}
-                      </button>
-                    )}
-              <div className="gg-label">{t("account", "Account")}</div>
-              <div className="gg-value">{session.user.email ?? session.user.name}</div>
-              {session.user.email && <div className="muted small">{session.user.name}</div>}
-            </div>
-            <div className="account-actions">
-              {debugAllowed && (
-                <button
-                  className="ghost icon icon-themed"
-                  onClick={() => setDebugOpen((v) => !v)}
-                  title={t("debugLabel", "Debug")}
-                >
-                  🛠
-                </button>
-              )}
+          )}
+        </div>
+        <div className="shell-footer">
+          <div className="gg-label">{t("account", "Account")}</div>
+          <div className="gg-value">{session.user.email ?? session.user.name}</div>
+          {session.user.email && <div className="muted small">{session.user.name}</div>}
+          <div className="account-actions">
+            {debugAllowed && (
               <button
-                className="ghost icon icon-themed danger"
-                onClick={() => setConfirmLogout(true)}
-                title={t("logout", "Logout")}
+                className="ghost icon icon-themed"
+                onClick={() => setDebugOpen((v) => !v)}
+                title={t("debugLabel", "Debug")}
               >
-                ⎋
+                🛠
               </button>
-            </div>
+            )}
+            <button
+              className="ghost icon icon-themed danger"
+              onClick={() => setConfirmLogout(true)}
+              title={t("logout", "Logout")}
+            >
+              ⎋
+            </button>
           </div>
           <div className="muted small">
             {getRoleLabel(session.user.role, roleLabels)} •{" "}
