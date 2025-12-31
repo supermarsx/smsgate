@@ -114,6 +114,10 @@ pub async fn ingest(
         if ingest_cfg.persist_new {
             state.persistence_worker.enqueue(event.clone()).await;
         }
+        if let Some(device_ts) = event.device_received_at {
+            let latency_ms = (now - device_ts).num_milliseconds().max(0) as f64;
+            state.metrics.observe_ingest_latency_ms(latency_ms);
+        }
         if let Some(number) = event.number_e164.clone() {
             tracing::debug!(
                 target: "sim",
