@@ -2,8 +2,8 @@ use crate::{
     auth::DeviceAuthStore,
     config::AppConfig,
     hot_store::{HotStore, MemoryHotStore},
-    presence::PresenceStore,
     persistence::{JsonDb, PersistentStore},
+    presence::PresenceStore,
     ws_types::ServerMessage,
 };
 use std::{
