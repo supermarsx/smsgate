@@ -241,7 +241,7 @@ impl AppState {
         let numbers = Arc::new(NumberStore::default());
         let sim_inventory = Arc::new(SimInventoryStore::default());
 
-        Self {
+        let state = Self {
             config: versioned_config,
             config_path,
             started_at: Arc::new(Instant::now()),
@@ -261,6 +261,69 @@ impl AppState {
             audit,
             numbers,
             sim_inventory,
+        };
+
+        state.apply_seeding(&config).await;
+
+        state
+    }
+
+    /// Apply optional seed data (users, devices, numbers) defined in config.
+    async fn apply_seeding(&self, config: &config::AppConfig) {
+        for device in &config.seeding.devices {
+            let record =
+                self.device_auth
+                    .register_with_name(&device.id, &device.token, device.name.clone());
+            if !device.enabled {
+                let _ =
+                    self.device_auth
+                        .set_enabled(&device.id, false, Some("seeded disabled".into()));
+            }
+            tracing::info!(device_id = %record.id, "seeded device entry");
+        }
+
+        {
+            let rbac = self.rbac.read().await;
+            for user in &config.seeding.users {
+                if self.user_store.user_by_username(&user.username).is_some() {
+                    continue;
+                }
+                if let Some(role) = rbac.role_by_name(&user.role) {
+                    match self.user_store.create_user(
+                        &user.username,
+                        &user.password,
+                        role.clone(),
+                        user.totp_secret.clone(),
+                    ) {
+                        Ok(created) => {
+                            tracing::info!(user = %created.username, "seeded user");
+                        }
+                        Err(err) => {
+                            tracing::warn!(error = %err, user = %user.username, "failed to seed user");
+                        }
+                    }
+                } else {
+                    tracing::warn!(role = %user.role, "skipping seed user with unknown role");
+                }
+            }
+        }
+
+        for number in &config.seeding.numbers {
+            let record = self.numbers.upsert(
+                number.e164.clone(),
+                number.label.clone(),
+                number.shared,
+                number.default_device_id.clone(),
+            );
+            if let Some(default) = &record.default_device_id {
+                if self.device_auth.diagnostics(default).is_err() {
+                    tracing::warn!(
+                        number = %record.e164,
+                        device = %default,
+                        "seeded number default device not registered"
+                    );
+                }
+            }
         }
     }
 

@@ -370,6 +370,53 @@ impl Default for PairingConfig {
     }
 }
 
+/// Seed data applied on startup for users/numbers/devices.
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+pub struct SeedingConfig {
+    /// Optional users to create if missing.
+    #[serde(default)]
+    pub users: Vec<SeedUser>,
+    /// Optional numbers to pre-provision.
+    #[serde(default)]
+    pub numbers: Vec<SeedNumber>,
+    /// Optional devices to register outside the pairing flow.
+    #[serde(default)]
+    pub devices: Vec<SeedDevice>,
+}
+
+/// Seed user entry created during bootstrap when not present.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SeedUser {
+    pub username: String,
+    pub password: String,
+    pub role: String,
+    #[serde(default)]
+    pub totp_secret: Option<String>,
+}
+
+/// Seed number entry created during bootstrap when not present.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SeedNumber {
+    pub e164: String,
+    #[serde(default)]
+    pub label: Option<String>,
+    #[serde(default)]
+    pub shared: bool,
+    #[serde(default)]
+    pub default_device_id: Option<String>,
+}
+
+/// Seed device entry created during bootstrap when not present.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SeedDevice {
+    pub id: String,
+    pub token: String,
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+}
+
 /// Ingest configuration for deduplication and buffering.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct IngestConfig {
@@ -432,6 +479,8 @@ pub struct AppConfig {
     pub rbac: RbacConfig,
     /// Pairing/session configuration.
     pub pairing: PairingConfig,
+    /// Initial seeding for users/numbers/devices.
+    pub seeding: SeedingConfig,
     /// Hot store backend selection.
     pub hot_store: HotStoreConfig,
     /// Durable persistence controls.
@@ -449,6 +498,7 @@ impl Default for AppConfig {
             presence: PresenceConfig::default(),
             rbac: RbacConfig::default(),
             pairing: PairingConfig::default(),
+            seeding: SeedingConfig::default(),
             hot_store: HotStoreConfig::default(),
             database: DatabaseConfig::default(),
             auth: AuthConfig::default(),
@@ -871,6 +921,52 @@ impl AppConfig {
             }
         }
 
+        // Validate seeding entries (idempotent bootstrap data).
+        let role_names: std::collections::HashSet<_> =
+            self.rbac.roles.iter().map(|r| r.name.as_str()).collect();
+        for user in &self.seeding.users {
+            if user.username.trim().is_empty() {
+                return Err(AppError::Validation(
+                    "seeding.users.username must not be empty".into(),
+                ));
+            }
+            if user.password.trim().is_empty() {
+                return Err(AppError::Validation(
+                    "seeding.users.password must not be empty".into(),
+                ));
+            }
+            if !role_names.contains(user.role.as_str()) {
+                return Err(AppError::Validation(format!(
+                    "seeding.users role not found: {}",
+                    user.role
+                )));
+            }
+        }
+        for number in &self.seeding.numbers {
+            if !number.e164.starts_with('+') || number.e164.len() < 8 {
+                return Err(AppError::Validation(
+                    "seeding.numbers.e164 must start with '+' and be at least 8 digits".into(),
+                ));
+            }
+            if !number.e164.chars().skip(1).all(|c| c.is_ascii_digit()) {
+                return Err(AppError::Validation(
+                    "seeding.numbers.e164 must contain only digits after '+'".into(),
+                ));
+            }
+        }
+        for device in &self.seeding.devices {
+            if device.id.trim().is_empty() {
+                return Err(AppError::Validation(
+                    "seeding.devices.id must not be empty".into(),
+                ));
+            }
+            if device.token.trim().is_empty() {
+                return Err(AppError::Validation(
+                    "seeding.devices.token must not be empty".into(),
+                ));
+            }
+        }
+
         Ok(())
     }
 
@@ -1018,6 +1114,18 @@ impl AppConfig {
                 self.pairing.bootstrap_device = Some(bootstrap);
             }
         }
+
+        if let Some(seeding) = from.seeding {
+            if let Some(users) = seeding.users {
+                self.seeding.users = users;
+            }
+            if let Some(numbers) = seeding.numbers {
+                self.seeding.numbers = numbers;
+            }
+            if let Some(devices) = seeding.devices {
+                self.seeding.devices = devices;
+            }
+        }
     }
 
     /// Produce a new config by applying the given patch and re-validating.
@@ -1152,6 +1260,7 @@ pub struct PartialConfig {
     pub presence: Option<PartialPresenceConfig>,
     pub rbac: Option<PartialRbacConfig>,
     pub pairing: Option<PartialPairingConfig>,
+    pub seeding: Option<PartialSeedingConfig>,
     pub hot_store: Option<PartialHotStoreConfig>,
     pub database: Option<PartialDatabaseConfig>,
     pub auth: Option<PartialAuthConfig>,
@@ -1185,6 +1294,13 @@ pub struct PartialPresenceConfig {
 pub struct PartialPairingConfig {
     pub session_ttl_secs: Option<u64>,
     pub bootstrap_device: Option<BootstrapDevice>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialSeedingConfig {
+    pub users: Option<Vec<SeedUser>>,
+    pub numbers: Option<Vec<SeedNumber>>,
+    pub devices: Option<Vec<SeedDevice>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]

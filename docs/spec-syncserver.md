@@ -651,7 +651,26 @@ Configurable:
 
 ---
 
-## 19) Acceptance Criteria
+## 19) CLI & Tooling
+
+- **syncctl** admin CLI:
+  - `login` obtains a session token (simple/domain/oauth via server endpoints).
+  - `config get|patch` wraps the config plane APIs.
+  - `user list|create|unlock|force_logout|delete` maps to admin user APIs.
+  - `number list|create|assign|unassign` maps to number admin APIs.
+  - `device list|rename|enable|disable` maps to device admin APIs.
+  - Token supplied via `--token` or `SYNCCTL_TOKEN`, base URL flag for multi-env.
+- **Config seeding** (`config.seeding`):
+  - `users[]` (username/password/role/totp\_secret), `numbers[]` (e164/label/shared/default\_device\_id), `devices[]` (id/token/name/enabled).
+  - Applied idempotently at startup after validation; default device IDs warned if unknown.
+- **Cross-platform builds**:
+  - Scripts: `scripts/build-syncserver-all.sh` and `scripts/build-syncserver-all.ps1`.
+  - Produce release binaries for `syncserver`, `syncctl`, and `migrate` into `dist/<target>/`.
+  - Targets configurable via env/flags; expects Rust targets pre-installed.
+
+---
+
+## 20) Acceptance Criteria
 
 - Supports oauth/simple\_signin/domain\_signin with mode toggles.
 - Argon2id + salt + pepper for local passwords.
@@ -663,4 +682,3 @@ Configurable:
 - WS protocol supports snapshot + paging before/after.
 - Policy-based persistence to DB adapters including JSON DB.
 - Extensive structured logs + audit + login events.
-

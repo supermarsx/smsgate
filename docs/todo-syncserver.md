@@ -42,6 +42,7 @@
 - [x] Implement PATCH config with validation + persistence (audit stream pending).
 - [x] Broadcast config updates to WS clients (smsgate2) and device clients (smsrelay3).
 - [x] Expose effective config snapshot for smsgate2 to gate auth modes and role labels.
+- [x] Add config seeding for users/numbers/devices applied idempotently at startup.
 
 ## Ingest & event pipeline
 - [x] Implement `/api/v1/ingest` with device auth, normalization, and dedup TTL keys.
@@ -106,3 +107,5 @@
 - [x] Document environment variables, config keys, and failure modes.
 - [x] Add runbooks for Redis outage fallback/recovery and hot-store migration back to Redis.
 - [x] Publish cutover plan + compatibility matrix with smsgate2 and smsrelay3 versions.
+- [x] Ship syncctl CLI for admin tasks (login/config/users/numbers/devices) using server APIs.
+- [x] Add cross-platform build scripts for syncserver/syncctl/migrate binaries (Windows/Unix).
