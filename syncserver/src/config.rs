@@ -1,4 +1,9 @@
+//! Configuration types and loader for syncserver.
+//! Supports environment overrides, partial merges, and versioned snapshots used
+//! for HTTP/WS config exposure.
+
 use crate::error::AppError;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::{env, fs, net::SocketAddr, path::PathBuf};
 
@@ -100,7 +105,7 @@ impl Default for AuthMode {
 }
 
 /// Web/API server facing configuration.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ServerConfig {
     /// IP/interface to bind.
     pub host: String,
@@ -127,7 +132,7 @@ impl Default for ServerConfig {
 }
 
 /// Hot store configuration (Redis or in-memory).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct HotStoreConfig {
     /// Backend selection.
     pub mode: HotStoreMode,
@@ -145,7 +150,7 @@ impl Default for HotStoreConfig {
 }
 
 /// Durable storage configuration.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DatabaseConfig {
     /// Adapter type to use.
     pub adapter: DatabaseAdapter,
@@ -166,7 +171,7 @@ impl Default for DatabaseConfig {
 }
 
 /// Authentication configuration, primarily consumed by smsgate2 to toggle UI.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AuthConfig {
     /// Enabled auth modes.
     pub modes: Vec<AuthMode>,
@@ -189,7 +194,7 @@ pub struct RoleDefinition {
 }
 
 /// RBAC configuration including role definitions and group mapping.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RbacConfig {
     pub roles: Vec<RoleDefinition>,
     pub group_mapping: std::collections::HashMap<String, String>,
@@ -244,7 +249,7 @@ impl Default for RbacConfig {
 }
 
 /// Pairing configuration.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PairingConfig {
     /// Session TTL in seconds.
     pub session_ttl_secs: u64,
@@ -277,7 +282,7 @@ impl Default for PairingConfig {
 }
 
 /// Ingest configuration for deduplication and buffering.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct IngestConfig {
     /// TTL in milliseconds for deduplication keys.
     pub dedup_ttl_ms: u64,
@@ -298,7 +303,7 @@ impl Default for IngestConfig {
 }
 
 /// Presence thresholds for online/degraded evaluations.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PresenceConfig {
     /// Milliseconds since last heartbeat to consider online.
     pub online_threshold_ms: u64,
@@ -316,7 +321,7 @@ impl Default for PresenceConfig {
 }
 
 /// Top-level application configuration shared across the server.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AppConfig {
     /// Runtime environment flag.
     pub env: RunEnvironment,
@@ -355,11 +360,18 @@ impl Default for AppConfig {
 }
 
 impl AppConfig {
+    /// Resolve the configuration path from environment (or default).
+    pub fn config_path_from_env() -> PathBuf {
+        env::var("SYNC_CONFIG_PATH")
+            .unwrap_or_else(|_| "config/config.json".into())
+            .into()
+    }
+
     /// Load configuration from disk + environment overrides, with validation.
     pub fn load() -> Result<Self, AppError> {
         let mut config = AppConfig::default();
-        let path = env::var("SYNC_CONFIG_PATH").unwrap_or_else(|_| "config/config.json".into());
-        let path_buf = PathBuf::from(&path);
+        let path_buf = Self::config_path_from_env();
+        let path = path_buf.to_string_lossy();
 
         if path_buf.exists() {
             let raw = fs::read_to_string(&path_buf)
@@ -623,7 +635,8 @@ impl AppConfig {
     }
 
     /// Merge a partially loaded config (e.g., from disk) into the current instance.
-    fn merge(&mut self, from: PartialConfig) {
+    /// Merge a partial configuration into this instance (overwriting provided fields).
+    pub fn merge(&mut self, from: PartialConfig) {
         if let Some(env) = from.env {
             self.env = env;
         }
@@ -714,9 +727,31 @@ impl AppConfig {
     }
 }
 
+/// Versioned configuration with monotonic version and last update time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VersionedConfig {
+    /// Effective application configuration.
+    pub config: AppConfig,
+    /// Monotonic version number incremented on patch.
+    pub version: u64,
+    /// Timestamp when the config was last updated.
+    pub last_updated_at: DateTime<Utc>,
+}
+
+impl VersionedConfig {
+    /// Build a new versioned config starting at version 1.
+    pub fn initial(config: AppConfig) -> Self {
+        Self {
+            config,
+            version: 1,
+            last_updated_at: Utc::now(),
+        }
+    }
+}
+
 /// Shape used to partially deserialize config.json (all fields optional).
-#[derive(Debug, Default, Deserialize)]
-struct PartialConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialConfig {
     pub env: Option<RunEnvironment>,
     pub server: Option<PartialServerConfig>,
     pub ingest: Option<PartialIngestConfig>,
