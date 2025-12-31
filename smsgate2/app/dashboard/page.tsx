@@ -254,18 +254,6 @@ export default function DashboardPage() {
           </div>
           <div className="side">
             <div className="metric-card">
-              <div className="gg-label">{t("dashboardIngest", "Ingest \u2192 render")}</div>
-              <div className="gg-value">{latency}</div>
-            </div>
-            <div className="metric-card">
-              <div className="gg-label">{t("dashboardServerRtt", "Server RTT")}</div>
-              <div className="gg-value">{clientRtt}</div>
-            </div>
-            <div className="metric-card">
-              <div className="gg-label">{t("dashboardDeviceRtt", "Device RTT (min)")}</div>
-              <div className="gg-value">{deviceRtt}</div>
-            </div>
-            <div className="metric-card">
               <div className="gg-label">{t("dashboardPresence", "Presence")}</div>
               <div className="presence-list">
                 {Object.values(presence).map((p) => (

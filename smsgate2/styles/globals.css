@@ -953,6 +953,7 @@ a {
   justify-content: space-between;
   gap: 8px;
   font-size: 13px;
+  align-items: center;
 }
 
 .device-card {
@@ -1148,6 +1149,16 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.account-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ghost.icon {
+  padding: 6px 8px;
+  min-width: 0;
 }
 
 @media (max-width: 960px) {

@@ -112,14 +112,7 @@ export function ProtectedShell({ children }: Props) {
           <div className="topbar-meta">
             <span className="pill pill-muted">{getRoleLabel(session.user.role, roleLabels)}</span>
           </div>
-          <div className="topbar-actions">
-            <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>
-              {t("debugLabel", "Debug")}
-            </button>
-            <button className="ghost" onClick={handleLogout}>
-              {t("logout", "Logout")}
-            </button>
-          </div>
+          <div className="topbar-actions" />
         </header>
         {!status.connected && (
           <div className="banner warn">
@@ -209,11 +202,15 @@ export function ProtectedShell({ children }: Props) {
         {showMoreStatus && (
           <div className="status-more-panel">
             <div className="status-row">
-              <span className="muted">{t("rttLabel", "RTT")}</span>
+              <span className="muted">{t("dashboardIngest", "Ingest → render")}</span>
+              <span>{status.ingestLatency ?? "-"}</span>
+            </div>
+            <div className="status-row">
+              <span className="muted">{t("dashboardServerRtt", "Server RTT")}</span>
               <span>{status.clientRtt ?? "-"}</span>
             </div>
             <div className="status-row">
-              <span className="muted">{t("deviceRtt", "Device RTT")}</span>
+              <span className="muted">{t("dashboardDeviceRtt", "Device RTT (min)")}</span>
               <span>{status.deviceRtt ?? "-"}</span>
             </div>
             <div className="status-row">
@@ -221,12 +218,12 @@ export function ProtectedShell({ children }: Props) {
               <span>{status.wsErrors ?? 0}</span>
             </div>
             <div className="status-row">
-              <span className="muted">{t("reconnects", "Reconnects")}</span>
-              <span>{status.reconnects ?? 0}</span>
-            </div>
-            <div className="status-row">
               <span className="muted">{t("roleLabel", "Role")}</span>
               <span>{session.user.role}</span>
+            </div>
+            <div className="status-row">
+              <span className="muted">{t("reconnects", "Reconnects")}</span>
+              <span>{status.reconnects ?? 0}</span>
             </div>
           </div>
         )}
@@ -269,9 +266,14 @@ export function ProtectedShell({ children }: Props) {
               <div className="gg-value">{session.user.email ?? session.user.name}</div>
               {session.user.email && <div className="muted small">{session.user.name}</div>}
             </div>
-            <button className="ghost" onClick={handleLogout}>
-              {t("logout", "Logout")}
-            </button>
+            <div className="account-actions">
+              <button className="ghost icon" onClick={() => setDebugOpen((v) => !v)} title={t("debugLabel", "Debug")}>
+                🛠
+              </button>
+              <button className="ghost icon" onClick={handleLogout} title={t("logout", "Logout")}>
+                ⎋
+              </button>
+            </div>
           </div>
           <div className="muted small">
             {getRoleLabel(session.user.role, roleLabels)} •{" "}
