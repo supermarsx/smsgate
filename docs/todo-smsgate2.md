@@ -96,3 +96,11 @@
 - [x] Manual i18n sweep for filters/status/pagination labels across all pages to catch any lingering literals the scanner misses (contact/conflict tooltips, diagnostics labels, pagination labels).
 - [x] Add UI tests covering inline filters (dashboard/logins/audit) and status bar error mapping for offline/network WS cases.
 - [x] Expand e2e to cover light-theme golden palette regressions and account/logout controls.
+
+## New gaps (2025-12-31 spec review)
+- [ ] Login/auth modes must be driven by runtime config (CONFIG_UPDATE) instead of build-time `appConfig.authModes`; remove client-generated "offline admin" session path and surface 2FA/password-change enforcement with actual enrollment flows (TOTP/WebAuthn).
+- [ ] Dashboard rows need smart code extraction/copy, claimed-by display/grey state, per-row device badge + latency chip, and WS paging while connected (not REST-only fallback) to meet spec.
+- [ ] Devices view should stream presence/RTT/SIM-number updates via WS (or polling), and expose ingest-device/number mappings plus detail view; current single fetch + diagnostics dump isn3t sufficient for multi-SIM live updates.
+- [ ] Numbers/Users pages must show required fields: ingest-capable devices per number, contact-name mapping; users need last-login, failed-login count, assigned numbers/devices, AD/LDAP mapping details, and in-UI assignments management.
+- [ ] Audit/Logins pages need full filters/columns per spec (actor/action/target/result reason codes, session id, auth mode, device/number, geo/ASN) and expandable detail rows beyond current minimal filters.
+- [ ] Config console should expose structured sections (Auth modes, RBAC mapping, WS/backfill, retention/Redis fallback, smsrelay3 policies, contact sync) with client-side schema validation instead of a raw JSON textarea and minimal shape checks.
