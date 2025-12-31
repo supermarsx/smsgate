@@ -173,7 +173,35 @@ export async function loginSimple(
     if (data.session) saveSession(data.session, true);
     return data;
   } catch (err) {
-    return { error: (err as Error).message };
+    const message = (err as Error).message ?? "";
+    const lower = message.toLowerCase();
+    const isNetworkError =
+      lower.includes("network") || lower.includes("fetch") || lower.includes("timeout") || message === "";
+
+    const offlineAdminEnabled =
+      appConfig.allowOfflineAdmin && !!appConfig.adminDefaults?.username && !!appConfig.adminDefaults?.password;
+    const offlineCredsMatch =
+      offlineAdminEnabled &&
+      username === appConfig.adminDefaults?.username &&
+      password === appConfig.adminDefaults?.password;
+
+    if (isNetworkError && offlineCredsMatch) {
+      const session: Session = {
+        accessToken: "offline-admin",
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+        user: {
+          id: "offline-admin",
+          name: "Offline Admin",
+          email: appConfig.adminDefaults?.username,
+          role: "admin",
+          authMode: "simple_signin"
+        }
+      };
+      saveSession(session, true);
+      return { session };
+    }
+
+    return { error: message };
   }
 }
 

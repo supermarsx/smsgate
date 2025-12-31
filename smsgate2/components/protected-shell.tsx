@@ -216,27 +216,31 @@ export function ProtectedShell({ children }: Props) {
             children
           )}
         </div>
-        <div className="shell-footer">
-          <div className="gg-label">{t("account", "Account")}</div>
-          <div className="gg-value">{session.user.email ?? session.user.name}</div>
-          {session.user.email && <div className="muted small">{session.user.name}</div>}
-          <div className="account-actions">
-            {debugAllowed && (
+        <div className="account-float">
+          <div className="account-row">
+            <div>
+              <div className="gg-label">{t("account", "Account")}</div>
+              <div className="gg-value">{session.user.email ?? session.user.name}</div>
+              {session.user.email && <div className="muted small">{session.user.name}</div>}
+            </div>
+            <div className="account-actions">
+              {debugAllowed && (
+                <button
+                  className="ghost icon icon-themed"
+                  onClick={() => setDebugOpen((v) => !v)}
+                  title={t("debugLabel", "Debug")}
+                >
+                  🛠
+                </button>
+              )}
               <button
-                className="ghost icon icon-themed"
-                onClick={() => setDebugOpen((v) => !v)}
-                title={t("debugLabel", "Debug")}
+                className="ghost icon icon-themed danger"
+                onClick={() => setConfirmLogout(true)}
+                title={t("logout", "Logout")}
               >
-                🛠
+                ⎋
               </button>
-            )}
-            <button
-              className="ghost icon icon-themed danger"
-              onClick={() => setConfirmLogout(true)}
-              title={t("logout", "Logout")}
-            >
-              ⎋
-            </button>
+            </div>
           </div>
           <div className="muted small">
             {getRoleLabel(session.user.role, roleLabels)} •{" "}
