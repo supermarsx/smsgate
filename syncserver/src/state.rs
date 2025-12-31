@@ -1,6 +1,6 @@
 use crate::{
     auth::{rbac::RbacStore, DeviceAuthStore},
-    config::AppConfig,
+    config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
     persistence::{worker::PersistenceWorker, JsonDb, PersistentStore},
     presence::PresenceStore,
@@ -14,8 +14,11 @@ use std::{
     time::Instant,
 };
 
-use crate::{config, metrics::Metrics};
+use crate::metrics::Metrics;
 use tokio::sync::broadcast;
+use tokio::sync::RwLock;
+use chrono::Utc;
+use std::path::PathBuf;
 
 /// Readiness flags to report subsystem health without blocking hot paths.
 #[derive(Debug)]
@@ -68,7 +71,9 @@ pub struct ReadySnapshot {
 #[derive(Clone)]
 pub struct AppState {
     /// Global configuration loaded at startup.
-    pub config: AppConfig,
+    pub config: Arc<RwLock<VersionedConfig>>,
+    /// Path where config is persisted.
+    pub config_path: PathBuf,
     /// Monotonic start time to compute uptime.
     pub started_at: Arc<Instant>,
     /// Health/readiness tracking flags.
@@ -112,6 +117,8 @@ impl AppState {
         // Config validated during load.
         ready_flags.config_ready.store(true, Ordering::Relaxed);
 
+        let config_path = AppConfig::config_path_from_env();
+        let versioned_config = Arc::new(RwLock::new(VersionedConfig::initial(config.clone())));
         let metrics = Metrics::new().expect("failed to initialize metrics");
         let hot_store: Arc<dyn HotStore> = match config.hot_store.mode {
             config::HotStoreMode::Redis => {
@@ -161,7 +168,8 @@ impl AppState {
         let pairing_store = Arc::new(crate::pairing::PairingStore::new(config.pairing.clone()));
 
         Self {
-            config,
+            config: versioned_config,
+            config_path,
             started_at: Arc::new(Instant::now()),
             ready_flags: Arc::new(ready_flags),
             metrics,
@@ -183,9 +191,13 @@ impl AppState {
     }
 
     /// Attempt to acquire a connection slot; returns true if allowed.
-    pub fn try_acquire_connection(&self) -> bool {
+    pub async fn try_acquire_connection(&self) -> bool {
         let current = self.connection_count.fetch_add(1, Ordering::SeqCst) + 1;
-        if current > self.config.server.ws_max_connections as usize {
+        let max = {
+            let cfg = self.config.read().await;
+            cfg.config.server.ws_max_connections as usize
+        };
+        if current > max {
             self.connection_count.fetch_sub(1, Ordering::SeqCst);
             return false;
         }
@@ -195,5 +207,26 @@ impl AppState {
     /// Release a connection slot (called when a client disconnects).
     pub fn release_connection(&self) {
         self.connection_count.fetch_sub(1, Ordering::SeqCst);
+    }
+
+    /// Return a cloned config snapshot for use in responses/broadcasts.
+    pub async fn config_snapshot(&self) -> config::ClientConfigSnapshot {
+        let cfg = self.config.read().await;
+        config::ClientConfigSnapshot::from_versioned(&cfg)
+    }
+
+    /// Persist the provided versioned config to disk.
+    pub async fn persist_config(&self, cfg: &config::VersionedConfig) -> Result<(), crate::error::AppError> {
+        if let Some(parent) = self.config_path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|err| crate::error::AppError::Config(format!("failed to create config dir: {err}")))?;
+        }
+        let json = serde_json::to_string_pretty(&cfg.config)
+            .map_err(|err| crate::error::AppError::Config(format!("failed to serialize config: {err}")))?;
+        tokio::fs::write(&self.config_path, json)
+            .await
+            .map_err(|err| crate::error::AppError::Config(format!("failed to write config to {}: {err}", self.config_path.display())))?;
+        Ok(())
     }
 }
