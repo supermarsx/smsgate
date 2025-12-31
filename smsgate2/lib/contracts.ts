@@ -10,6 +10,7 @@ export type Event = {
   contactName?: string;
   sender?: string;
   content: string;
+  parsedCode?: string;
   createdAt: string;
   claimedBy?: string;
   claimedAt?: string;

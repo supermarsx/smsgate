@@ -8,6 +8,27 @@ import type { Event } from "./contracts";
 import type { Session } from "./auth";
 
 /**
+ * Public helper to read auth mode toggles without a session. Falls back silently on failure.
+ */
+export async function fetchPublicAuthModes(): Promise<
+  | { authModes: { oauth: boolean; simpleSignin: boolean; domainSignin: boolean } }
+  | undefined
+> {
+  try {
+    const res = await fetch(`${appConfig.apiBaseUrl}/config/public-auth-modes`, {
+      method: "GET",
+      credentials: "include"
+    });
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as { authModes?: { oauth: boolean; simpleSignin: boolean; domainSignin: boolean } };
+    if (!data?.authModes) return undefined;
+    return { authModes: data.authModes };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Optional paging parameters for listing events.
  */
 type ListEventsParams = {

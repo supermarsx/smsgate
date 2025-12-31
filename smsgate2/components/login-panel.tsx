@@ -15,6 +15,7 @@ import {
   type Session
 } from "../lib/auth";
 import { getTranslations, useLocale } from "../lib/i18n";
+import { fetchPublicAuthModes } from "../lib/rest";
 
 type Mode = "oauth" | "simple_signin" | "domain_signin";
 
@@ -33,21 +34,26 @@ export function LoginPanel({ onLogin }: Props) {
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
   const defaultAdminUser = appConfig.adminDefaults?.username ?? "admin";
+  const [authModes, setAuthModes] = useState({
+    oauth: appConfig.authModes.oauth,
+    simpleSignin: appConfig.authModes.simpleSignin,
+    domainSignin: appConfig.authModes.domainSignin
+  });
   const availableModes = useMemo(
     () => [
-      { key: "oauth" as Mode, label: t("loginSsoCta", "Sign in with SSO"), enabled: appConfig.authModes.oauth },
+      { key: "oauth" as Mode, label: t("loginSsoCta", "Sign in with SSO"), enabled: authModes.oauth },
       {
         key: "simple_signin" as Mode,
         label: t("loginPasswordCta", "Username / Password"),
-        enabled: appConfig.authModes.simpleSignin
+        enabled: authModes.simpleSignin
       },
       {
         key: "domain_signin" as Mode,
         label: t("loginDomainCta", "Domain Login"),
-        enabled: appConfig.authModes.domainSignin
+        enabled: authModes.domainSignin
       }
     ],
-    [t]
+    [t, authModes]
   );
   const enabledModes = availableModes.filter((m) => m.enabled);
   const preferred = appConfig.primaryAuthMode;
@@ -74,9 +80,7 @@ export function LoginPanel({ onLogin }: Props) {
   const [resetOpen, setResetOpen] = useState(false);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
   const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
-  const adminDefaultPassword = appConfig.adminDefaults?.password;
   const smtpEnabled = !!appConfig.smtp && (appConfig.smtp.enabled ?? true);
-  const allowOfflineAdmin = (appConfig.allowOfflineAdmin ?? false) || process.env.NODE_ENV !== "production";
   const networkErrorHint = t("loginNetworkHint", "Server unreachable. Verify API base URL and network.");
   const genericErrorHint = t("loginErrorHelp", "If this keeps happening, check your connection or contact an admin.");
 
@@ -100,31 +104,30 @@ export function LoginPanel({ onLogin }: Props) {
     }
   }, [initialMode, mode]);
 
+  useEffect(() => {
+    if (!mode) return;
+    const stillEnabled = enabledModes.some((m) => m.key === mode);
+    if (!stillEnabled) {
+      setMode(enabledModes[0]?.key ?? null);
+    }
+  }, [enabledModes, mode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicAuthModes().then((res) => {
+      if (cancelled || !res?.authModes) return;
+      setAuthModes(res.authModes);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!mode) return;
     setPending(true);
     setError(null);
-    const offlineAdminUser = defaultAdminUser;
-    const offlineAdminPass = adminDefaultPassword;
-    const isDefaultAdminCreds =
-      allowOfflineAdmin && offlineAdminPass && form.username === offlineAdminUser && form.password === offlineAdminPass;
-    if (mode === "simple_signin" && isDefaultAdminCreds) {
-      const now = Date.now();
-      onLogin({
-        accessToken: "offline-admin",
-        expiresAt: now + 60 * 60 * 1000,
-        user: {
-          id: "offline-admin",
-          name: "Offline Admin",
-          email: form.username,
-          role: "admin",
-          authMode: "simple_signin"
-        }
-      });
-      setPending(false);
-      return;
-    }
 
     try {
       if (mode === "oauth") {
@@ -172,24 +175,6 @@ export function LoginPanel({ onLogin }: Props) {
         lower.includes("timeout") ||
         lower.includes("failed to fetch") ||
         message === "";
-      if (mode === "simple_signin" && isNetworkError && allowOfflineAdmin && isDefaultAdminCreds) {
-        const now = Date.now();
-        const fallbackSession: Session = {
-          accessToken: "offline-admin",
-          expiresAt: now + 60 * 60 * 1000,
-          user: {
-            id: "offline-admin",
-            name: "Offline Admin",
-            email: form.username,
-            role: "admin",
-            authMode: "simple_signin"
-          }
-        };
-        onLogin(fallbackSession);
-        setError(null);
-        setPending(false);
-        return;
-      }
       setError(isNetworkError ? t("networkFetchError", "Network error when attempting to fetch resource.") : message);
     } finally {
       setPending(false);
