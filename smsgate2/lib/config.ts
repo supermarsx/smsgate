@@ -9,6 +9,7 @@ export type AppConfig = {
   wsPath: string;
   wsOrigin?: string;
   qrOrigin?: string;
+  primaryAuthMode?: "oauth" | "simple_signin" | "domain_signin";
   smtp?: {
     host: string;
     port: number;
@@ -30,9 +31,9 @@ export type AppConfig = {
 import baseFileConfigJson from "../config/app.config.json";
 import devFileConfigJson from "../config/app.config.dev.json";
 
-type FileConfig = Partial<AppConfig>;
-const baseFileConfig: FileConfig = baseFileConfigJson ?? {};
-const devFileConfig: FileConfig = devFileConfigJson ?? {};
+type FileConfig = Partial<AppConfig> & { primaryAuthMode?: string };
+const baseFileConfig: FileConfig = (baseFileConfigJson as unknown as FileConfig) ?? {};
+const devFileConfig: FileConfig = (devFileConfigJson as unknown as FileConfig) ?? {};
 
 const boolEnv = (key: string, fallback: boolean): boolean => {
   const raw = process.env[key];
@@ -81,12 +82,17 @@ function buildConfig(): AppConfig {
     simpleSignin: boolEnv("NEXT_PUBLIC_AUTH_SIMPLE_SIGNIN", mergedFileConfig.authModes?.simpleSignin ?? true),
     domainSignin: boolEnv("NEXT_PUBLIC_AUTH_DOMAIN_SIGNIN", mergedFileConfig.authModes?.domainSignin ?? false)
   };
+  const primaryAuthModeEnv = strEnv("NEXT_PUBLIC_AUTH_PRIMARY", mergedFileConfig.primaryAuthMode ?? "");
+  const primaryAuthMode = ["oauth", "simple_signin", "domain_signin"].includes(primaryAuthModeEnv)
+    ? (primaryAuthModeEnv as AppConfig["primaryAuthMode"])
+    : undefined;
 
   return {
     apiBaseUrl,
     wsPath,
     wsOrigin: wsOrigin || undefined,
     qrOrigin: qrOrigin || undefined,
+    primaryAuthMode,
     smtp: mergedFileConfig.smtp,
     offlineReset: mergedFileConfig.offlineReset,
     authModes,

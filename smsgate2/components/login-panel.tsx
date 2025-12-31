@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { appConfig, wsUrl } from "../lib/config";
 import {
   buildOAuthAuthorizeUrl,
@@ -25,7 +25,27 @@ export function LoginPanel({ onLogin }: Props) {
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
   const defaultAdminUser = appConfig.offlineReset?.defaultAdminUsername ?? "admin";
-  const [mode, setMode] = useState<Mode | null>(null);
+  const availableModes = useMemo(
+    () => [
+      { key: "oauth" as Mode, label: t("loginSsoCta", "Sign in with SSO"), enabled: appConfig.authModes.oauth },
+      {
+        key: "simple_signin" as Mode,
+        label: t("loginPasswordCta", "Username / Password"),
+        enabled: appConfig.authModes.simpleSignin
+      },
+      {
+        key: "domain_signin" as Mode,
+        label: t("loginDomainCta", "Domain Login"),
+        enabled: appConfig.authModes.domainSignin
+      }
+    ],
+    [t]
+  );
+  const enabledModes = availableModes.filter((m) => m.enabled);
+  const preferred = appConfig.primaryAuthMode;
+  const initialMode: Mode | null =
+    (preferred && enabledModes.find((m) => m.key === preferred)?.key) ?? enabledModes[0]?.key ?? null;
+  const [mode, setMode] = useState<Mode | null>(initialMode);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [requires2fa, setRequires2fa] = useState(false);
@@ -41,15 +61,31 @@ export function LoginPanel({ onLogin }: Props) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetStatus, setResetStatus] = useState<string | null>(null);
+  const [resetEmail, setResetEmail] = useState<string>(defaultAdminUser);
+  const [resetPending, setResetPending] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
   const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
 
-  function handleSelect(next: Mode) {
+  function handleSelect(next: Mode | null) {
     setMode(next);
     setError(null);
     setRequires2fa(false);
     setPasswordChange(null);
   }
+
+  async function startOAuth() {
+    const redirectUri = window.location.origin + "/login/oauth/callback";
+    const url = await buildOAuthAuthorizeUrl(redirectUri);
+    window.location.href = url;
+  }
+
+  // Auto-select a preferred mode when available
+  useEffect(() => {
+    if (!mode && initialMode) {
+      setMode(initialMode);
+    }
+  }, [initialMode, mode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,9 +95,7 @@ export function LoginPanel({ onLogin }: Props) {
 
     try {
       if (mode === "oauth") {
-        const redirectUri = window.location.origin + "/login/oauth/callback";
-        const url = await buildOAuthAuthorizeUrl(redirectUri);
-        window.location.href = url;
+        await startOAuth();
         return;
       }
 
@@ -173,34 +207,26 @@ export function LoginPanel({ onLogin }: Props) {
   return (
     <div className="login-panel">
       <div className="muted small">{t("loginChooseMode", "Select a sign-in option available for your tenant.")}</div>
-      <div className="login-panel__modes">
-        {appConfig.authModes.oauth && (
-          <button
-            type="button"
-            className={`login-mode ${mode === "oauth" ? "is-active" : ""}`}
-            onClick={() => handleSelect("oauth")}
-          >
-            {t("loginSsoCta", "Sign in with SSO")}
-          </button>
-        )}
-        {appConfig.authModes.simpleSignin && (
-          <button
-            type="button"
-            className={`login-mode ${mode === "simple_signin" ? "is-active" : ""}`}
-            onClick={() => handleSelect("simple_signin")}
-          >
-            {t("loginPasswordCta", "Username / Password")}
-          </button>
-        )}
-        {appConfig.authModes.domainSignin && (
-          <button
-            type="button"
-            className={`login-mode ${mode === "domain_signin" ? "is-active" : ""}`}
-            onClick={() => handleSelect("domain_signin")}
-          >
-            {t("loginDomainCta", "Domain Login")}
-          </button>
-        )}
+      <div className="form-row">
+        <label className="gg-label" htmlFor="mode-select">
+          {t("loginModeLabel", "Sign-in method")}
+        </label>
+        <select
+          id="mode-select"
+          className="gg-select"
+          value={mode ?? "__none__"}
+          onChange={(e) => {
+            const val = e.target.value;
+            handleSelect(val === "__none__" ? null : (val as Mode));
+          }}
+        >
+          {enabledModes.length === 0 && <option value="__none__">{t("loginNoModes", "No auth modes enabled")}</option>}
+          {enabledModes.map((m) => (
+            <option key={m.key} value={m.key}>
+              {m.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {passwordChange && (
@@ -233,6 +259,22 @@ export function LoginPanel({ onLogin }: Props) {
             {t("loginResetNote", "Required on first login or when policy forces a reset.")}
           </div>
         </form>
+      )}
+
+      {!passwordChange && mode === "oauth" && (
+        <div className="login-help">
+          <p>{t("loginSsoReady", "Continue to your identity provider to sign in.")}</p>
+          <button
+            type="button"
+            className="login-submit"
+            disabled={pending}
+            onClick={() => {
+              void startOAuth();
+            }}
+          >
+            {pending ? t("loginSubmitting", "Signing in...") : t("loginSsoCta", "Sign in with SSO")}
+          </button>
+        </div>
       )}
 
       {!passwordChange && mode && mode !== "oauth" && (
@@ -279,33 +321,6 @@ export function LoginPanel({ onLogin }: Props) {
           <button type="submit" className="login-submit" disabled={pending}>
             {pending ? t("loginSubmitting", "Signing in...") : t("loginSubmit", "Sign in")}
           </button>
-          <div className="form-row">
-            <label htmlFor="reset-email">{t("loginResetEmail", "Password reset email")}</label>
-            <div className="reset-row">
-              <input
-                id="reset-email"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-              />
-              <button
-                type="button"
-                className="ghost"
-                disabled={pending}
-                onClick={async () => {
-                  setResetStatus(null);
-                  setPending(true);
-                  const res = await requestPasswordReset(form.username);
-                  setResetStatus(
-                    res.ok ? t("resetLinkSent", "Reset link sent") : (res.message ?? t("resetFailed", "Reset failed"))
-                  );
-                  setPending(false);
-                }}
-              >
-                {t("sendResetLink", "Send reset link")}
-              </button>
-            </div>
-            {resetStatus && <div className="muted small">{resetStatus}</div>}
-          </div>
           {offlineResetEnabled && (
             <div className="form-row">
               <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
@@ -351,6 +366,75 @@ export function LoginPanel({ onLogin }: Props) {
         </span>
         <span className="muted">{t("loginTokensStored", "Tokens stored locally; logout clears them.")}</span>
       </div>
+      <div className="login-help">
+        <button type="button" className="ghost" onClick={() => setResetOpen((v) => !v)}>
+          {resetOpen ? t("loginResetHide", "Hide password reset") : t("loginResetShow", "Need a password reset?")}
+        </button>
+        {resetOpen && (
+          <div className="form-row">
+            <label htmlFor="reset-email">{t("loginResetEmail", "Password reset email")}</label>
+            <div className="reset-row">
+              <input
+                id="reset-email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder={t("loginResetPlaceholder", "user@example.com")}
+              />
+              <button
+                type="button"
+                className="ghost"
+                disabled={resetPending}
+                onClick={async () => {
+                  setResetStatus(null);
+                  setResetPending(true);
+                  const res = await requestPasswordReset(resetEmail);
+                  setResetStatus(
+                    res.ok ? t("resetLinkSent", "Reset link sent") : (res.message ?? t("resetFailed", "Reset failed"))
+                  );
+                  setResetPending(false);
+                }}
+              >
+                {resetPending ? t("saving", "Saving...") : t("sendResetLink", "Send reset link")}
+              </button>
+            </div>
+            {resetStatus && <div className="muted small">{resetStatus}</div>}
+          </div>
+        )}
+      </div>
+      {offlineResetEnabled && (
+        <div className="login-help">
+          <details>
+            <summary className="ghost">{t("offlineResetCta", "Reset without email")}</summary>
+            <div className="form-row">
+              <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
+              <input
+                id="offline-reset"
+                value={offlineReset.token}
+                onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
+              />
+              <input
+                type="password"
+                value={offlineReset.password}
+                onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
+              />
+              <input
+                type="password"
+                value={offlineReset.confirm}
+                onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
+              />
+              <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
+                {t("offlineResetCta", "Reset without email")}
+              </button>
+              <div className="muted small">
+                {t(
+                  "offlineResetHelp",
+                  "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
+                )}
+              </div>
+            </div>
+          </details>
+        </div>
+      )}
       {error && (
         <div className="login-error">
           {t("errorPrefix", "Error")}: {error}

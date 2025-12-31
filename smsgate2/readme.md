@@ -39,6 +39,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 - Pairing QR codes are rendered locally (no external QR server); CSP allows inline scripts for Next runtime while keeping other sources tight.
 - Configuration:
   - Default JSON config lives at `config/app.config.json`. It includes `apiBaseUrl`, `wsPath`, `wsOrigin`, `qrOrigin`, `authModes` (oauth/simpleSignin/domainSignin booleans), and locale settings (`locales`, `defaultLocale`).
+  - Optional `primaryAuthMode` picks the default login method (`oauth` / `simple_signin` / `domain_signin`); falls back to the first enabled mode.
   - Optional SMTP/offline reset config lives in the same JSON (`smtp` block for host/port/secure/username/password/fromEmail, `offlineReset` for enabling offline reset and default admin credentials).
   - Local overrides live in `config/app.config.dev.json` (applied automatically when `NODE_ENV !== "production"`).
   - Example (see checked-in files):
@@ -49,6 +50,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
       "wsOrigin": "http://localhost:4000",
       "qrOrigin": "https://api.qrserver.com",
       "authModes": { "oauth": true, "simpleSignin": true, "domainSignin": false },
+      "primaryAuthMode": "simple_signin",
       "smtp": {
         "host": "localhost",
         "port": 1025,

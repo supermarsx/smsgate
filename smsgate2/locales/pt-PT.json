@@ -293,5 +293,10 @@
   "offlineResetHelp": "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy.",
   "authLabel": "Auth",
   "loginWsStatus": "WS status",
-  "loginChooseMode": "Select a sign-in option available for your tenant."
+  "loginChooseMode": "Select a sign-in option available for your tenant.",
+  "loginModeLabel": "Sign-in method",
+  "loginNoModes": "No auth modes enabled",
+  "loginResetShow": "Need a password reset?",
+  "loginResetHide": "Hide password reset",
+  "loginSsoReady": "Continue to your identity provider to sign in."
 }

@@ -21,6 +21,7 @@
     "simpleSignin": true,
     "domainSignin": false
   },
+  "primaryAuthMode": "simple_signin",
   "locales": ["en-US", "pt-PT", "es-ES"],
   "defaultLocale": "en-US"
 }
