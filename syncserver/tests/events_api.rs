@@ -1,7 +1,7 @@
 use axum::{
     body::Body,
     http::{Request, StatusCode},
-    routing::{post},
+    routing::post,
     Router,
 };
 use serde_json::json;
@@ -16,10 +16,7 @@ use tower::ServiceExt;
 fn app_with_state(state: AppState) -> Router {
     Router::new()
         .route("/api/v1/ingest", post(ingest::ingest))
-        .route(
-            "/api/v1/events/:event_id/claim",
-            post(events::claim_event),
-        )
+        .route("/api/v1/events/:event_id/claim", post(events::claim_event))
         .route(
             "/api/v1/events/:event_id/verify",
             post(events::verify_event),
@@ -82,8 +79,12 @@ async fn transitions_enforce_rules_and_update_state() {
         .await
         .unwrap();
     assert_eq!(claim_res.status(), StatusCode::OK);
-    let claim_body: serde_json::Value =
-        serde_json::from_slice(&axum::body::to_bytes(claim_res.into_body(), usize::MAX).await.unwrap()).unwrap();
+    let claim_body: serde_json::Value = serde_json::from_slice(
+        &axum::body::to_bytes(claim_res.into_body(), usize::MAX)
+            .await
+            .unwrap(),
+    )
+    .unwrap();
     assert_eq!(claim_body["state"], "claimed");
 
     // Verify the event.
@@ -101,8 +102,12 @@ async fn transitions_enforce_rules_and_update_state() {
         .await
         .unwrap();
     assert_eq!(verify_res.status(), StatusCode::OK);
-    let verify_body: serde_json::Value =
-        serde_json::from_slice(&axum::body::to_bytes(verify_res.into_body(), usize::MAX).await.unwrap()).unwrap();
+    let verify_body: serde_json::Value = serde_json::from_slice(
+        &axum::body::to_bytes(verify_res.into_body(), usize::MAX)
+            .await
+            .unwrap(),
+    )
+    .unwrap();
     assert_eq!(verify_body["state"], "verified");
 
     // Reject should fail after verified (invalid transition).

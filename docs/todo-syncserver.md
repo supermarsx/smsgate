@@ -44,7 +44,7 @@
 - [x] Implement `/api/v1/ingest` with device auth, normalization, and dedup TTL keys.
 - [x] Compute content hash + optional parsed_code extraction for OTPs.
 - [x] Append events to hot store ring buffer and emit `EVENT_NEW` over WS (WS emit pending).
-- [ ] Implement state transitions (`claim/verify/reject`) with validation + audit + broadcast.
+- [x] Implement state transitions (`claim/verify/reject`) with validation + broadcast (audit stream pending).
 - [x] Support batch ingest and backpressure hints to devices (batch limit enforced; backpressure signals pending).
 - [ ] Add policy-based persistence enqueue for compliance/retention rules.
 
@@ -58,8 +58,8 @@
 - [x] Implement WS handshake (unauthenticated stub), ping/pong, and broadcast channel.
 - [x] Serve `WELCOME` + initial `SNAPSHOT` with default limit; event/presence broadcasts wired.
 - [x] Implement paging (`PAGE_BEFORE`/`PAGE_AFTER`) with anchors and retention windows.
-- [x] Broadcast `CONFIG_UPDATE`.
-- [ ] Broadcast `EVENT_UPDATE`, `SIM_*`, `CONTACT_UPDATE`.
+- [x] Broadcast `CONFIG_UPDATE` and `EVENT_UPDATE`.
+- [ ] Broadcast `SIM_*`, `CONTACT_UPDATE`.
 - [ ] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
 
 ## Storage: hot store + persistence

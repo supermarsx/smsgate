@@ -74,11 +74,9 @@ async fn transition_event(
         .ok_or_else(|| AppError::Validation("event not found".into()))?;
 
     // Broadcast and persist the updated event.
-    let _ = state
-        .event_tx
-        .send(ServerMessage::EventUpdate {
-            event: updated.clone(),
-        });
+    let _ = state.event_tx.send(ServerMessage::EventUpdate {
+        event: updated.clone(),
+    });
     state.persistence_worker.enqueue(updated.clone()).await;
 
     Ok(updated)

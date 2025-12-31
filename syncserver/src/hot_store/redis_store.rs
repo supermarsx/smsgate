@@ -67,7 +67,11 @@ impl HotStore for RedisHotStore {
 
         // Rewrite list with updated entries.
         let mut conn = self.client.clone();
-        let _: () = redis::cmd("DEL").arg(&self.list_key).query_async(&mut conn).await.unwrap_or_default();
+        let _: () = redis::cmd("DEL")
+            .arg(&self.list_key)
+            .query_async(&mut conn)
+            .await
+            .unwrap_or_default();
         if !entries.is_empty() {
             let payloads: Vec<String> = entries
                 .into_iter()
