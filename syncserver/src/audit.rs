@@ -90,6 +90,7 @@ impl AuditService {
     }
 
     /// Record a structured audit entry describing an actor/action/target tuple.
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_action(
         &self,
         actor: String,
@@ -122,6 +123,7 @@ impl AuditService {
     }
 
     /// Record a login attempt with IP, user agent, and 2FA status.
+    #[allow(clippy::too_many_arguments)]
     pub async fn log_login(
         &self,
         identity: String,

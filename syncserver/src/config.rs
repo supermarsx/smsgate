@@ -31,19 +31,14 @@ fn default_weak_passwords() -> Vec<String> {
 }
 
 /// Execution environment to allow different defaults and logging levels.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum RunEnvironment {
     /// Development mode with relaxed defaults.
+    #[default]
     Development,
     /// Production mode with stricter defaults.
     Production,
-}
-
-impl Default for RunEnvironment {
-    fn default() -> Self {
-        RunEnvironment::Development
-    }
 }
 
 impl RunEnvironment {
@@ -69,26 +64,22 @@ impl RunEnvironment {
 }
 
 /// Hot store backing mode selection.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum HotStoreMode {
     /// Use Redis for fanout + dedup TTL keys.
     Redis,
     /// Operate in-memory only (degraded mode).
+    #[default]
     Memory,
 }
 
-impl Default for HotStoreMode {
-    fn default() -> Self {
-        HotStoreMode::Memory
-    }
-}
-
 /// Storage adapter choices for durable persistence.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum DatabaseAdapter {
     /// JSON DB append-only log for small installs.
+    #[default]
     JsonDb,
     /// SQLite file.
     Sqlite,
@@ -98,28 +89,17 @@ pub enum DatabaseAdapter {
     Mysql,
 }
 
-impl Default for DatabaseAdapter {
-    fn default() -> Self {
-        DatabaseAdapter::JsonDb
-    }
-}
-
 /// Supported authentication modes for the server.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum AuthMode {
     /// OAuth / OIDC.
     Oauth,
     /// Local credential store.
+    #[default]
     SimpleSignin,
     /// LDAP / Active Directory.
     DomainSignin,
-}
-
-impl Default for AuthMode {
-    fn default() -> Self {
-        AuthMode::SimpleSignin
-    }
 }
 
 /// Web/API server facing configuration.
@@ -465,7 +445,7 @@ impl Default for PresenceConfig {
 }
 
 /// Top-level application configuration shared across the server.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct AppConfig {
     /// Runtime environment flag.
     pub env: RunEnvironment,
@@ -487,23 +467,6 @@ pub struct AppConfig {
     pub database: DatabaseConfig,
     /// Authentication mode toggles.
     pub auth: AuthConfig,
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            env: RunEnvironment::default(),
-            server: ServerConfig::default(),
-            ingest: IngestConfig::default(),
-            presence: PresenceConfig::default(),
-            rbac: RbacConfig::default(),
-            pairing: PairingConfig::default(),
-            seeding: SeedingConfig::default(),
-            hot_store: HotStoreConfig::default(),
-            database: DatabaseConfig::default(),
-            auth: AuthConfig::default(),
-        }
-    }
 }
 
 impl AppConfig {

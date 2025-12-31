@@ -58,6 +58,12 @@ impl ReadyFlags {
     }
 }
 
+impl Default for ReadyFlags {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Simple DTO for readiness values to avoid exposing Atomics in responses.
 #[derive(Debug, Clone)]
 pub struct ReadySnapshot {

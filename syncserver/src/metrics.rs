@@ -161,7 +161,7 @@ pub async fn metrics_handler(State(state): State<AppState>) -> Response {
     match state.metrics.render() {
         Ok(body) => {
             state.metrics.observe_http("/metrics", StatusCode::OK);
-            ([(CONTENT_TYPE, TextEncoder::default().format_type())], body).into_response()
+            ([(CONTENT_TYPE, TextEncoder::new().format_type())], body).into_response()
         }
         Err(err) => {
             tracing::error!(error = %err, "failed to render metrics");

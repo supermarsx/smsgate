@@ -111,8 +111,7 @@ impl UserStore {
             return Err(AppError::Validation("username already exists".into()));
         }
         let password_hash = self.hash_password(password)?;
-        let mut history = Vec::new();
-        history.push(password_hash.clone());
+        let history = vec![password_hash.clone()];
         let record = UserRecord {
             id: uuid::Uuid::new_v4().to_string(),
             username: username.to_string(),
@@ -287,7 +286,7 @@ impl UserStore {
                 return true;
             }
         }
-        if let Some((_, until)) = self.failed_attempts.get(username).map(|v| v.clone()) {
+        if let Some((_, until)) = self.failed_attempts.get(username).map(|v| *v) {
             if Utc::now() < until {
                 return true;
             }
