@@ -7,6 +7,8 @@ use std::{
     time::Instant,
 };
 
+use crate::{config, metrics::Metrics};
+
 /// Readiness flags to report subsystem health without blocking hot paths.
 #[derive(Debug)]
 pub struct ReadyFlags {
@@ -55,15 +57,36 @@ pub struct AppState {
     pub started_at: Arc<Instant>,
     /// Health/readiness tracking flags.
     pub ready_flags: Arc<ReadyFlags>,
+    /// Prometheus metrics registry and counters.
+    pub metrics: Metrics,
 }
 
 impl AppState {
     /// Create a new state container.
     pub fn new(config: AppConfig) -> Self {
+        let ready_flags = ReadyFlags::new();
+        // In-memory hot store and json_db/sqlite adapters do not require external connectivity.
+        if matches!(config.hot_store.mode, config::HotStoreMode::Memory) {
+            ready_flags
+                .hot_store_ready
+                .store(true, Ordering::Relaxed);
+        }
+        if matches!(
+            config.database.adapter,
+            config::DatabaseAdapter::JsonDb | config::DatabaseAdapter::Sqlite
+        ) {
+            ready_flags
+                .storage_ready
+                .store(true, Ordering::Relaxed);
+        }
+
+        let metrics = Metrics::new().expect("failed to initialize metrics");
+
         Self {
             config,
             started_at: Arc::new(Instant::now()),
-            ready_flags: Arc::new(ReadyFlags::new()),
+            ready_flags: Arc::new(ready_flags),
+            metrics,
         }
     }
 }
