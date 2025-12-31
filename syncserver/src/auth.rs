@@ -7,11 +7,11 @@ use axum::{
     extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
 };
+use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use headers::{authorization::Bearer, Authorization};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use chrono::{DateTime, Utc};
 
 pub mod rbac;
 pub mod user;
@@ -129,16 +129,19 @@ impl DeviceAuthStore {
     pub fn set_token(&self, device_id: &str, token: &str) -> DeviceRecord {
         let hashed = hash_token(token);
         let now = Utc::now();
-        let mut entry = self.devices.entry(device_id.to_string()).or_insert_with(|| DeviceRecord {
-            id: device_id.to_string(),
-            name: None,
-            enabled: true,
-            created_at: now,
-            last_seen_at: None,
-            last_token_rotated_at: Some(now),
-            disabled_reason: None,
-            token_hash: hashed.clone(),
-        });
+        let mut entry = self
+            .devices
+            .entry(device_id.to_string())
+            .or_insert_with(|| DeviceRecord {
+                id: device_id.to_string(),
+                name: None,
+                enabled: true,
+                created_at: now,
+                last_seen_at: None,
+                last_token_rotated_at: Some(now),
+                disabled_reason: None,
+                token_hash: hashed.clone(),
+            });
         entry.enabled = true;
         entry.disabled_reason = None;
         entry.token_hash = hashed;
@@ -165,11 +168,8 @@ impl DeviceAuthStore {
 
     /// Seed a bootstrap device from configuration.
     pub fn register_bootstrap(&self, bootstrap: &crate::config::BootstrapDevice) -> DeviceRecord {
-        let mut record = self.register_with_name(
-            &bootstrap.id,
-            &bootstrap.token,
-            bootstrap.name.clone(),
-        );
+        let mut record =
+            self.register_with_name(&bootstrap.id, &bootstrap.token, bootstrap.name.clone());
         if !bootstrap.enabled {
             record = self
                 .set_enabled(&bootstrap.id, false, Some("bootstrap disabled".into()))
@@ -277,7 +277,9 @@ where
                     id: device_id.to_string(),
                 },
             })),
-            Err(DeviceAuthError::NotFound) => Err((StatusCode::UNAUTHORIZED, "unknown device".into())),
+            Err(DeviceAuthError::NotFound) => {
+                Err((StatusCode::UNAUTHORIZED, "unknown device".into()))
+            }
             Err(DeviceAuthError::InvalidToken) => {
                 Err((StatusCode::UNAUTHORIZED, "invalid device token".into()))
             }

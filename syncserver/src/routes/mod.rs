@@ -2,8 +2,8 @@ use axum::{routing::get, Router};
 
 use crate::{metrics, state::AppState};
 
-pub mod devices;
 pub mod config;
+pub mod devices;
 mod health;
 pub mod ingest;
 pub mod pairing;

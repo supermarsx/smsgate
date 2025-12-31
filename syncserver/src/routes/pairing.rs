@@ -4,12 +4,8 @@ use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    auth::permissions,
-    auth::user::UserAuth,
-    auth::AuthContext,
-    error::AppError,
-    pairing::PairingCompleteRequest,
-    state::AppState,
+    auth::permissions, auth::user::UserAuth, auth::AuthContext, error::AppError,
+    pairing::PairingCompleteRequest, state::AppState,
 };
 
 /// Request body for creating a pairing session.
@@ -63,9 +59,11 @@ pub async fn complete_session(
         .map_err(|err| AppError::Validation(err))?;
 
     // Store hashed token for device auth.
-    state
-        .device_auth
-        .register_with_name(&completed.device_id, &completed.device_token, device_name);
+    state.device_auth.register_with_name(
+        &completed.device_id,
+        &completed.device_token,
+        device_name,
+    );
 
     Ok((
         StatusCode::OK,

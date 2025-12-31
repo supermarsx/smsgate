@@ -100,9 +100,12 @@ pub async fn list_devices(
     require_permission(&user, permissions::DEVICES_READ)?;
     let mut devices = state.device_auth.list();
     devices.sort_by_key(|d| d.created_at);
-    Ok((StatusCode::OK, Json(DeviceListResponse {
-        devices: devices.into_iter().map(DeviceResponse::from).collect(),
-    })))
+    Ok((
+        StatusCode::OK,
+        Json(DeviceListResponse {
+            devices: devices.into_iter().map(DeviceResponse::from).collect(),
+        }),
+    ))
 }
 
 /// POST /api/v1/devices/:device_id/rename
