@@ -194,6 +194,7 @@
   "wsLabel": "WS",
   "onlineLabel": "Online",
   "offlineLabel": "Offline",
+  "wsStatusTitle": "Estado WS",
   "clientLatency": "RTT do cliente",
   "deviceRttLabel": "RTT do dispositivo",
   "wsErrors": "Erros WS",

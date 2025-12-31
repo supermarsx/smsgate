@@ -31,6 +31,19 @@ export function ProtectedShell({ children }: Props) {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
+  const navLabels = useMemo(
+    () => ({
+      "/dashboard": t("navDashboard", "Dashboard"),
+      "/devices": t("navDevices", "Devices"),
+      "/numbers": t("navNumbers", "Numbers"),
+      "/users": t("navUsers", "Users"),
+      "/audit": t("navAudit", "Audit"),
+      "/logins": t("navLogins", "Logins"),
+      "/contacts": t("navContacts", "Contacts"),
+      "/config": t("navConfig", "Config")
+    }),
+    [t]
+  );
   const friendlyError = useMemo(() => {
     const key = mapWsErrorKey(status.lastError ?? undefined);
     if (key) return t(key, status.lastError ?? key);
@@ -91,7 +104,7 @@ export function ProtectedShell({ children }: Props) {
               className={`nav-link ${pathname === item.path ? "is-active" : ""}`}
               onClick={() => setNavOpen(false)}
             >
-              {item.label}
+              {navLabels[item.path] ?? item.label}
             </Link>
           ))}
         </nav>
