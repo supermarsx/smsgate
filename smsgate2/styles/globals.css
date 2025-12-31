@@ -911,8 +911,8 @@ a {
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 5px 9px;
   background: var(--panel-2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -927,7 +927,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   font-size: 12px;
