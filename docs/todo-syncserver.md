@@ -62,11 +62,11 @@
 - [ ] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
 
 ## Storage: hot store + persistence
-- [ ] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors).
+- [x] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors) (falls back to memory on failure/misconfig).
 - [x] Implement in-memory fallback hot store with graceful switch + rehydration toggle.
 - [x] Implement JSON DB adapter (append-only logs) for small installs.
 - [ ] Implement SQL adapters (SQLite/Postgres/MySQL) with migrations for events/audit/login/users/devices/numbers/config.
-- [ ] Wire persistence worker respecting policy, retention, and pruning tasks.
+- [x] Wire persistence worker respecting policy, retention, and pruning tasks (baseline enqueue to JSON DB).
 
 ## Audit, logging, observability
 - [ ] Implement structured audit log (actor/action/target/result/details/correlation id).
