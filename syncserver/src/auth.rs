@@ -9,8 +9,6 @@ use axum::{
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 
-use crate::{config::AuthMode, error::AppError};
-
 /// Actor types recognized by the system.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Principal {
@@ -86,7 +84,7 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let auth_store = DeviceAuthStore::from_ref(state);
-        let headers = &parts.headers;
+        let mut headers = parts.headers.clone();
         let device_id = headers
             .get("x-device-id")
             .and_then(|v| v.to_str().ok())
@@ -97,7 +95,7 @@ where
                 )
             })?;
 
-        let bearer = Authorization::<Bearer>::decode(headers)
+        let bearer = Authorization::<Bearer>::decode(&mut headers)
             .map_err(|_| (StatusCode::UNAUTHORIZED, "missing bearer token".to_string()))?;
 
         if auth_store.validate(device_id, bearer.token()) {
