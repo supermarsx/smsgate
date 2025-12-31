@@ -6,6 +6,11 @@ export function smtpEnabled(): boolean {
   return Boolean(smtp && (smtp.enabled ?? true));
 }
 
+export function smtpAllowsInvalidCert(): boolean {
+  const smtp = appConfig.smtp;
+  return Boolean(smtp && (smtp.allowInvalidCert ?? false));
+}
+
 type Job<T> = {
   run: () => Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
