@@ -60,8 +60,10 @@ function LoginBody() {
 }
 
 export default function LoginPage() {
+  const fallbackDict = getTranslations(getInitialLocale());
+  const fallbackText = fallbackDict.loading ?? "Loading...";
   return (
-    <Suspense fallback={<div className="gg-panel">{getTranslations(getInitialLocale()).loading ?? "Loading..."}</div>}>
+    <Suspense fallback={<div className="gg-panel">{fallbackText}</div>}>
       <LoginBody />
     </Suspense>
   );
