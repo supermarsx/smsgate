@@ -11,8 +11,7 @@ import type { Session } from "./auth";
  * Public helper to read auth mode toggles without a session. Falls back silently on failure.
  */
 export async function fetchPublicAuthModes(): Promise<
-  | { authModes: { oauth: boolean; simpleSignin: boolean; domainSignin: boolean } }
-  | undefined
+  { authModes: { oauth: boolean; simpleSignin: boolean; domainSignin: boolean } } | undefined
 > {
   try {
     const res = await fetch(`${appConfig.apiBaseUrl}/config/public-auth-modes`, {

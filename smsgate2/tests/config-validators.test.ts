@@ -36,12 +36,11 @@ describe("validateConfigShape", () => {
   });
 
   it("validates booleans inside authModes", () => {
-    const issues = validateConfigShape({ ...base, authModes: { oauth: "yes", simpleSignin: 1, domainSignin: null } as any });
-    expect(issues).toEqual([
-      "oauth must be boolean",
-      "simpleSignin must be boolean",
-      "domainSignin must be boolean"
-    ]);
+    const issues = validateConfigShape({
+      ...base,
+      authModes: { oauth: "yes", simpleSignin: 1, domainSignin: null } as any
+    });
+    expect(issues).toEqual(["oauth must be boolean", "simpleSignin must be boolean", "domainSignin must be boolean"]);
   });
 
   it("validates numeric thresholds with minimums", () => {

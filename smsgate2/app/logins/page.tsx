@@ -62,7 +62,9 @@ export default function LoginsPage() {
       const matchesResult = result === "__all__" ? true : (r.status ?? r.result) === result;
       const matchesIp = ipFilter ? String(r.ip ?? "").includes(ipFilter) : true;
       const matchesAuth = authVal ? String(r.authMode ?? r.mode ?? "").toLowerCase() === authVal.toLowerCase() : true;
-      const matchesReason = reasonVal ? String(r.reason ?? r.reasonCode ?? "").toLowerCase() === reasonVal.toLowerCase() : true;
+      const matchesReason = reasonVal
+        ? String(r.reason ?? r.reasonCode ?? "").toLowerCase() === reasonVal.toLowerCase()
+        : true;
       const matchesTime = cutoff ? Date.parse(r.timestamp ?? r.createdAt ?? "") >= cutoff : true;
       return matchesText && matchesResult && matchesIp && matchesTime && matchesAuth && matchesReason;
     });
@@ -228,10 +230,12 @@ export default function LoginsPage() {
                   {r.ip ?? "-"}
                 </div>
                 <div className="muted small">
-                  {t("authModeLabel", "Auth mode")}: {r.authMode ?? r.mode ?? "-"} | {t("reasonLabel", "Reason")}: {r.reason ?? r.reasonCode ?? "-"}
+                  {t("authModeLabel", "Auth mode")}: {r.authMode ?? r.mode ?? "-"} | {t("reasonLabel", "Reason")}:{" "}
+                  {r.reason ?? r.reasonCode ?? "-"}
                 </div>
                 <div className="muted small">
-                  {t("sessionId", "Session")}: {r.sessionId ?? r.session_id ?? "-"} | {t("userAgent", "User agent")}: {r.userAgent ?? r.ua ?? "-"}
+                  {t("sessionId", "Session")}: {r.sessionId ?? r.session_id ?? "-"} | {t("userAgent", "User agent")}:{" "}
+                  {r.userAgent ?? r.ua ?? "-"}
                 </div>
               </div>
             </div>

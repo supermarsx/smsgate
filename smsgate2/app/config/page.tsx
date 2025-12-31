@@ -28,9 +28,18 @@ export default function ConfigPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [diffSummary, setDiffSummary] = useState<string | null>(null);
   const [shapeErrors, setShapeErrors] = useState<string[]>([]);
-  const [authModesDraft, setAuthModesDraft] = useState<{ oauth: boolean; simpleSignin: boolean; domainSignin: boolean } | null>(null);
+  const [authModesDraft, setAuthModesDraft] = useState<{
+    oauth: boolean;
+    simpleSignin: boolean;
+    domainSignin: boolean;
+  } | null>(null);
   const [rolesDraft, setRolesDraft] = useState<{ order?: string[]; labels?: Record<string, string> } | null>(null);
-  const [wsDraft, setWsDraft] = useState<{ snapshotSize?: number; pingMs?: number; pageSize?: number; maxConnections?: number } | null>(null);
+  const [wsDraft, setWsDraft] = useState<{
+    snapshotSize?: number;
+    pingMs?: number;
+    pageSize?: number;
+    maxConnections?: number;
+  } | null>(null);
   const [retentionDraft, setRetentionDraft] = useState<Record<string, unknown> | null>(null);
   const [relayDraft, setRelayDraft] = useState<Record<string, unknown> | null>(null);
   const [contactsDraft, setContactsDraft] = useState<Record<string, unknown> | null>(null);
@@ -91,7 +100,9 @@ export default function ConfigPage() {
           <div className="gg-section__title">{t("configSections", "Sections")}</div>
           <div className="config-grid">
             <div>
-              <div className="gg-label" title={t("configAuthHelp", "Toggle auth methods available to users")}>{t("configAuthModesLabel", "Auth modes")}</div>
+              <div className="gg-label" title={t("configAuthHelp", "Toggle auth methods available to users")}>
+                {t("configAuthModesLabel", "Auth modes")}
+              </div>
               <div className="config-fields">
                 {(["oauth", "simpleSignin", "domainSignin"] as const).map((key) => (
                   <label key={key} className="checkbox-row" title={key}>
@@ -100,7 +111,10 @@ export default function ConfigPage() {
                       checked={(authModesDraft ?? (beforeConfig as any).authModes ?? {})[key] ?? false}
                       disabled={!canEdit}
                       onChange={(e) => {
-                        setAuthModesDraft((prev) => ({ ...(prev ?? (beforeConfig as any).authModes ?? {}), [key]: e.target.checked }));
+                        setAuthModesDraft((prev) => ({
+                          ...(prev ?? (beforeConfig as any).authModes ?? {}),
+                          [key]: e.target.checked
+                        }));
                         setDraft("");
                       }}
                     />
@@ -110,7 +124,12 @@ export default function ConfigPage() {
               </div>
             </div>
             <div>
-              <div className="gg-label" title={t("configRbacHelp", "Role order controls precedence; labels shown in UI")}>{t("configRbac", "RBAC mapping")}</div>
+              <div
+                className="gg-label"
+                title={t("configRbacHelp", "Role order controls precedence; labels shown in UI")}
+              >
+                {t("configRbac", "RBAC mapping")}
+              </div>
               <div className="helper-text">{t("configRbacOrder", "Role order and labels")}</div>
               <input
                 className="gg-input"
@@ -118,14 +137,22 @@ export default function ConfigPage() {
                 disabled={!canEdit}
                 defaultValue={((beforeConfig as any).roles?.order ?? []).join(",")}
                 onBlur={(e) => {
-                  setRolesDraft((prev) => ({ ...(prev ?? {}), order: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }));
+                  setRolesDraft((prev) => ({
+                    ...(prev ?? {}),
+                    order: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                  }));
                   setDraft("");
                 }}
                 placeholder="viewer,verifier,manager,admin"
               />
             </div>
             <div>
-              <div className="gg-label" title={t("configWsHelp", "WS/backfill, presence and paging knobs")}>{t("configWs", "Realtime & WS")}</div>
+              <div className="gg-label" title={t("configWsHelp", "WS/backfill, presence and paging knobs")}>
+                {t("configWs", "Realtime & WS")}
+              </div>
               <div className="config-fields">
                 <label className="gg-label">{t("configSnapshot", "Snapshot size")}</label>
                 <input
@@ -152,7 +179,9 @@ export default function ConfigPage() {
               </div>
             </div>
             <div>
-              <div className="gg-label" title={t("configRetentionHelp", "Redis TTLs / DB persistence knobs")}>{t("configRetention", "Retention")}</div>
+              <div className="gg-label" title={t("configRetentionHelp", "Redis TTLs / DB persistence knobs")}>
+                {t("configRetention", "Retention")}
+              </div>
               <textarea
                 className="gg-textarea"
                 aria-label={t("configRetention", "Retention")}
@@ -170,12 +199,18 @@ export default function ConfigPage() {
               />
             </div>
             <div>
-              <div className="gg-label" title={t("configRelayHelp", "Heartbeat, retry, queue, ingest policies")}>{t("configRelay", "smsrelay3 policies")}</div>
+              <div className="gg-label" title={t("configRelayHelp", "Heartbeat, retry, queue, ingest policies")}>
+                {t("configRelay", "smsrelay3 policies")}
+              </div>
               <textarea
                 className="gg-textarea"
                 aria-label={t("configRelay", "smsrelay3 policies")}
                 disabled={!canEdit}
-                defaultValue={JSON.stringify((beforeConfig as any).relay ?? (beforeConfig as any).smsrelay3 ?? {}, null, 2)}
+                defaultValue={JSON.stringify(
+                  (beforeConfig as any).relay ?? (beforeConfig as any).smsrelay3 ?? {},
+                  null,
+                  2
+                )}
                 onBlur={(e) => {
                   try {
                     setRelayDraft(JSON.parse(e.target.value));
@@ -188,7 +223,12 @@ export default function ConfigPage() {
               />
             </div>
             <div>
-              <div className="gg-label" title={t("configContactHelp", "Contact sync enable/interval/conflict policies")}>{t("configContact", "Contact sync")}</div>
+              <div
+                className="gg-label"
+                title={t("configContactHelp", "Contact sync enable/interval/conflict policies")}
+              >
+                {t("configContact", "Contact sync")}
+              </div>
               <textarea
                 className="gg-textarea"
                 aria-label={t("configContact", "Contact sync")}

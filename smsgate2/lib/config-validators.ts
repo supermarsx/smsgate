@@ -6,7 +6,8 @@ export type ConfigLike = Record<string, unknown>;
 
 type IssueCollector = (msg: string) => void;
 
-const isObject = (val: unknown): val is Record<string, unknown> => !!val && typeof val === "object" && !Array.isArray(val);
+const isObject = (val: unknown): val is Record<string, unknown> =>
+  !!val && typeof val === "object" && !Array.isArray(val);
 
 function ensureBoolean(obj: Record<string, unknown>, key: string, issues: IssueCollector) {
   if (typeof obj[key] !== "boolean") issues(`${key} must be boolean`);

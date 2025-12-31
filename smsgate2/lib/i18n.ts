@@ -149,5 +149,6 @@ export function getTranslations(locale?: Locale): Record<string, string> {
  * @returns Map of locale to translation dictionary.
  */
 export function listDictionaries(): Record<Locale, Record<string, string>> {
-  return { ...DICTIONARIES };
+  const entries = SUPPORTED_LOCALES.map((loc) => [loc, { ...DICTIONARIES[loc] }]);
+  return Object.fromEntries(entries) as Record<Locale, Record<string, string>>;
 }

@@ -269,9 +269,12 @@ export default function DashboardPage() {
                         </span>
                       )}
                       <div className="msg-tags">
-                        <span className="badge neutral">{t("dashboardDevice", "Device")}: {evt.deviceId ?? "-"}</span>
                         <span className="badge neutral">
-                          {t("dashboardLatency", "Latency")}: {evt.latencyMs !== undefined ? `${evt.latencyMs} ms` : "-"}
+                          {t("dashboardDevice", "Device")}: {evt.deviceId ?? "-"}
+                        </span>
+                        <span className="badge neutral">
+                          {t("dashboardLatency", "Latency")}:{" "}
+                          {evt.latencyMs !== undefined ? `${evt.latencyMs} ms` : "-"}
                         </span>
                       </div>
                       {(() => {

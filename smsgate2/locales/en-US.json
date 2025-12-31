@@ -38,6 +38,7 @@
   "navConfig": "Config",
   "dashboardTitle": "Dashboard",
   "dashboardSubtitle": "Realtime feed",
+  "dashboardFilterNumber": "Filter by number",
   "dashboardDescription": "Your new messages appear here. We keep a near-real-time stream so the latest events and presence/latency metrics show up automatically.",
   "dashboardAllNumbers": "All numbers",
   "dashboardWaiting": "Waiting for snapshot...",

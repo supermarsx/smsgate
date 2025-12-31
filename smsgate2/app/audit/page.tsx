@@ -64,9 +64,15 @@ export default function AuditPage() {
       const matchesResult = result === "__all__" ? true : (r.result ?? r.status) === result;
       const matchesDevice = deviceFilter ? String(r.device ?? "").includes(deviceFilter) : true;
       const matchesNumber = numberFilter ? String(r.number ?? "").includes(numberFilter) : true;
-      const matchesActor = actorFilter ? String(r.actor ?? "").toLowerCase().includes(actorFilter.toLowerCase()) : true;
+      const matchesActor = actorFilter
+        ? String(r.actor ?? "")
+            .toLowerCase()
+            .includes(actorFilter.toLowerCase())
+        : true;
       const matchesAction = actionVal ? String(r.action ?? "").toLowerCase() === actionVal.toLowerCase() : true;
-      const matchesTarget = targetVal ? String(r.target ?? r.targetType ?? "").toLowerCase() === targetVal.toLowerCase() : true;
+      const matchesTarget = targetVal
+        ? String(r.target ?? r.targetType ?? "").toLowerCase() === targetVal.toLowerCase()
+        : true;
       const matchesTime = cutoff ? Date.parse(r.timestamp ?? r.createdAt ?? "") >= cutoff : true;
       return (
         matchesText &&

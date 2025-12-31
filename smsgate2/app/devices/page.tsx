@@ -380,7 +380,8 @@ export default function DevicesPage() {
                     <div className="gg-value">{d.name ?? d.id}</div>
                     <div className="muted small">{d.id}</div>
                     <div className="muted small">
-                      {t("devicesLastHeartbeat", "Last heartbeat")}: {formatDate(live.lastHeartbeatAt ?? d.lastHeartbeat ?? d.lastHeartbeatAt)}
+                      {t("devicesLastHeartbeat", "Last heartbeat")}:{" "}
+                      {formatDate(live.lastHeartbeatAt ?? d.lastHeartbeat ?? d.lastHeartbeatAt)}
                     </div>
                   </div>
                   <div className="actions">
@@ -412,7 +413,7 @@ export default function DevicesPage() {
                         ? live.numbers.join(", ")
                         : Array.isArray(d.numbers)
                           ? d.numbers.join(", ")
-                          : d.assignedNumbers ?? "-"}
+                          : (d.assignedNumbers ?? "-")}
                     </div>
                   </div>
                 </div>

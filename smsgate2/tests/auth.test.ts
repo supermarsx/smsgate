@@ -158,7 +158,12 @@ describe("refresh and logout", () => {
 
   it("saves refreshed session on success", async () => {
     const refreshed = { ...session, accessToken: "new" };
-    mockFetch.mockResolvedValue({ ok: true, status: 200, json: async () => ({ session: refreshed }), text: async () => "" });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ session: refreshed }),
+      text: async () => ""
+    });
     const res = await refreshSession("r");
     expect(res).toEqual(refreshed);
     expect(loadSession()).toEqual(refreshed);

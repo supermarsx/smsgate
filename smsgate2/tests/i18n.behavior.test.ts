@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
   detectBrowserLocale,
   getInitialLocale,
   getTranslations,

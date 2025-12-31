@@ -87,7 +87,8 @@ export default function NumbersPage() {
                   {t("numbersContact", "Contact")}: {contactNames[n.e164 ?? n.number] ?? n.contactName ?? "-"}
                 </div>
                 <div className="muted">
-                  {t("numbersIngestDevices", "Ingest devices")}: {(ingestDevices[n.e164 ?? n.number] ?? []).join(", ") || "-"}
+                  {t("numbersIngestDevices", "Ingest devices")}:{" "}
+                  {(ingestDevices[n.e164 ?? n.number] ?? []).join(", ") || "-"}
                 </div>
                 <div className="muted">
                   {t("numbersShared", "Shared")}: {n.shared ? t("sharedYes", "yes") : t("sharedNo", "no")}
