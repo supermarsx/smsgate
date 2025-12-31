@@ -37,6 +37,7 @@
   "dashboardTitle": "Panel",
   "dashboardSubtitle": "Flujo en tiempo real",
   "dashboardDescription": "Snapshot continuo + nuevos eventos con métricas de presencia/latencia.",
+  "dashboardFilterNumber": "Filtrar por número",
   "dashboardAllNumbers": "Todos los números",
   "dashboardWaiting": "Esperando snapshot...",
   "dashboardLoadingOlder": "Cargando más...",

@@ -37,6 +37,7 @@
   "dashboardTitle": "Dashboard",
   "dashboardSubtitle": "Feed em tempo real",
   "dashboardDescription": "Snapshot em streaming + novos eventos com métricas de presença/latência.",
+  "dashboardFilterNumber": "Filtrar por número",
   "dashboardAllNumbers": "Todos os números",
   "dashboardWaiting": "A aguardar snapshot...",
   "dashboardLoadingOlder": "A carregar mais antigos…",
