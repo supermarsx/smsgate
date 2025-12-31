@@ -449,6 +449,18 @@ impl AppConfig {
             }
         }
 
+        if let Some(ingest) = from.ingest {
+            if let Some(ttl) = ingest.dedup_ttl_ms {
+                self.ingest.dedup_ttl_ms = ttl;
+            }
+            if let Some(cap) = ingest.hot_store_capacity {
+                self.ingest.hot_store_capacity = cap;
+            }
+            if let Some(max_batch) = ingest.max_batch {
+                self.ingest.max_batch = max_batch;
+            }
+        }
+
         if let Some(hot) = from.hot_store {
             if let Some(mode) = hot.mode {
                 self.hot_store.mode = mode;
