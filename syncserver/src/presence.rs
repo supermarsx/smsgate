@@ -70,4 +70,15 @@ impl PresenceStore {
             PresenceState::Offline
         }
     }
+
+    /// Snapshot the raw presence entry and computed state, if available.
+    pub fn snapshot(
+        &self,
+        now: DateTime<Utc>,
+        device_id: &str,
+    ) -> Option<(PresenceEntry, PresenceState)> {
+        self.entries
+            .get(device_id)
+            .map(|entry| (entry.clone(), self.evaluate(now, device_id)))
+    }
 }
