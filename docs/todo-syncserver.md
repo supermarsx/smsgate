@@ -12,7 +12,7 @@
 - [x] Define shared domain models and typed contracts (events, presence, config, pairing, users, numbers, audit, login events).
 - [x] Add structured logging/tracing bootstrap with env-based filter.
 - [x] Wire metrics exporter (Prometheus) and `/metrics` endpoint.
-- [ ] Containerize server (Dockerfile + compose service alongside Redis/DB) and document env vars.
+- [x] Containerize server (Dockerfile + compose service alongside Redis/DB) and document env vars.
 
 ## Auth & identity
 - [ ] Implement OAuth/OIDC login + callbacks with issuer/audience validation.
@@ -89,8 +89,8 @@
 - [ ] CI pipeline for fmt/clippy/test/build + container image + vulnerability scan.
 
 ## Operations & release
-- [ ] Build Docker image with minimal base + non-root user; publish compose profile with Redis/DB.
+- [x] Build Docker image with minimal base + non-root user; publish compose profile with Redis/DB.
 - [ ] Provide migration tool/command for DB adapters and config seeding.
-- [ ] Document environment variables, config keys, and failure modes.
+- [x] Document environment variables, config keys, and failure modes.
 - [ ] Add runbooks for Redis outage fallback/recovery and hot-store migration back to Redis.
 - [ ] Publish cutover plan + compatibility matrix with smsgate2 and smsrelay3 versions.

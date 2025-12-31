@@ -1330,6 +1330,16 @@ a {
   border-color: rgba(76, 201, 255, 0.4);
 }
 
+.fab .emoji-tint {
+  transition: transform var(--transition), filter var(--transition), text-shadow var(--transition);
+}
+
+.fab:active .emoji-tint {
+  transform: scale(0.94);
+  filter: grayscale(0.9) brightness(0.98);
+  text-shadow: 0 0 6px rgba(76, 201, 255, 0.2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
