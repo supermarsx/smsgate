@@ -16,6 +16,9 @@ type Props = {
   children: React.ReactNode;
 };
 
+/**
+ * Authenticated app shell with role-aware navigation, status banner, and logout controls.
+ */
 export function ProtectedShell({ children }: Props) {
   const { session, setSession } = useSession();
   const pathname = usePathname();
