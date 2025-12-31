@@ -17,7 +17,7 @@ use crate::{
     metrics::Snapshot as MetricsSnapshot,
     presence::PresenceEntry,
     state::AppState,
-    ws_types::{ClientMessage, PageDirection, PagePayload, ServerMessage},
+    ws_types::{ClientMessage, ConfigUpdate, PageDirection, PagePayload, RoleSnapshot, ServerMessage},
 };
 
 /// Upgrade HTTP requests to WebSocket and spawn session tasks.
@@ -153,7 +153,7 @@ async fn send_snapshot(socket: &mut WebSocket, state: &AppState, limit: usize) -
 }
 
 async fn send_config_snapshot(socket: &mut WebSocket, state: &AppState) -> Result<(), ()> {
-    let snapshot = state.config_snapshot().await;
+    let snapshot = config_update(state).await;
     send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await
 }
 
@@ -183,7 +183,7 @@ async fn handle_client_message(
         Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
                 Ok(ClientMessage::Ping) => send_json(socket, &ServerMessage::Pong).await?,
                 Ok(ClientMessage::ConfigRefresh) => {
-                    let snapshot = state.config_snapshot().await;
+                    let snapshot = config_update(state).await;
                     send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await?;
                 }
                 Ok(ClientMessage::Subscribe { .. }) => {
@@ -316,6 +316,31 @@ fn map_presence(
         last_heartbeat: entry.last_heartbeat,
         device_rtt_ms: entry.device_rtt_ms,
         sims,
+    }
+}
+
+async fn config_update(state: &AppState) -> ConfigUpdate {
+    let cfg = state.config.read().await;
+    ConfigUpdate {
+        version: cfg.version,
+        auth_modes: cfg
+            .config
+            .auth
+            .modes
+            .iter()
+            .map(crate::config::mode_label)
+            .collect(),
+        roles: cfg
+            .config
+            .rbac
+            .roles
+            .iter()
+            .map(|r| RoleSnapshot {
+                name: r.name.clone(),
+                precedence: r.precedence,
+                permissions: r.permissions.clone(),
+            })
+            .collect(),
     }
 }
 
