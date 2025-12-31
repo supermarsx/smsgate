@@ -751,16 +751,34 @@ a {
 .filters-inline {
   display: flex;
   flex-wrap: nowrap;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-end;
-  margin: 8px 0 10px;
+  margin: 6px 0 10px;
 }
 
 .filter-group {
   display: grid;
-  gap: 6px;
-  min-width: 180px;
+  gap: 4px;
+  min-width: 140px;
   flex: 1;
+}
+
+.audit-filters {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.audit-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.audit-filters .gg-input,
+.audit-filters .gg-select {
+  padding: 7px 9px;
+  font-size: 12px;
 }
 
 .pagination {

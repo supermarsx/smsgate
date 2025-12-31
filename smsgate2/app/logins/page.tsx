@@ -97,64 +97,70 @@ export default function LoginsPage() {
           </div>
         )}
         {loading && <div className="muted">{t("loginsLoading", "Loading...")}</div>}
-        <div className="filter-row">
-          <label className="gg-label" htmlFor="login-filter">
-            {t("filter", "Filter")}
-          </label>
-          <input
-            id="login-filter"
-            className="gg-input"
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value);
-              setPage(0);
-            }}
-            placeholder={t("loginsSearch", "Search user/status/ip")}
-          />
-        </div>
-        <div className="filter-row">
-          <label className="gg-label" htmlFor="login-result">
-            {t("resultLabel", "Result")}
-          </label>
-          <select
-            id="login-result"
-            className="gg-select"
-            value={result}
-            onChange={(e) => {
-              setResult(e.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="__all__">{t("all", "All")}</option>
-            <option value="success">{t("auditSuccess", "success")}</option>
-            <option value="fail">{t("auditFail", "fail")}</option>
-          </select>
-          <label className="gg-label" htmlFor="login-ip">
-            {t("ipLabel", "IP")}
-          </label>
-          <input
-            id="login-ip"
-            className="gg-input"
-            value={ipFilter}
-            onChange={(e) => {
-              setIpFilter(e.target.value);
-              setPage(0);
-            }}
-            placeholder={t("loginsIpPlaceholder", "10.0.0.1")}
-          />
-          <label className="gg-label" htmlFor="login-time">
-            {t("timeLabel", "Time")}
-          </label>
-          <select
-            id="login-time"
-            className="gg-select"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
-          >
-            <option value="all">{t("all", "All")}</option>
-            <option value="1h">{t("lastHour", "Last hour")}</option>
-            <option value="24h">{t("last24h", "Last 24h")}</option>
-          </select>
+        <div className="filters-inline">
+          <div className="filter-group">
+            <label className="gg-label" htmlFor="login-filter">
+              {t("filter", "Filter")}
+            </label>
+            <input
+              id="login-filter"
+              className="gg-input"
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setPage(0);
+              }}
+              placeholder={t("loginsSearch", "Search user/status/ip")}
+            />
+          </div>
+          <div className="filter-group">
+            <label className="gg-label" htmlFor="login-result">
+              {t("resultLabel", "Result")}
+            </label>
+            <select
+              id="login-result"
+              className="gg-select"
+              value={result}
+              onChange={(e) => {
+                setResult(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="__all__">{t("all", "All")}</option>
+              <option value="success">{t("auditSuccess", "success")}</option>
+              <option value="fail">{t("auditFail", "fail")}</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label className="gg-label" htmlFor="login-ip">
+              {t("ipLabel", "IP")}
+            </label>
+            <input
+              id="login-ip"
+              className="gg-input"
+              value={ipFilter}
+              onChange={(e) => {
+                setIpFilter(e.target.value);
+                setPage(0);
+              }}
+              placeholder={t("loginsIpPlaceholder", "10.0.0.1")}
+            />
+          </div>
+          <div className="filter-group">
+            <label className="gg-label" htmlFor="login-time">
+              {t("timeLabel", "Time")}
+            </label>
+            <select
+              id="login-time"
+              className="gg-select"
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
+            >
+              <option value="all">{t("all", "All")}</option>
+              <option value="1h">{t("lastHour", "Last hour")}</option>
+              <option value="24h">{t("last24h", "Last 24h")}</option>
+            </select>
+          </div>
         </div>
         <div className="presence-list">
           {paged.map((r, idx) => (

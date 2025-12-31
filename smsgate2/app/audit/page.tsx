@@ -99,77 +99,87 @@ export default function AuditPage() {
           </div>
         )}
         {loading && <div className="muted">{t("loading", "Loading...")}</div>}
-        <div className="filter-row">
-          <label className="gg-label" htmlFor="audit-filter">
-            {t("filter", "Filter")}
-          </label>
-          <input
-            id="audit-filter"
-            className="gg-input"
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value);
-              setPage(0);
-            }}
-            placeholder={t("auditSearch", "Search actor/action/device/number")}
-          />
-        </div>
-        <div className="filter-row">
-          <label className="gg-label" htmlFor="audit-result">
-            {t("resultLabel", "Result")}
-          </label>
-          <select
-            id="audit-result"
-            className="gg-select"
-            value={result}
-            onChange={(e) => {
-              setResult(e.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="__all__">{t("all", "All")}</option>
-            <option value="success">{t("auditSuccess", "success")}</option>
-            <option value="fail">{t("auditFail", "fail")}</option>
-          </select>
-          <label className="gg-label" htmlFor="audit-device">
-            {t("deviceLabel", "Device")}
-          </label>
-          <input
-            id="audit-device"
-            className="gg-input"
-            value={deviceFilter}
-            onChange={(e) => {
-              setDeviceFilter(e.target.value);
-              setPage(0);
-            }}
-            placeholder={t("numbersDeviceIdPlaceholder", "device id")}
-          />
-          <label className="gg-label" htmlFor="audit-number">
-            {t("numbersLabel", "Numbers")}
-          </label>
-          <input
-            id="audit-number"
-            className="gg-input"
-            value={numberFilter}
-            onChange={(e) => {
-              setNumberFilter(e.target.value);
-              setPage(0);
-            }}
-            placeholder={t("auditNumberPlaceholder", "+1555")}
-          />
-          <label className="gg-label" htmlFor="audit-time">
-            {t("timeLabel", "Time")}
-          </label>
-          <select
-            id="audit-time"
-            className="gg-select"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
-          >
-            <option value="all">{t("all", "All")}</option>
-            <option value="1h">{t("lastHour", "Last hour")}</option>
-            <option value="24h">{t("last24h", "Last 24h")}</option>
-          </select>
+        <div className="audit-filters">
+          <div className="audit-filter">
+            <label className="gg-label" htmlFor="audit-filter">
+              {t("filter", "Filter")}
+            </label>
+            <input
+              id="audit-filter"
+              className="gg-input"
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setPage(0);
+              }}
+              placeholder={t("auditSearch", "Search actor/action/device/number")}
+            />
+          </div>
+          <div className="audit-filter-grid">
+            <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-result">
+                {t("resultLabel", "Result")}
+              </label>
+              <select
+                id="audit-result"
+                className="gg-select"
+                value={result}
+                onChange={(e) => {
+                  setResult(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <option value="__all__">{t("all", "All")}</option>
+                <option value="success">{t("auditSuccess", "success")}</option>
+                <option value="fail">{t("auditFail", "fail")}</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-device">
+                {t("deviceLabel", "Device")}
+              </label>
+              <input
+                id="audit-device"
+                className="gg-input"
+                value={deviceFilter}
+                onChange={(e) => {
+                  setDeviceFilter(e.target.value);
+                  setPage(0);
+                }}
+                placeholder={t("numbersDeviceIdPlaceholder", "device id")}
+              />
+            </div>
+            <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-number">
+                {t("numbersLabel", "Numbers")}
+              </label>
+              <input
+                id="audit-number"
+                className="gg-input"
+                value={numberFilter}
+                onChange={(e) => {
+                  setNumberFilter(e.target.value);
+                  setPage(0);
+                }}
+                placeholder={t("auditNumberPlaceholder", "+1555")}
+              />
+            </div>
+            <div className="filter-group">
+              <label className="gg-label" htmlFor="audit-time">
+                {t("timeLabel", "Time")}
+              </label>
+              <select
+                id="audit-time"
+                className="gg-select"
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
+              >
+                <option value="all">{t("all", "All")}</option>
+                <option value="1h">{t("lastHour", "Last hour")}</option>
+                <option value="24h">{t("last24h", "Last 24h")}</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div className="presence-list">
           {paged.map((r, idx) => (
