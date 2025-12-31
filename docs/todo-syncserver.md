@@ -56,7 +56,7 @@
 
 ## WebSocket gateway & paging
 - [x] Implement WS handshake (unauthenticated stub), ping/pong, and broadcast channel.
-- [x] Serve `WELCOME` + initial `SNAPSHOT` with default limit; event/presence broadcasts wired (subscriptions/paging pending).
+- [x] Serve `WELCOME` + initial `SNAPSHOT` with default limit; event/presence broadcasts wired.
 - [x] Implement paging (`PAGE_BEFORE`/`PAGE_AFTER`) with anchors and retention windows.
 - [ ] Broadcast `EVENT_UPDATE`, `SIM_*`, `CONFIG_UPDATE`, `CONTACT_UPDATE`.
 - [ ] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.

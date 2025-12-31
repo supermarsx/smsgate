@@ -17,7 +17,8 @@
     "degraded_threshold_ms": 60000
   },
   "pairing": {
-    "session_ttl_secs": 600
+    "session_ttl_secs": 600,
+    "bootstrap_device": null
   },
   "hot_store": {
     "mode": "memory",
@@ -27,6 +28,49 @@
     "adapter": "json_db",
     "path": "data/syncserver.json",
     "url": null
+  },
+  "rbac": {
+    "roles": [
+      {
+        "name": "admin",
+        "precedence": 100,
+        "permissions": [
+          "events.read",
+          "events.claim",
+          "events.verify",
+          "events.reject",
+          "devices.read",
+          "devices.write",
+          "devices.disable",
+          "devices.rotate_token",
+          "numbers.read",
+          "numbers.write",
+          "users.read",
+          "users.write",
+          "users.force_logout",
+          "users.unlock",
+          "config.read",
+          "config.write",
+          "audit.read",
+          "logins.read"
+        ]
+      },
+      {
+        "name": "manager",
+        "precedence": 50,
+        "permissions": [
+          "events.read",
+          "events.claim",
+          "events.verify",
+          "devices.read",
+          "numbers.read",
+          "users.read",
+          "audit.read",
+          "logins.read"
+        ]
+      }
+    ],
+    "group_mapping": {}
   },
   "auth": {
     "modes": ["simple_signin"]

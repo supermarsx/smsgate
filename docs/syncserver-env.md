@@ -24,6 +24,7 @@ Runtime flags are read from `config/config.json` (see `syncserver/config/config.
 - `SYNC_PRESENCE_ONLINE_MS` (`20000`): heartbeat threshold (ms) for online status.
 - `SYNC_PRESENCE_DEGRADED_MS` (`60000`): heartbeat threshold (ms) for degraded status (above is offline).
 - `SYNC_PAIRING_SESSION_TTL_SECS` (`600`): pairing session expiry in seconds.
-- `X-DEVICE-ID` + `Authorization: Bearer <token>`: required on ingest/presence endpoints (static token map placeholder; real device auth pending pairing flow).
+- `SYNC_BOOTSTRAP_DEVICE_ID` / `SYNC_BOOTSTRAP_DEVICE_TOKEN` (optional): seed a bootstrap relay credential; `SYNC_BOOTSTRAP_DEVICE_NAME` adds a label and `SYNC_BOOTSTRAP_DEVICE_DISABLED=true` pre-disables it.
+- `X-DEVICE-ID` + `Authorization: Bearer <token>`: required on ingest/presence endpoints; tokens are issued via pairing/bootstrap and must belong to an enabled device.
 
 Docker Compose defaults set `SYNC_PORT=4000`, point Redis/DB to local compose services, and mount `./syncserver/config` into `/app/config`.

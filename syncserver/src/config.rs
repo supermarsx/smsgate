@@ -2,6 +2,7 @@ use crate::error::AppError;
 use serde::{Deserialize, Serialize};
 use std::{env, fs, net::SocketAddr, path::PathBuf};
 
+/// Serde default helper used for boolean flags that default to true.
 fn default_true() -> bool {
     true
 }
