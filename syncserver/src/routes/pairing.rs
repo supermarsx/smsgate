@@ -77,7 +77,7 @@ pub async fn complete_session(
     let completed = state
         .pairing_store
         .complete_session(payload)
-        .map_err(|err| AppError::Validation(err))?;
+        .map_err(AppError::Validation)?;
 
     // Store hashed token for device auth.
     state.device_auth.register_with_name(

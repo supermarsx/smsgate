@@ -93,7 +93,10 @@ async fn handle_socket(
         tokio::select! {
             msg = socket.recv() => {
                 if let Some(Ok(message)) = msg {
-                    if let Err(_) = handle_client_message(&mut socket, &state, message).await {
+                    if handle_client_message(&mut socket, &state, message)
+                        .await
+                        .is_err()
+                    {
                         break;
                     }
                 } else {
