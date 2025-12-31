@@ -3,6 +3,7 @@ use crate::{
     config::AppConfig,
     hot_store::{HotStore, MemoryHotStore},
     presence::PresenceStore,
+    persistence::{JsonDb, PersistentStore},
     ws_types::ServerMessage,
 };
 use std::{
@@ -84,11 +85,13 @@ pub struct AppState {
     pub connection_count: Arc<AtomicUsize>,
     /// Device auth store (placeholder).
     pub device_auth: DeviceAuthStore,
+    /// Persistent store for events/audit.
+    pub persistence: Arc<dyn PersistentStore>,
 }
 
 impl AppState {
     /// Create a new state container.
-    pub fn new(config: AppConfig) -> Self {
+    pub async fn new(config: AppConfig) -> Self {
         let ready_flags = ReadyFlags::new();
         // In-memory hot store and json_db/sqlite adapters do not require external connectivity.
         if matches!(config.hot_store.mode, config::HotStoreMode::Memory) {
@@ -111,6 +114,18 @@ impl AppState {
         let (event_tx, _rx) = broadcast::channel(1024);
         let connection_count = Arc::new(AtomicUsize::new(0));
         let device_auth = DeviceAuthStore::default();
+        let persistence: Arc<dyn PersistentStore> = Arc::new(
+            JsonDb::new(
+                config
+                    .database
+                    .path
+                    .clone()
+                    .unwrap_or_else(|| "data/syncserver.json".to_string())
+                    .into(),
+            )
+            .await
+            .expect("init json db"),
+        );
 
         Self {
             config,
@@ -122,6 +137,7 @@ impl AppState {
             event_tx,
             connection_count,
             device_auth,
+            persistence,
         }
     }
 
