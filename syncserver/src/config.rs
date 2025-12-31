@@ -376,6 +376,18 @@ impl AppConfig {
             ));
         }
 
+        if self.ingest.hot_store_capacity == 0 {
+            return Err(AppError::Validation(
+                "ingest.hot_store_capacity must be greater than zero".into(),
+            ));
+        }
+
+        if self.ingest.max_batch == 0 {
+            return Err(AppError::Validation(
+                "ingest.max_batch must be greater than zero".into(),
+            ));
+        }
+
         if self.hot_store.mode == HotStoreMode::Redis && self.hot_store.redis_url.is_none() {
             return Err(AppError::Validation(
                 "SYNC_REDIS_URL (or config.hot_store.redis_url) is required when hot_store.mode=redis"
@@ -471,6 +483,7 @@ impl AppConfig {
 struct PartialConfig {
     pub env: Option<RunEnvironment>,
     pub server: Option<PartialServerConfig>,
+    pub ingest: Option<PartialIngestConfig>,
     pub hot_store: Option<PartialHotStoreConfig>,
     pub database: Option<PartialDatabaseConfig>,
     pub auth: Option<PartialAuthConfig>,
@@ -483,6 +496,13 @@ struct PartialServerConfig {
     pub ws_max_connections: Option<u32>,
     pub ws_snapshot_limit: Option<u32>,
     pub ws_ping_interval_ms: Option<u64>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PartialIngestConfig {
+    pub dedup_ttl_ms: Option<u64>,
+    pub hot_store_capacity: Option<usize>,
+    pub max_batch: Option<usize>,
 }
 
 #[derive(Debug, Default, Deserialize)]
