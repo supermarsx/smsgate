@@ -37,7 +37,7 @@ async fn simple_signin_login_and_session_auth() {
     let login_payload = json!({
         "mode": "simple_signin",
         "username": "admin",
-        "password": "ChangeMePlease1!"
+        "password": "SmsgateSync#2025!"
     });
 
     let res = app
@@ -88,7 +88,7 @@ async fn login_events_are_audited() {
     let login_payload = json!({
         "mode": "simple_signin",
         "username": "admin",
-        "password": "ChangeMePlease1!"
+        "password": "SmsgateSync#2025!"
     });
 
     let res = app
@@ -116,7 +116,9 @@ async fn login_events_are_audited() {
         "expected login event persisted"
     );
     assert!(
-        entries.iter().any(|entry| entry.get("action") == Some(&json!("auth.login"))),
+        entries
+            .iter()
+            .any(|entry| entry.get("action") == Some(&json!("auth.login"))),
         "expected audit log entry persisted"
     );
 }

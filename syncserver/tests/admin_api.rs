@@ -53,9 +53,10 @@ async fn admin_user_crud_and_force_logout() {
 
     // Issue a session for the new user and verify it works, then force logout and expect failure.
     let role = state.user_store.get(&user_id).unwrap().role.clone();
-    let session = state
-        .session_store
-        .create_session(Principal::User { id: user_id.clone(), role });
+    let session = state.session_store.create_session(Principal::User {
+        id: user_id.clone(),
+        role,
+    });
 
     let res_ok = routes::router(state.clone())
         .oneshot(
@@ -148,13 +149,13 @@ async fn admin_number_assignments() {
         .await
         .unwrap();
     assert_eq!(assign_res.status(), StatusCode::OK);
-    let assigned: serde_json::Value =
-        serde_json::from_slice(&body::to_bytes(assign_res.into_body(), usize::MAX).await.unwrap())
-            .unwrap();
-    assert_eq!(
-        assigned["assigned_device_ids"].as_array().unwrap().len(),
-        1
-    );
+    let assigned: serde_json::Value = serde_json::from_slice(
+        &body::to_bytes(assign_res.into_body(), usize::MAX)
+            .await
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(assigned["assigned_device_ids"].as_array().unwrap().len(), 1);
 
     let unassign_res = app
         .oneshot(
@@ -170,9 +171,12 @@ async fn admin_number_assignments() {
         .await
         .unwrap();
     assert_eq!(unassign_res.status(), StatusCode::OK);
-    let unassigned: serde_json::Value =
-        serde_json::from_slice(&body::to_bytes(unassign_res.into_body(), usize::MAX).await.unwrap())
-            .unwrap();
+    let unassigned: serde_json::Value = serde_json::from_slice(
+        &body::to_bytes(unassign_res.into_body(), usize::MAX)
+            .await
+            .unwrap(),
+    )
+    .unwrap();
     assert!(unassigned["assigned_device_ids"]
         .as_array()
         .unwrap()

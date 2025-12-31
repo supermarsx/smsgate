@@ -40,12 +40,7 @@ fn peppered_hash_allows_authentication() {
         .collect();
     let store = UserStore::new(&cfg.auth, &roles);
     let created = store
-        .create_user(
-            "carol",
-            "ThisIsASufficientPass1!",
-            roles[0].clone(),
-            None,
-        )
+        .create_user("carol", "ThisIsASufficientPass1!", roles[0].clone(), None)
         .expect("create user");
     let authed = store
         .authenticate("carol", "ThisIsASufficientPass1!")
