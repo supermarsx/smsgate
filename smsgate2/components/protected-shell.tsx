@@ -64,15 +64,46 @@ export function ProtectedShell({ children }: Props) {
       router.replace("/login");
     }
   }, [router, session]);
+import { appConfig } from "../lib/config";
 
   const rolesConfig = useMemo(() => ((config?.data as any)?.roles ?? {}) as any, [config]);
   const roleOrder = rolesConfig?.order;
   const roleLabels = rolesConfig?.labels ?? {};
 
-  const navItems = useMemo(() => (session ? allowedNav(session.user.role, roleOrder) : []), [roleOrder, session]);
+  const navItems = useMemo(() => {
+    if (!session) return [];
+    const allowed = allowedNav(session.user.role, roleOrder);
+    const isRouteEnabled = (path: string) => {
+      switch (path) {
+        case "/dashboard":
+          return routeLimits.dashboard ?? true;
+        case "/devices":
+          return routeLimits.devices ?? false;
+        case "/numbers":
+          return routeLimits.numbers ?? false;
+        case "/users":
+          return routeLimits.users ?? true;
+        case "/audit":
+          return routeLimits.audit ?? false;
+        case "/logins":
+          return routeLimits.logins ?? false;
+        case "/contacts":
+          return routeLimits.contacts ?? false;
+        case "/config":
+          return routeLimits.config ?? false;
+        default:
+          return true;
+      }
+    };
+    return allowed.filter((item) => isRouteEnabled(item.path));
+  }, [routeLimits, roleOrder, session]);
   useEffect(() => {
     if (!session) return;
     const allowedPaths = navItems.map((n) => n.path);
+    if (!allowedPaths.length) {
+      setUnauthorized(true);
+      return;
+    }
     if (!allowedPaths.includes(pathname)) {
       setUnauthorized(true);
       router.replace(allowedPaths[0] ?? "/dashboard");
@@ -97,6 +128,9 @@ export function ProtectedShell({ children }: Props) {
     return (
       <div className="gg-panel">
         <div className="login-error">{t("unauthorized", "Unauthorized for this route; redirecting...")}</div>
+  const routeLimits = appConfig.limits?.routes ?? {};
+  const debugAllowed = appConfig.limits?.debug?.ui ?? true;
+  const logsAllowed = appConfig.limits?.debug?.logs ?? debugAllowed;
       </div>
     );
   }
@@ -177,23 +211,30 @@ export function ProtectedShell({ children }: Props) {
             </div>
           ) : (
             children
-          )}
-        </div>
-        <div className="account-float glass">
-          <div className="account-row">
-            <div>
+              {debugAllowed && debugOpen && (
+                <button
+                  className="ghost"
+                  onClick={() => setShowLogs((v) => !v)}
+                >
+                    {logsAllowed && (
+                      <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
+                        {showLogs ? t("hideLogs", "Hide logs") : t("showLogs", "Show logs")}
+                      </button>
+                    )}
               <div className="gg-label">{t("account", "Account")}</div>
               <div className="gg-value">{session.user.email ?? session.user.name}</div>
               {session.user.email && <div className="muted small">{session.user.name}</div>}
             </div>
             <div className="account-actions">
-              <button
-                className="ghost icon icon-themed"
-                onClick={() => setDebugOpen((v) => !v)}
-                title={t("debugLabel", "Debug")}
-              >
-                🛠
-              </button>
+              {debugAllowed && (
+                <button
+                  className="ghost icon icon-themed"
+                  onClick={() => setDebugOpen((v) => !v)}
+                  title={t("debugLabel", "Debug")}
+                >
+                  🛠
+                </button>
+              )}
               <button
                 className="ghost icon icon-themed danger"
                 onClick={() => setConfirmLogout(true)}

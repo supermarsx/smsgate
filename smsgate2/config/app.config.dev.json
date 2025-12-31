@@ -48,6 +48,27 @@
     "newDashboard": true,
     "betaRealtime": true
   },
+  "limits": {
+    "routes": {
+      "dashboard": true,
+      "devices": true,
+      "numbers": true,
+      "users": true,
+      "audit": true,
+      "logins": true,
+      "contacts": true,
+      "config": true
+    },
+    "actions": {
+      "numbers": { "create": true, "assign": true, "update": true, "delete": true },
+      "devices": { "pair": true, "rename": true, "toggle": true },
+      "users": { "editRoles": true, "forceLogout": true },
+      "contacts": { "sync": true, "export": true },
+      "audit": { "export": true }
+    },
+    "realtime": { "enabled": true, "statusBar": true },
+    "debug": { "ui": true, "logs": true }
+  },
   "realtime": {
     "pingMs": 12000,
     "reconnectCapMs": 20000

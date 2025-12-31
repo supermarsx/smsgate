@@ -22,6 +22,69 @@ type UiDefaults = {
   showDebug?: boolean;
 };
 
+type RouteLimits = {
+  dashboard?: boolean;
+  devices?: boolean;
+  numbers?: boolean;
+  users?: boolean;
+  audit?: boolean;
+  logins?: boolean;
+  contacts?: boolean;
+  config?: boolean;
+};
+
+type NumberActionLimits = {
+  create?: boolean;
+  assign?: boolean;
+  update?: boolean;
+  delete?: boolean;
+};
+
+type DeviceActionLimits = {
+  pair?: boolean;
+  rename?: boolean;
+  toggle?: boolean;
+};
+
+type UserActionLimits = {
+  editRoles?: boolean;
+  forceLogout?: boolean;
+};
+
+type ContactsActionLimits = {
+  sync?: boolean;
+  export?: boolean;
+};
+
+type AuditActionLimits = {
+  export?: boolean;
+};
+
+type ActionLimits = {
+  numbers?: NumberActionLimits;
+  devices?: DeviceActionLimits;
+  users?: UserActionLimits;
+  contacts?: ContactsActionLimits;
+  audit?: AuditActionLimits;
+};
+
+type RealtimeLimits = {
+  enabled?: boolean;
+  statusBar?: boolean;
+};
+
+type DebugLimits = {
+  ui?: boolean;
+  logs?: boolean;
+};
+
+type Limits = {
+  routes?: RouteLimits;
+  actions?: ActionLimits;
+  realtime?: RealtimeLimits;
+  debug?: DebugLimits;
+};
+
 type FeatureFlags = Record<string, boolean>;
 
 type RealtimeConfig = {
@@ -87,6 +150,7 @@ export type AppConfig = {
   contacts?: ContactsConfig;
   logging?: LoggingConfig;
   telemetry?: TelemetryConfig;
+  limits?: Limits;
 };
 
 /**
@@ -103,6 +167,7 @@ type FileConfig = Partial<AppConfig> & {
   theme?: { default?: ThemeChoice; force?: boolean };
   adminDefaults?: { username?: string; password?: string };
   offlineReset?: { enabled: boolean };
+  limits?: Limits;
 };
 
 const baseFileConfig: FileConfig = (baseFileConfigJson as unknown as FileConfig) ?? {};
@@ -264,6 +329,51 @@ function buildConfig(): AppConfig {
 
   const featureFlags = mergedFileConfig.featureFlags ?? {};
 
+  const limits: Limits = {
+    routes: {
+      dashboard: mergedFileConfig.limits?.routes?.dashboard ?? true,
+      devices: mergedFileConfig.limits?.routes?.devices ?? false,
+      numbers: mergedFileConfig.limits?.routes?.numbers ?? false,
+      users: mergedFileConfig.limits?.routes?.users ?? true,
+      audit: mergedFileConfig.limits?.routes?.audit ?? false,
+      logins: mergedFileConfig.limits?.routes?.logins ?? false,
+      contacts: mergedFileConfig.limits?.routes?.contacts ?? false,
+      config: mergedFileConfig.limits?.routes?.config ?? false
+    },
+    actions: {
+      numbers: {
+        create: mergedFileConfig.limits?.actions?.numbers?.create ?? false,
+        assign: mergedFileConfig.limits?.actions?.numbers?.assign ?? false,
+        update: mergedFileConfig.limits?.actions?.numbers?.update ?? false,
+        delete: mergedFileConfig.limits?.actions?.numbers?.delete ?? false
+      },
+      devices: {
+        pair: mergedFileConfig.limits?.actions?.devices?.pair ?? false,
+        rename: mergedFileConfig.limits?.actions?.devices?.rename ?? false,
+        toggle: mergedFileConfig.limits?.actions?.devices?.toggle ?? false
+      },
+      users: {
+        editRoles: mergedFileConfig.limits?.actions?.users?.editRoles ?? false,
+        forceLogout: mergedFileConfig.limits?.actions?.users?.forceLogout ?? false
+      },
+      contacts: {
+        sync: mergedFileConfig.limits?.actions?.contacts?.sync ?? false,
+        export: mergedFileConfig.limits?.actions?.contacts?.export ?? false
+      },
+      audit: {
+        export: mergedFileConfig.limits?.actions?.audit?.export ?? false
+      }
+    },
+    realtime: {
+      enabled: mergedFileConfig.limits?.realtime?.enabled ?? true,
+      statusBar: mergedFileConfig.limits?.realtime?.statusBar ?? true
+    },
+    debug: {
+      ui: mergedFileConfig.limits?.debug?.ui ?? false,
+      logs: mergedFileConfig.limits?.debug?.logs ?? false
+    }
+  };
+
   return {
     apiBaseUrl,
     wsPath,
@@ -283,7 +393,8 @@ function buildConfig(): AppConfig {
     realtime,
     contacts,
     logging,
-    telemetry
+    telemetry,
+    limits
   };
 }
 
