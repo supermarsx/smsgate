@@ -1,8 +1,8 @@
 //! syncserver core library modules shared between the binary and tests.
 //! This exposes configuration loading, domain contracts, telemetry, and routing helpers.
 
-pub mod auth;
 pub mod audit;
+pub mod auth;
 pub mod config;
 pub mod domain;
 pub mod error;
@@ -12,8 +12,8 @@ pub mod metrics;
 pub mod pairing;
 pub mod persistence;
 pub mod presence;
-pub mod sim_inventory;
 pub mod routes;
+pub mod sim_inventory;
 pub mod state;
 pub mod telemetry;
 pub mod ws_types;

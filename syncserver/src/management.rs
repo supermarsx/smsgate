@@ -53,9 +53,7 @@ impl NumberStore {
     /// Unassign a device from the number.
     pub fn unassign(&self, e164: &str, device_id: &str) -> Result<NumberRecord, AppError> {
         if let Some(mut entry) = self.numbers.get_mut(e164) {
-            entry
-                .assigned_device_ids
-                .retain(|id| id != device_id);
+            entry.assigned_device_ids.retain(|id| id != device_id);
             if entry.default_device_id.as_deref() == Some(device_id) {
                 entry.default_device_id = entry.assigned_device_ids.first().cloned();
             }
@@ -65,11 +63,7 @@ impl NumberStore {
     }
 
     /// Update metadata for a number.
-    pub fn update(
-        &self,
-        e164: &str,
-        patch: NumberPatch,
-    ) -> Result<NumberRecord, AppError> {
+    pub fn update(&self, e164: &str, patch: NumberPatch) -> Result<NumberRecord, AppError> {
         if let Some(mut entry) = self.numbers.get_mut(e164) {
             if let Some(label) = patch.label {
                 entry.label = Some(label);
@@ -96,11 +90,7 @@ impl NumberStore {
             if entry.shared {
                 return true;
             }
-            if entry
-                .assigned_device_ids
-                .iter()
-                .any(|id| id == device_id)
-            {
+            if entry.assigned_device_ids.iter().any(|id| id == device_id) {
                 return true;
             }
             if entry.default_device_id.as_deref() == Some(device_id) {

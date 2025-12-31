@@ -17,6 +17,19 @@ fn default_persist_states() -> Vec<String> {
     vec!["verified".into(), "rejected".into(), "claimed".into()]
 }
 
+fn default_weak_passwords() -> Vec<String> {
+    vec![
+        "password".into(),
+        "123456".into(),
+        "123456789".into(),
+        "qwerty".into(),
+        "letmein".into(),
+        "admin".into(),
+        "changeme".into(),
+        "welcome".into(),
+    ]
+}
+
 /// Execution environment to allow different defaults and logging levels.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -194,12 +207,17 @@ pub struct AuthConfig {
     pub password_min_entropy_bits: u32,
     /// Maximum password history size to prevent reuse.
     pub password_history_size: u32,
+    /// Simple denylist of weak passwords to reject.
+    #[serde(default = "default_weak_passwords")]
+    pub weak_passwords: Vec<String>,
     /// Maximum consecutive failed attempts before temporary lockout.
     pub max_failed_attempts: u32,
     /// Lockout duration in seconds after exceeding failed attempts.
     pub lockout_secs: u64,
     /// Optional bootstrap admin username (recommended non-default).
     pub bootstrap_admin_username: Option<String>,
+    /// Optional SMTP configuration for password reset emails.
+    pub smtp: Option<SmtpConfig>,
     /// Session TTL seconds for issued user sessions.
     pub session_ttl_secs: u64,
     /// Require TOTP for admin users.
@@ -208,8 +226,28 @@ pub struct AuthConfig {
     pub oauth_issuer: Option<String>,
     /// OAuth audience/client id expected for ID tokens.
     pub oauth_audience: Option<String>,
+    /// HMAC secret used to validate OAuth ID tokens (HS256).
+    pub oauth_hmac_secret: Option<String>,
     /// Domain/LDAP stub shared secret for acceptance (placeholder until real bind).
     pub domain_shared_secret: Option<String>,
+}
+
+/// SMTP configuration for password reset delivery.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SmtpConfig {
+    /// SMTP server hostname.
+    pub server: String,
+    /// SMTP server port.
+    pub port: u16,
+    /// Username for auth.
+    pub username: Option<String>,
+    /// Password/secret for auth.
+    pub password: Option<String>,
+    /// From address used when sending.
+    pub from: String,
+    /// Use TLS (STARTTLS) when connecting.
+    #[serde(default = "default_true")]
+    pub use_tls: bool,
 }
 
 impl Default for AuthConfig {
@@ -221,13 +259,16 @@ impl Default for AuthConfig {
             admin_password_min_length: 16,
             password_min_entropy_bits: 48,
             password_history_size: 5,
+            weak_passwords: default_weak_passwords(),
             max_failed_attempts: 5,
             lockout_secs: 300,
             bootstrap_admin_username: Some("admin".into()),
+            smtp: None,
             session_ttl_secs: 86_400,
             require_admin_totp: true,
             oauth_issuer: None,
             oauth_audience: None,
+            oauth_hmac_secret: None,
             domain_shared_secret: None,
         }
     }
@@ -626,6 +667,39 @@ impl AppConfig {
         if let Ok(secret) = env::var("SYNC_DOMAIN_SHARED_SECRET") {
             self.auth.domain_shared_secret = Some(secret);
         }
+
+        if let Ok(secret) = env::var("SYNC_OAUTH_HMAC_SECRET") {
+            self.auth.oauth_hmac_secret = Some(secret);
+        }
+
+        if let Ok(server) = env::var("SYNC_SMTP_SERVER") {
+            let mut smtp = self.auth.smtp.clone().unwrap_or_else(|| SmtpConfig {
+                server: server.clone(),
+                port: 587,
+                username: None,
+                password: None,
+                from: "syncserver@example.com".into(),
+                use_tls: true,
+            });
+            smtp.server = server;
+            if let Some(port) = env::var("SYNC_SMTP_PORT").ok().and_then(|p| p.parse().ok()) {
+                smtp.port = port;
+            }
+            if let Ok(user) = env::var("SYNC_SMTP_USERNAME") {
+                smtp.username = Some(user);
+            }
+            if let Ok(pass) = env::var("SYNC_SMTP_PASSWORD") {
+                smtp.password = Some(pass);
+            }
+            if let Ok(from) = env::var("SYNC_SMTP_FROM") {
+                smtp.from = from;
+            }
+            if let Ok(use_tls) = env::var("SYNC_SMTP_USE_TLS") {
+                smtp.use_tls =
+                    matches!(use_tls.to_ascii_lowercase().as_str(), "1" | "true" | "yes");
+            }
+            self.auth.smtp = Some(smtp);
+        }
     }
 
     /// Validate the loaded configuration and surface user-friendly errors.
@@ -692,6 +766,69 @@ impl AppConfig {
             return Err(AppError::Validation(
                 "auth.session_ttl_secs must be greater than zero".into(),
             ));
+        }
+        if self.auth.modes.contains(&AuthMode::Oauth) {
+            if self.auth.oauth_issuer.is_none() {
+                return Err(AppError::Validation(
+                    "auth.oauth_issuer is required when oauth mode is enabled".into(),
+                ));
+            }
+            if self.auth.oauth_audience.is_none() {
+                return Err(AppError::Validation(
+                    "auth.oauth_audience is required when oauth mode is enabled".into(),
+                ));
+            }
+            if self.auth.oauth_hmac_secret.is_none() {
+                return Err(AppError::Validation(
+                    "auth.oauth_hmac_secret is required when oauth mode is enabled".into(),
+                ));
+            }
+        }
+        if self.auth.admin_password_min_length < self.auth.password_min_length {
+            return Err(AppError::Validation(
+                "auth.admin_password_min_length must be >= auth.password_min_length".into(),
+            ));
+        }
+        if self.auth.max_failed_attempts == 0 {
+            return Err(AppError::Validation(
+                "auth.max_failed_attempts must be greater than zero".into(),
+            ));
+        }
+        if self.auth.password_history_size == 0 {
+            return Err(AppError::Validation(
+                "auth.password_history_size must be greater than zero".into(),
+            ));
+        }
+        if let Some(smtp) = &self.auth.smtp {
+            if smtp.server.trim().is_empty() {
+                return Err(AppError::Validation("auth.smtp.server is required".into()));
+            }
+            if smtp.from.trim().is_empty() {
+                return Err(AppError::Validation("auth.smtp.from is required".into()));
+            }
+            if smtp.port == 0 {
+                return Err(AppError::Validation(
+                    "auth.smtp.port must be greater than zero".into(),
+                ));
+            }
+            if smtp.username.is_some() && smtp.password.is_none() {
+                return Err(AppError::Validation(
+                    "auth.smtp.password required when username provided".into(),
+                ));
+            }
+        }
+        if self.env == RunEnvironment::Production {
+            if let Some(admin_user) = &self.auth.bootstrap_admin_username {
+                if admin_user.eq_ignore_ascii_case("admin") {
+                    return Err(AppError::Validation(
+                        "bootstrap_admin_username must be non-default in production".into(),
+                    ));
+                }
+            } else {
+                return Err(AppError::Validation(
+                    "bootstrap_admin_username must be set in production".into(),
+                ));
+            }
         }
 
         if matches!(
@@ -829,6 +966,9 @@ impl AppConfig {
             if let Some(history) = auth.password_history_size {
                 self.auth.password_history_size = history;
             }
+            if let Some(weak) = auth.weak_passwords {
+                self.auth.weak_passwords = weak;
+            }
             if let Some(ttl) = auth.session_ttl_secs {
                 self.auth.session_ttl_secs = ttl;
             }
@@ -841,8 +981,14 @@ impl AppConfig {
             if let Some(aud) = auth.oauth_audience.clone() {
                 self.auth.oauth_audience = aud;
             }
+            if let Some(secret) = auth.oauth_hmac_secret.clone() {
+                self.auth.oauth_hmac_secret = secret;
+            }
             if let Some(secret) = auth.domain_shared_secret.clone() {
                 self.auth.domain_shared_secret = secret;
+            }
+            if let Some(smtp) = auth.smtp.clone() {
+                self.auth.smtp = smtp;
             }
         }
 
@@ -1068,12 +1214,15 @@ pub struct PartialAuthConfig {
     pub admin_password_min_length: Option<u32>,
     pub password_min_entropy_bits: Option<u32>,
     pub password_history_size: Option<u32>,
+    pub weak_passwords: Option<Vec<String>>,
     pub max_failed_attempts: Option<u32>,
     pub lockout_secs: Option<u64>,
     pub bootstrap_admin_username: Option<Option<String>>,
+    pub smtp: Option<Option<SmtpConfig>>,
     pub session_ttl_secs: Option<u64>,
     pub require_admin_totp: Option<bool>,
     pub oauth_issuer: Option<Option<String>>,
     pub oauth_audience: Option<Option<String>>,
+    pub oauth_hmac_secret: Option<Option<String>>,
     pub domain_shared_secret: Option<Option<String>>,
 }

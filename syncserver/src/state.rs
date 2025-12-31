@@ -3,10 +3,10 @@ use crate::{
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
-    sim_inventory::SimInventoryStore,
     management::NumberStore,
     persistence::{sql::SqlStore, worker::PersistenceWorker, JsonDb, PersistentStore},
     presence::PresenceStore,
+    sim_inventory::SimInventoryStore,
     ws_types::ServerMessage,
 };
 use std::{

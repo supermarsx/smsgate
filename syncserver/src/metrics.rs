@@ -8,9 +8,7 @@ use axum::{
 };
 #[cfg(target_os = "linux")]
 use prometheus::process_collector::ProcessCollector;
-use prometheus::{
-    opts, Encoder, Gauge, GaugeVec, Histogram, IntCounterVec, Registry, TextEncoder,
-};
+use prometheus::{opts, Encoder, Gauge, GaugeVec, Histogram, IntCounterVec, Registry, TextEncoder};
 
 use crate::{error::AppError, state::AppState};
 
@@ -59,7 +57,9 @@ impl Metrics {
                 "syncserver_ingest_latency_ms",
                 "End-to-end latency between device timestamp and server receipt",
             )
-            .buckets(vec![5.0, 10.0, 25.0, 50.0, 100.0, 250.0, 500.0, 1000.0, 2000.0]),
+            .buckets(vec![
+                5.0, 10.0, 25.0, 50.0, 100.0, 250.0, 500.0, 1000.0, 2000.0,
+            ]),
         )
         .map_err(|err| AppError::Internal(format!("failed to create histogram: {}", err)))?;
         let ws_connections = Gauge::with_opts(opts!(
