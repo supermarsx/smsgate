@@ -1,16 +1,13 @@
 use chrono::Utc;
 use syncserver::domain::{EventSource, EventState, SmsEvent};
-use syncserver::persistence::{
-    sql::{sqlite_url_from_path, SqlStore},
-    PersistentStore,
-};
+use syncserver::persistence::sql::SqlStore;
+use syncserver::persistence::PersistentStore;
 
 #[tokio::test]
 async fn sqlite_store_persists_event() {
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("events.db");
-    let url = sqlite_url_from_path(&path);
-    let store = SqlStore::connect(&url).await.expect("connect sqlite");
+    let store = SqlStore::connect("sqlite::memory:")
+        .await
+        .expect("connect sqlite");
 
     let event = SmsEvent {
         id: "evt-sql".into(),
@@ -28,13 +25,6 @@ async fn sqlite_store_persists_event() {
 
     store.persist_event(&event).await.expect("persist");
 
-    let pool = sqlx::any::AnyPoolOptions::new()
-        .connect(&url)
-        .await
-        .unwrap();
-    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM events")
-        .fetch_one(&pool)
-        .await
-        .unwrap();
+    let count = store.count_events().await.expect("count");
     assert_eq!(count, 1);
 }

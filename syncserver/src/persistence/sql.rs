@@ -22,9 +22,18 @@ impl SqlStore {
         INIT.call_once(|| {
             sqlx::any::install_default_drivers();
         });
-        let pool = AnyPoolOptions::new()
-            .max_connections(5)
-            .connect(url)
+        let mut url_owned = url.to_string();
+        let mut opts = AnyPoolOptions::new().max_connections(5);
+        if url.starts_with("sqlite::memory:") {
+            // Shared cache + single connection so schema persists.
+            if !url.contains("cache=shared") {
+                url_owned = format!("{}?cache=shared", url.trim_end_matches('?'));
+            }
+            opts = opts.max_connections(1);
+        }
+
+        let pool = opts
+            .connect(&url_owned)
             .await
             .map_err(|err| format!("failed to connect sql store: {err}"))?;
 
@@ -75,5 +84,15 @@ impl PersistentStore for SqlStore {
         .await
         .map(|_| ())
         .map_err(|err| format!("failed to persist event: {err}"))
+    }
+}
+
+impl SqlStore {
+    /// Helper used in tests to verify rows written.
+    pub async fn count_events(&self) -> Result<i64, String> {
+        sqlx::query_scalar("SELECT COUNT(*) FROM events")
+            .fetch_one(&self.pool)
+            .await
+            .map_err(|err| format!("count query failed: {err}"))
     }
 }
