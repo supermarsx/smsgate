@@ -9,6 +9,7 @@ use axum::{
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use sha2::{Digest, Sha256};
 
 pub mod rbac;
 pub mod user;
@@ -83,14 +84,20 @@ impl DeviceAuthStore {
     }
 
     pub fn with_token(mut self, device_id: &str, token: &str) -> Self {
-        self.tokens.insert(device_id.to_string(), token.to_string());
+        self.set_token(device_id, token);
         self
+    }
+
+    /// Set a device token (hashed) for validation.
+    pub fn set_token(&self, device_id: &str, token: &str) {
+        let hashed = hash_token(token);
+        self.tokens.insert(device_id.to_string(), hashed);
     }
 
     pub fn validate(&self, device_id: &str, token: &str) -> bool {
         self.tokens
             .get(device_id)
-            .map(|stored| stored == token)
+            .map(|stored| stored == hash_token(token))
             .unwrap_or(false)
     }
 }
@@ -142,6 +149,12 @@ where
             Err((StatusCode::UNAUTHORIZED, "invalid device token".to_string()))
         }
     }
+}
+
+fn hash_token(token: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    hex::encode(hasher.finalize())
 }
 
 /// Permissions list aligned with spec; enforcement pending.
