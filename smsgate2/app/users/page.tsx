@@ -39,6 +39,7 @@ export default function UsersPage() {
   const [pending, setPending] = useState<string | null>(null);
   const [passwords, setPasswords] = useState<Record<string, string>>({});
   const [devicePhones, setDevicePhones] = useState<Record<string, string>>({});
+  const [assignments, setAssignments] = useState<Record<string, { numbers?: string[]; devices?: string[] }>>({});
   const rolesConfig = useMemo(() => ((config?.data as any)?.roles ?? {}) as any, [config]);
   const roleOrder = rolesConfig.order?.length ? rolesConfig.order : DEFAULT_ROLE_ORDER;
   const roleLabels = rolesConfig.labels ?? {};
@@ -47,7 +48,17 @@ export default function UsersPage() {
     if (!session) return;
     setLoading(true);
     listUsers(session)
-      .then(setUsers)
+      .then((rows) => {
+        setUsers(rows);
+        const map: Record<string, { numbers?: string[]; devices?: string[] }> = {};
+        rows.forEach((u: any) => {
+          map[u.id] = {
+            numbers: Array.isArray(u.numbers ?? u.assignedNumbers) ? (u.numbers ?? u.assignedNumbers) : undefined,
+            devices: Array.isArray(u.devices ?? u.assignedDevices) ? (u.devices ?? u.assignedDevices) : undefined
+          };
+        });
+        setAssignments(map);
+      })
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
   }, [session]);
@@ -89,6 +100,31 @@ export default function UsersPage() {
                 {u.devicePhone && (
                   <div className="muted">
                     {t("devicePhone", "Device phone")}: {u.devicePhone}
+                  </div>
+                )}
+                {assignments[u.id]?.numbers && assignments[u.id]?.numbers?.length && (
+                  <div className="muted">
+                    {t("usersAssignedNumbers", "Assigned numbers")}: {assignments[u.id]?.numbers?.join(", ")}
+                  </div>
+                )}
+                {assignments[u.id]?.devices && assignments[u.id]?.devices?.length && (
+                  <div className="muted">
+                    {t("usersAssignedDevices", "Assigned devices")}: {assignments[u.id]?.devices?.join(", ")}
+                  </div>
+                )}
+                {typeof u.lastLogin === "string" && (
+                  <div className="muted">
+                    {t("usersLastLogin", "Last login")}: {u.lastLogin}
+                  </div>
+                )}
+                {typeof u.failedLogins === "number" && (
+                  <div className="muted">
+                    {t("usersFailedLogins", "Failed logins")}: {u.failedLogins}
+                  </div>
+                )}
+                {Array.isArray(u.groups) && (
+                  <div className="muted">
+                    {t("groupsLabel", "Groups")}: {u.groups.join(", ")}
                   </div>
                 )}
               </div>
