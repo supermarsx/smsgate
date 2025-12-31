@@ -60,9 +60,10 @@ class ContactsSyncWorker(appContext: Context, params: WorkerParameters) : Corout
             obj.put("name", name)
             arr.put(obj)
         }
-        payload.put("contacts", arr)
-        payload.put("removed", JSONArray().apply { removed.forEach { put(it) } })
-        val body = payload.toString().toRequestBody(JSON_MEDIA)
+            payload.put("contacts", arr)
+            payload.put("removed", JSONArray().apply { removed.forEach { put(it) } })
+            payload.put("updated_at", System.currentTimeMillis())
+            val body = payload.toString().toRequestBody(JSON_MEDIA)
         val request = Request.Builder()
             .url("$baseUrl/api/v1/device/contacts")
             .addHeader("Authorization", "Bearer $deviceToken")

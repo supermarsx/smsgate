@@ -38,6 +38,10 @@ pub struct SmsEvent {
     pub id: String,
     /// Device identifier from pairing.
     pub device_id: String,
+    /// SIM slot index when provided by device.
+    pub sim_slot_index: Option<u8>,
+    /// SIM ICCID if available.
+    pub iccid: Option<String>,
     /// Destination number (E.164) if known.
     pub number_e164: Option<String>,
     /// Sender string as captured on device.

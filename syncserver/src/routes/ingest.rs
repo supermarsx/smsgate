@@ -34,6 +34,12 @@ pub struct InboundEvent {
     pub id: Option<String>,
     /// Device identifier.
     pub device_id: String,
+    /// SIM slot index if known.
+    pub sim_slot_index: Option<u8>,
+    /// ICCID if known.
+    pub iccid: Option<String>,
+    /// Subscription id from Android if known.
+    pub subscription_id: Option<String>,
     /// Destination number (E.164) if known.
     pub number_e164: Option<String>,
     /// Sender string as captured by device.
@@ -194,6 +200,8 @@ fn build_event(inbound: InboundEvent, now: DateTime<Utc>) -> SmsEvent {
     SmsEvent {
         id: inbound.id.unwrap_or_else(|| Uuid::new_v4().to_string()),
         device_id: inbound.device_id,
+        sim_slot_index: inbound.sim_slot_index,
+        iccid: inbound.iccid,
         number_e164: inbound.number_e164,
         sender: inbound.sender,
         content: content.clone(),

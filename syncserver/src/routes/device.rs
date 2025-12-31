@@ -84,6 +84,7 @@ pub struct DeviceContactsPayload {
     pub contacts: Vec<DeviceContact>,
     #[serde(default)]
     pub removed: Vec<String>,
+    pub updated_at: Option<i64>,
 }
 
 #[derive(Debug, serde::Deserialize)]

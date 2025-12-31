@@ -330,6 +330,18 @@ export class WsClient {
           )
         });
         break;
+      case "SIM_UPDATE":
+        // Map sim updates into presence store if available
+        if (msg.payload?.deviceId) {
+          const existing = this.state.presence[msg.payload.deviceId] ?? { deviceId: msg.payload.deviceId, state: "online" };
+          this.emit({
+            presence: {
+              ...this.state.presence,
+              [msg.payload.deviceId]: { ...existing, simSlots: msg.payload.sims?.map((s: any) => ({ slotId: s.slot_index ?? s.slotId ?? 0, iccid: s.iccid, msisdn: s.msisdn })) }
+            }
+          });
+        }
+        break;
       case "CONFIG_UPDATE":
         if (this.onConfigUpdate) this.onConfigUpdate();
         break;

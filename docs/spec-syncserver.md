@@ -456,12 +456,12 @@ A background worker writes persisted events to DB.
 ### 12.2 Server → client messages
 
 - `WELCOME`
-- `SNAPSHOT { events[], limit, newest_id, oldest_id }`
+- `SNAPSHOT { events[], limit, newest_id, oldest_id, presence[], metrics? }`
 - `EVENT_NEW { event }`
 - `EVENT_UPDATE { id, patch }`
 - `PRESENCE_UPDATE { devices[] }`
-- `SIM_ADDED|SIM_REMOVED|SIM_CHANGED`
-- `CONTACT_UPDATE` (optional)
+- `SIM_UPDATE { device_id, sims[] }` (replaces SIM_ADDED/REMOVED/CHANGED for simplicity)
+- `CONTACT_UPDATE { contact_id, numbers[], name, updated_at }` (optional)
 - `CONFIG_UPDATE { version, patch }`
 - `PAGE { direction, anchor_id, events[], oldest_id, newest_id }`
 - `ERROR`
@@ -471,6 +471,7 @@ A background worker writes persisted events to DB.
 - `SUBSCRIBE { numbers?, states?, sources? }` (optional; default assigned)
 - `PAGE_BEFORE { anchor_id, limit }`
 - `PAGE_AFTER { anchor_id, limit }`
+- `PAGE { before, limit }` (alias)
 - `PING`
 
 ### 12.4 Default paging behavior
@@ -485,8 +486,10 @@ A background worker writes persisted events to DB.
 
 ### 13.1 Auth
 
-- `POST /api/v1/auth/login` (simple\_signin)
-- `POST /api/v1/auth/domain-login` (domain\_signin)
+- `POST /api/v1/auth/login` (simple_signin)
+- `POST /api/v1/auth/simple_signin` (alias)
+- `POST /api/v1/auth/domain-login` (domain_signin)
+- `POST /api/v1/auth/domain_signin` (alias)
 - `GET /api/v1/auth/oidc/*` (oauth callbacks if hosted)
 - `POST /api/v1/auth/2fa/verify`
 - `POST /api/v1/auth/password-reset/request`
@@ -499,12 +502,14 @@ A background worker writes persisted events to DB.
 - `GET /api/v1/devices`
 - `PATCH /api/v1/devices/{id}` (rename)
 - `POST /api/v1/devices/{id}/disable|enable|rotate-token`
+- `GET /api/v1/device/config` (device snapshot with ETag/version)
 
 ### 13.3 Device reporting
 
 - `POST /api/v1/ingest`
 - `POST /api/v1/presence/heartbeat`
 - `POST /api/v1/device/sims`
+- `POST /api/v1/device/contacts`
 
 ### 13.4 Users, numbers, roles
 
@@ -525,6 +530,7 @@ A background worker writes persisted events to DB.
 
 - `GET /api/v1/config`
 - `PATCH /api/v1/config`
+- `GET /api/v1/device/config` (ETag/versioned snapshot for devices)
 
 ---
 

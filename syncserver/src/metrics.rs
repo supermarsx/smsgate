@@ -6,6 +6,7 @@ use axum::{
     http::{header::CONTENT_TYPE, StatusCode},
     response::{IntoResponse, Response},
 };
+use parking_lot::Mutex;
 #[cfg(target_os = "linux")]
 use prometheus::process_collector::ProcessCollector;
 use prometheus::{opts, Encoder, Gauge, GaugeVec, Histogram, IntCounterVec, Registry, TextEncoder};
@@ -36,6 +37,9 @@ pub struct Metrics {
     device_queue_depth: GaugeVec,
     ingest_latency_ms: Histogram,
     ws_connections: Gauge,
+    /// Ring buffer of recent ingest latencies for percentile snapshots.
+    recent_ingest_latencies: Mutex<Vec<f64>>,
+    recent_capacity: usize,
 }
 
 impl Metrics {
@@ -113,6 +117,8 @@ impl Metrics {
             device_queue_depth,
             ingest_latency_ms,
             ws_connections,
+            recent_ingest_latencies: Mutex::new(Vec::with_capacity(512)),
+            recent_capacity: 512,
         })
     }
 
@@ -142,11 +148,26 @@ impl Metrics {
     /// Record end-to-end ingest latency in milliseconds.
     pub fn observe_ingest_latency_ms(&self, latency_ms: f64) {
         self.ingest_latency_ms.observe(latency_ms);
+        let mut guard = self.recent_ingest_latencies.lock();
+        if guard.len() >= self.recent_capacity {
+            guard.remove(0);
+        }
+        guard.push(latency_ms);
     }
 
     /// Set the current WebSocket connection count.
     pub fn observe_ws_connections(&self, count: i64) {
         self.ws_connections.set(count as f64);
+    }
+
+    /// Produce a lightweight snapshot for WS payloads.
+    pub fn snapshot(&self) -> Snapshot {
+        let guard = self.recent_ingest_latencies.lock();
+        let p50 = percentile(&guard, 0.50);
+        let p95 = percentile(&guard, 0.95);
+        Snapshot {
+            ingest_to_dashboard_ms: Some(LatencySummary { p50, p95 }),
+        }
     }
 
     /// Render the registry into Prometheus text format.
@@ -169,6 +190,16 @@ fn normalize_path(path: &str) -> String {
         "/api/v1/healthz" | "/api/v1/readyz" => "api_health".to_string(),
         _ => path.to_string(),
     }
+}
+
+fn percentile(samples: &[f64], quantile: f64) -> Option<f64> {
+    if samples.is_empty() {
+        return None;
+    }
+    let mut sorted = samples.to_vec();
+    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let rank = ((sorted.len() - 1) as f64 * quantile).round() as usize;
+    sorted.get(rank).cloned()
 }
 
 /// Metrics handler returning Prometheus exposition format.

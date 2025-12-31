@@ -140,7 +140,7 @@ async fn send_snapshot(socket: &mut WebSocket, state: &AppState, limit: usize) -
     let oldest_id = events.last().map(|e| e.id.clone());
     let cfg = state.config.read().await;
     let presence = presence_snapshot(state);
-    let metrics = Some(MetricsSnapshot::default());
+    let metrics = Some(state.metrics.snapshot());
     let message = ServerMessage::Snapshot {
         events,
         newest_id,

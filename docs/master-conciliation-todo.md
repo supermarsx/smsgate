@@ -19,7 +19,7 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [ ] Use header `Authorization: Bearer <session>` for WS auth (UI currently passes `?token=` query; server expects header).
 - [ ] Align message names/shapes: UI expects `WELCOME|SNAPSHOT|EVENT_PAGE|PRESENCE_UPDATE|METRICS_UPDATE|CONTACT_UPDATE|CONFIG_UPDATE|ERROR`; server emits `Welcome|Snapshot|Page|PresenceUpdate|SimUpdate|ConfigUpdate|Degraded|Pong` with different casing/fields.
 - [x] Presence snapshot includes SIM snapshots; CONTACT_UPDATE now broadcasts when device uploads contacts.
-- [ ] Add metrics + presence arrays and SIM/number details to Snapshot payload per spec; include e2e latency stats for dashboard status bar (metrics still stubbed).
+- [x] Add metrics snapshot (p50/p95 ingest latency) to WS snapshot; still need e2e latency and UI wiring.
 - [x] Implement SUBSCRIBE/PAGE contract parity: server now accepts SUBSCRIBE (no-op) and PAGE {before,limit} aliases.
 - [ ] Add CONFIG_UPDATE handling: either emit server-side diff with auth mode/role labels or adjust UI to new snapshot shape.
 
@@ -41,12 +41,13 @@ This list captures the blocking gaps between the three codebases and the specs s
 
 ## Event/model parity
 - [ ] Extend `SmsEvent` to carry number/contact name, device id, parsed_code, claimed_by/user metadata, and timestamps needed for dashboard latency chips.
+- [x] Added sim slot/iccid fields to events and SIM_UPDATE handling in UI (still need claimed_by/latency enrichment).
 - [ ] Ensure state transitions (claim/verify/reject) map to UI routes and audit entries; add REST/WS notifications for claimed-by labels.
 - [ ] Expose number assignment/device mapping to support UI filters and ingest ownership checks.
 
 ## Config shape & caching
 - [ ] Align config payload: UI expects `{ version, data: {...}, authModes }` with ETag; server returns `ClientConfigSnapshot` (presence/ingest/hot_store/roles). Decide canonical shape and adjust both UI client and server serializer.
-- [ ] Add If-None-Match/ETag support on `/api/v1/config` responses.
+- [ ] Add If-None-Match/ETag support on `/api/v1/config` responses and ensure CONFIG_UPDATE casing/shape matches spec.
 - [ ] Broadcast CONFIG_UPDATE with the same shape consumed by smsgate2 and smsrelay3.
 
 ## Testing/validation

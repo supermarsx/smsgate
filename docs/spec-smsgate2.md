@@ -9,7 +9,8 @@ Key principles:
 - **Zero‑click realtime** — after login, the verifier sees the dashboard immediately.
 - **Bulma-first UI** with a **glassy** look and **automatic light/dark mode**.
 - **Content is never masked** (always visible).
-- **Admin-configurable everything** — syncserver, smsrelay3, smsgate2 can be configured from the admin UI.
+- **Admin-configurable everything** - syncserver, smsrelay3, smsgate2 can be configured from the admin UI.
+- **Live config + SIM awareness**: smsgate2 receives `CONFIG_UPDATE` and updates auth modes/roles/limits live; events and presence include SIM slot/ICCID data to keep Devices view accurate.
 
 ---
 
@@ -617,4 +618,3 @@ Client → server:
   - errors with correlation ids
 
 smsgate2 must surface key log-derived signals via Audit/Logins and status indicators.
-
