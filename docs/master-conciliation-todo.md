@@ -20,7 +20,7 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [ ] Align message names/shapes: UI expects `WELCOME|SNAPSHOT|EVENT_PAGE|PRESENCE_UPDATE|METRICS_UPDATE|CONTACT_UPDATE|CONFIG_UPDATE|ERROR`; server emits `Welcome|Snapshot|Page|PresenceUpdate|SimUpdate|ConfigUpdate|Degraded|Pong` with different casing/fields.
 - [x] Presence snapshot includes SIM snapshots; CONTACT_UPDATE now broadcasts when device uploads contacts.
 - [ ] Add metrics + presence arrays and SIM/number details to Snapshot payload per spec; include e2e latency stats for dashboard status bar (metrics still stubbed).
-- [ ] Implement SUBSCRIBE/PAGE contract parity: server currently supports `PageBefore/PageAfter`; UI sends `PAGE {before,limit}` and `SUBSCRIBE {numbers}`.
+- [x] Implement SUBSCRIBE/PAGE contract parity: server now accepts SUBSCRIBE (no-op) and PAGE {before,limit} aliases.
 - [ ] Add CONFIG_UPDATE handling: either emit server-side diff with auth mode/role labels or adjust UI to new snapshot shape.
 
 ## Auth/session flows
