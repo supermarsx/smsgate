@@ -1,6 +1,10 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+/**
+ * @fileoverview Devices inventory view with pairing, diagnostics, and actions.
+ */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toDataURL } from "qrcode";
 import { ProtectedShell } from "../../components/protected-shell";
@@ -28,6 +32,7 @@ type DeviceTone = "online" | "degraded" | "offline" | "neutral";
 
 /**
  * Device inventory management with pairing, diagnostics, and actions.
+ * @returns Devices page element.
  */
 export default function DevicesPage() {
   const { session } = useSession();

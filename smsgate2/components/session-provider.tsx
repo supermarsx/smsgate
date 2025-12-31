@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Session provider for managing authentication state and refresh logic.
+ */
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { clearSession, loadSession, refreshSession, sessionExpiresSoon, type Session } from "../lib/auth";
 
@@ -17,6 +21,7 @@ const SessionContext = createContext<SessionContextValue>({
 
 /**
  * Stores the active session, refreshes tokens, and exposes session state to children.
+ * @returns Provider element for session context.
  */
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -53,6 +58,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Hook to access or mutate the current session.
+ * @returns Session context value.
  */
 export function useSession(): SessionContextValue {
   return useContext(SessionContext);
@@ -60,6 +66,7 @@ export function useSession(): SessionContextValue {
 
 /**
  * Hook that throws when a session is not present (use in server-side boundaries).
+ * @returns Active session or throws when missing.
  */
 export function useRequireSession(): Session {
   const { session } = useSession();

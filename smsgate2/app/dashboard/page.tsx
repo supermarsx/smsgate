@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Dashboard streaming view for events, presence, and metrics.
+ */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
@@ -13,6 +17,7 @@ import { mapWsErrorKey } from "../../lib/status";
 
 /**
  * Dashboard streaming view: realtime events feed, presence, and metrics.
+ * @returns Dashboard page element.
  */
 export default function DashboardPage() {
   const { session } = useSession();

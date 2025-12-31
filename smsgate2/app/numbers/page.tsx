@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Number management page for CRUD and assignments.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
@@ -8,6 +12,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 /**
  * Number management page for CRUD and assignment to users/devices.
+ * @returns Numbers page element.
  */
 export default function NumbersPage() {
   const { session } = useSession();

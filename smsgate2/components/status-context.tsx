@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Status context for realtime connection metrics and telemetry logs.
+ */
+
 import { createContext, useContext, useMemo, useState } from "react";
 
 export type StatusSnapshot = {
@@ -27,6 +31,7 @@ const StatusContext = createContext<StatusContextValue>({
 
 /**
  * Provides realtime status snapshots and telemetry logs to consumers.
+ * @returns Provider element for status context.
  */
 export function StatusProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatusState] = useState<StatusSnapshot>({ connected: false, logs: [] });
@@ -52,6 +57,7 @@ export function StatusProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Hook to access websocket status and telemetry.
+ * @returns Status context snapshot and setters.
  */
 export function useStatus(): StatusContextValue {
   return useContext(StatusContext);

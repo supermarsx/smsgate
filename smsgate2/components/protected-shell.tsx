@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Authenticated application shell with navigation, banners, and debug overlay.
+ */
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -18,6 +22,7 @@ type Props = {
 
 /**
  * Authenticated app shell with role-aware navigation, status banner, and logout controls.
+ * @returns Shell layout wrapping protected content.
  */
 export function ProtectedShell({ children }: Props) {
   const { session, setSession } = useSession();

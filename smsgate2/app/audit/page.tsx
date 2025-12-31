@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Audit log table with filtering, paging, and export.
+ */
+
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { useEffect, useMemo, useState } from "react";
@@ -8,6 +12,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 /**
  * Audit log table with filtering, paging, and export.
+ * @returns Audit page element.
  */
 export default function AuditPage() {
   const { session } = useSession();

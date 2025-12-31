@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Login panel supporting SSO, password, domain auth, and reset flows.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { appConfig, wsUrl } from "../lib/config";
 import {
@@ -20,6 +24,7 @@ type Props = {
 
 /**
  * Auth entry UI supporting SSO, username/password, and domain login flows with reset helpers.
+ * @returns Login panel element.
  */
 export function LoginPanel({ onLogin }: Props) {
   const locale = getInitialLocale();

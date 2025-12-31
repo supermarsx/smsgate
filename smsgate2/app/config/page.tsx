@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Config editor with validation, diff preview, and contact utilities.
+ */
+
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { hasAtLeast } from "../../lib/roles";
@@ -11,6 +15,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 /**
  * Configuration editor with validation, diff preview, and contact utilities.
+ * @returns Config page element.
  */
 export default function ConfigPage() {
   const { session } = useSession();

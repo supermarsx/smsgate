@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Lightweight scanner to flag likely hardcoded UI strings that should be localized.
+ * @fileoverview Scanner to flag likely hardcoded UI strings that should be localized.
  * It looks for JSX text nodes and attribute string literals with readable words.
  */
 const fs = require("fs");
@@ -12,6 +12,7 @@ const results = [];
 /**
  * Walk a directory tree collecting TSX files to scan.
  * @param {string} dir absolute directory path
+ * @returns {void}
  */
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -31,6 +32,7 @@ const ATTR_TEXT = /\b(?:title|aria-label|placeholder|alt|label)=["']([^{"'<]{3,}
 /**
  * Scan a TSX file for likely hardcoded UI strings.
  * @param {string} file absolute file path
+ * @returns {void}
  */
 function scanFile(file) {
   const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
@@ -52,6 +54,7 @@ function scanFile(file) {
 /**
  * Skip noise and non-language strings.
  * @param {string} text candidate string content
+ * @returns {boolean} True when the string should be ignored.
  */
 function shouldSkip(text) {
   if (!/[A-Za-z]/.test(text)) return true;

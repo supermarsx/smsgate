@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Theme provider for light/dark mode persistence and toggling.
+ */
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "dark" | "light";
@@ -18,6 +22,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 /**
  * Provides light/dark theme state and persists preference.
+ * @returns Provider element for theme context.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
@@ -51,6 +56,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Hook to read and toggle the current theme.
+ * @returns Theme context value with toggle handler.
  */
 export function useTheme(): ThemeContextValue {
   return useContext(ThemeContext);

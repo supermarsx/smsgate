@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Login page with OAuth callback handling and session hydration.
+ */
+
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoginPanel } from "../../components/login-panel";
@@ -9,6 +13,7 @@ import { getTranslations, getInitialLocale } from "../../lib/i18n";
 
 /**
  * OAuth callback-aware login page that hydrates sessions and renders login panel.
+ * @returns Login body element.
  */
 function LoginBody() {
   const router = useRouter();
@@ -62,6 +67,10 @@ function LoginBody() {
   );
 }
 
+/**
+ * Login page entry with suspense fallback.
+ * @returns Login page element.
+ */
 export default function LoginPage() {
   const fallbackDict = getTranslations(getInitialLocale());
   const fallbackText = fallbackDict.loading ?? "Loading...";

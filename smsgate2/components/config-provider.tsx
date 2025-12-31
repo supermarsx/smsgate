@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Config context provider that loads remote settings and syncs role metadata.
+ */
+
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ConfigPayload } from "../lib/rest";
 import { fetchConfig } from "../lib/rest";
@@ -22,6 +26,7 @@ const ConfigContext = createContext<ConfigContextValue>({
 
 /**
  * Loads remote configuration, exposes it via context, and keeps role settings in sync.
+ * @returns Provider element supplying configuration context.
  */
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
   const { session } = useSession();
@@ -72,6 +77,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Access the current configuration context.
+ * @returns Current configuration value with refresh helper.
  */
 export function useConfig(): ConfigContextValue {
   return useContext(ConfigContext);

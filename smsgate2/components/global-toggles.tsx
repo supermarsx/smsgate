@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Floating global toggles for theme and locale selection.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "./theme";
 import {
@@ -19,6 +23,7 @@ const LOCALE_LABELS: Record<string, string> = {
 
 /**
  * Floating UI for theme switch and locale selection.
+ * @returns Toggle bar element.
  */
 export function GlobalToggles() {
   const { theme, toggle } = useTheme();

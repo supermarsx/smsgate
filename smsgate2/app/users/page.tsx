@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Users page for roles, status toggles, logout/unlock, and credentials.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
@@ -19,6 +23,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 /**
  * User management page for roles, status toggles, logout/unlock, and credentials.
+ * @returns Users page element.
  */
 export default function UsersPage() {
   const { session } = useSession();

@@ -1,11 +1,16 @@
 "use client";
 
+/**
+ * @fileoverview Compact websocket status indicator with expandable metrics.
+ */
+
 import { useMemo, useState } from "react";
 import { useStatus } from "./status-context";
 import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
 
 /**
  * Compact websocket status indicator with expandable metrics.
+ * @returns Status bar element or null when no status.
  */
 export function StatusBar() {
   const status = useStatus();

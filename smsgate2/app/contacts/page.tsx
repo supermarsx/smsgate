@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Contacts management view with sync toggles and conflict handling.
+ */
+
 import { useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
@@ -12,6 +16,7 @@ type ContactRecord = Record<string, unknown>;
 
 /**
  * Contact sync controls with conflict resolution and export.
+ * @returns Contacts page element.
  */
 export default function ContactsPage() {
   const { session } = useSession();

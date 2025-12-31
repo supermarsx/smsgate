@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @fileoverview Login events history with filters and export tools.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
@@ -8,6 +12,7 @@ import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 /**
  * Login events history with filters and CSV/JSON export.
+ * @returns Logins page element.
  */
 export default function LoginsPage() {
   const { session } = useSession();
