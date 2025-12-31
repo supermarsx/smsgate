@@ -22,6 +22,7 @@ pub(crate) struct HealthResponse {
 #[derive(Serialize)]
 pub(crate) struct ReadyChecks {
     http: &'static str,
+    config: &'static str,
     storage: &'static str,
     hot_store: &'static str,
 }
@@ -64,12 +65,16 @@ pub async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
 /// Readiness probe handler with backend summaries.
 pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
     let snapshot = state.ready_flags.snapshot();
-    let status = if snapshot.http_ready && snapshot.hot_store_ready && snapshot.storage_ready {
+    let status = if snapshot.http_ready
+        && snapshot.config_ready
+        && snapshot.hot_store_ready
+        && snapshot.storage_ready
+    {
         "ready"
     } else {
         "initializing"
     };
-    let status_code = if snapshot.http_ready {
+    let status_code = if snapshot.http_ready && snapshot.config_ready {
         StatusCode::OK
     } else {
         StatusCode::SERVICE_UNAVAILABLE
@@ -84,6 +89,7 @@ pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
         },
         checks: ReadyChecks {
             http: readiness_label(snapshot.http_ready),
+            config: readiness_label(snapshot.config_ready),
             storage: readiness_label(snapshot.storage_ready),
             hot_store: readiness_label(snapshot.hot_store_ready),
         },
