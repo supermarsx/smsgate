@@ -181,7 +181,7 @@ export function ProtectedShell({ children }: Props) {
                 🛠
               </button>
               <button
-                className="ghost icon icon-themed"
+                className="ghost icon icon-themed danger"
                 onClick={() => setConfirmLogout(true)}
                 title={t("logout", "Logout")}
               >
@@ -198,7 +198,7 @@ export function ProtectedShell({ children }: Props) {
           <div className="modal-backdrop" role="dialog" aria-modal="true">
             <div className="modal-card glass">
               <div className="modal-head">
-                <div className="modal-icon">⎋</div>
+                <div className="modal-icon danger">⎋</div>
                 <div>
                   <div className="gg-title small">{t("logout", "Logout")}</div>
                   <p className="gg-subtitle">{t("logoutConfirm", "Are you sure you want to log out?")}</p>

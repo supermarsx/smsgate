@@ -1036,11 +1036,11 @@ a {
   width: min(480px, 100%);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
-  background: var(--panel-2);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)), var(--panel-2);
   box-shadow: var(--shadow-2);
-  padding: 18px 18px 14px;
+  padding: 18px 18px 16px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .modal-card .actions {
@@ -1050,6 +1050,35 @@ a {
 
 .modal-card .actions.end {
   justify-content: flex-end;
+}
+
+.modal-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.modal-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(76, 201, 255, 0.12);
+  color: var(--primary);
+  font-size: 20px;
+  border: 1px solid rgba(76, 201, 255, 0.22);
+}
+
+.modal-icon.danger {
+  background: rgba(255, 92, 122, 0.12);
+  color: var(--danger);
+  border-color: rgba(255, 92, 122, 0.35);
+}
+
+.modal-card .primary.strong {
+  box-shadow: 0 10px 28px rgba(76, 201, 255, 0.22);
 }
 
 .status-row {
@@ -1266,6 +1295,33 @@ a {
   padding: 10px 12px;
   min-width: 0;
   font-size: 16px;
+}
+
+.icon-themed {
+  color: var(--primary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.icon-themed:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+
+.icon-themed.danger {
+  color: var(--danger);
+  border-color: rgba(255, 92, 122, 0.35);
+  background: rgba(255, 92, 122, 0.08);
+}
+
+.icon-themed.danger:hover {
+  box-shadow: 0 10px 24px rgba(255, 92, 122, 0.22);
 }
 
 @media (max-width: 960px) {
