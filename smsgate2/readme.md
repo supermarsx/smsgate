@@ -26,7 +26,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 
 - `docker build -f Dockerfile -t smsgate2:local .` to build the app image.
 - `docker-compose up` (repo root) brings up smsgate2 + mock syncserver (Wiremock) + Redis + Postgres; drop Wiremock stubs into `docs/mock-syncserver`.
-- Copy `.env.example` to `.env.local` or set `NEXT_PUBLIC_*` env vars for your environment. You can also drop a JSON config instead of envs (see below).
+- Copy `.env.example` to `.env.local` or set `NEXT_PUBLIC_*` env vars for your environment. You can also drop a JSON config instead of envs (see below). Use `NEXT_PUBLIC_SMTP_ENABLED=false` to disable email delivery without touching the JSON files.
 - The image copies `config/` and `locales/` so they can be volume-mounted for overrides (see `docker-compose.yml` volumes).
 
 ## Notes
@@ -47,10 +47,11 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
     - `allowOfflineAdmin` (bool): allow default admin to log in locally when the backend is unreachable (typically enable in dev).
     - `authModes` (object): booleans `oauth`, `simpleSignin`, `domainSignin` to gate UI flows.
     - `primaryAuthMode` (string): preferred default mode (`oauth` | `simple_signin` | `domain_signin`); falls back to first enabled.
-    - `smtp` (object, optional): `host`, `port`, `secure`, `username`, `password`, `fromEmail` for email-based reset.
+    - `smtp` (object, optional): `enabled` (bool), `host`, `port`, `secure`, `username`, `password`, `fromEmail` for email-based reset; UI disables reset emails when false.
     - `offlineReset` (object, optional): `enabled` (bool) plus `defaultAdminUsername`/`defaultAdminPassword` for offline token resets.
     - `locales` (array): allowed locale codes.
     - `defaultLocale` (string): default locale (must exist in `locales`).
+    - Email templates live in `templates/email/*.html` (reset + verification examples) and can be mounted alongside config.
   - Example (see checked-in files):
     ```json
     {
@@ -61,6 +62,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
       "authModes": { "oauth": true, "simpleSignin": true, "domainSignin": false },
       "primaryAuthMode": "simple_signin",
       "smtp": {
+        "enabled": true,
         "host": "localhost",
         "port": 1025,
         "secure": false,

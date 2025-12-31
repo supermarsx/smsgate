@@ -5,6 +5,7 @@
   "qrOrigin": "https://api.qrserver.com",
   "allowOfflineAdmin": false,
   "smtp": {
+    "enabled": true,
     "host": "smtp.example.com",
     "port": 587,
     "secure": false,
