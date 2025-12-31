@@ -45,27 +45,27 @@
 :root[data-theme="light"],
 body[data-theme="light"] {
   color-scheme: light;
-  --bg: #f6f7fa;
-  --bg-2: #ffffff;
-  --panel: rgba(255, 255, 255, 0.72);
-  --panel-2: rgba(240, 242, 246, 0.82);
-  --panel-solid: #ffffff;
+  --bg: #fdf8f1;
+  --bg-2: #fff7e6;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-2: rgba(255, 248, 232, 0.92);
+  --panel-solid: #fffdf6;
 
-  --border: rgba(18, 24, 38, 0.1);
-  --border-strong: rgba(18, 24, 38, 0.16);
+  --border: rgba(180, 140, 60, 0.2);
+  --border-strong: rgba(180, 140, 60, 0.35);
 
-  --text: #121826;
-  --text-2: #3a455a;
-  --text-3: #66728a;
+  --text: #2c1f0f;
+  --text-2: #5c4425;
+  --text-3: #8a6b3d;
 
-  --primary: #1fa7e6;
-  --info: #4658f0;
-  --success: #0dba8c;
-  --warning: #d79a2c;
-  --danger: #e13e5b;
+  --primary: #d9a441;
+  --info: #8c6dd1;
+  --success: #2f9e6a;
+  --warning: #e0a500;
+  --danger: #d44b5a;
 
-  --shadow-1: 0 10px 28px rgba(18, 24, 38, 0.1);
-  --shadow-2: 0 6px 18px rgba(18, 24, 38, 0.08);
+  --shadow-1: 0 10px 28px rgba(192, 140, 60, 0.18);
+  --shadow-2: 0 6px 18px rgba(192, 140, 60, 0.12);
 
   --blur: 14px;
 
@@ -84,7 +84,7 @@ body[data-theme="light"] {
 
 body {
   margin: 0;
-  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 38%, #0a0d12 100%);
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 38%, var(--bg) 100%);
   color: var(--text);
   font-family: var(--font);
   min-height: 100vh;
