@@ -318,6 +318,13 @@ a {
   color: var(--text-3);
 }
 
+.helper-text {
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 4px 0 8px 0;
+}
+
 .reset-row {
   display: flex;
   gap: 8px;

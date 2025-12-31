@@ -12,6 +12,7 @@ import { updateConfig } from "../../lib/rest";
 import { useMemo, useState } from "react";
 import { fetchContacts, exportContacts, toggleContactSync } from "../../lib/rest";
 import { getTranslations, useLocale } from "../../lib/i18n";
+import { validateConfigShape } from "../../lib/config-validators";
 
 /**
  * Configuration editor with validation, diff preview, and contact utilities.
@@ -51,28 +52,13 @@ export default function ConfigPage() {
   const jsonPreview = draft || (config ? JSON.stringify(config.data ?? config, null, 2) : "");
   const beforeConfig = config?.data ?? config ?? {};
 
-  function validateShape(parsed: any): string[] {
-    const issues: string[] = [];
-    if (!parsed || typeof parsed !== "object") issues.push("Config must be a JSON object");
-    if (!parsed.authModes || typeof parsed.authModes !== "object") issues.push("authModes missing");
-    if (parsed.authModes) {
-      ["oauth", "simpleSignin", "domainSignin"].forEach((key) => {
-        if (typeof parsed.authModes[key] !== "boolean") issues.push(`authModes.${key} must be boolean`);
-      });
-    }
-    if (!parsed.presence || typeof parsed.presence !== "object") issues.push("presence thresholds missing");
-    if (!parsed.retention || typeof parsed.retention !== "object") issues.push("retention missing");
-    if (parsed.roles && !Array.isArray(parsed.roles.order)) issues.push("roles.order must be an array when provided");
-    return issues;
-  }
-
   async function handleSave() {
     if (!config || !canEdit) return;
     setSaving(true);
     try {
       const parsed = draft ? JSON.parse(draft) : (config.data ?? config);
       setParseError(null);
-      const shapeIssues = validateShape(parsed);
+      const shapeIssues = validateConfigShape(parsed as any);
       setShapeErrors(shapeIssues);
       if (shapeIssues.length) {
         throw new Error("Config shape invalid");
@@ -91,7 +77,7 @@ export default function ConfigPage() {
     try {
       const parsed = JSON.parse(next);
       setParseError(null);
-      const shapeIssues = validateShape(parsed);
+      const shapeIssues = validateConfigShape(parsed as any);
       setShapeErrors(shapeIssues);
       const diffKeys = Object.keys(parsed).filter(
         (k) => JSON.stringify((beforeConfig as any)[k]) !== JSON.stringify(parsed[k])
@@ -125,10 +111,10 @@ export default function ConfigPage() {
           <div className="gg-section__title">{t("configSections", "Sections")}</div>
           <div className="config-grid">
             <div>
-              <div className="gg-label">{t("configAuthModesLabel", "Auth modes")}</div>
+              <div className="gg-label" title={t("configAuthHelp", "Toggle auth methods available to users")}>{t("configAuthModesLabel", "Auth modes")}</div>
               <div className="config-fields">
                 {(["oauth", "simpleSignin", "domainSignin"] as const).map((key) => (
-                  <label key={key} className="checkbox-row">
+                  <label key={key} className="checkbox-row" title={key}>
                     <input
                       type="checkbox"
                       checked={(authModesDraft ?? (beforeConfig as any).authModes ?? {})[key] ?? false}
@@ -144,10 +130,11 @@ export default function ConfigPage() {
               </div>
             </div>
             <div>
-              <div className="gg-label">{t("configRbac", "RBAC mapping")}</div>
-              <div className="muted small">{t("configRbacOrder", "Role order and labels")}</div>
+              <div className="gg-label" title={t("configRbacHelp", "Role order controls precedence; labels shown in UI")}>{t("configRbac", "RBAC mapping")}</div>
+              <div className="helper-text">{t("configRbacOrder", "Role order and labels")}</div>
               <input
                 className="gg-input"
+                aria-label={t("configRbacOrder", "Role order and labels")}
                 disabled={!canEdit}
                 defaultValue={((beforeConfig as any).roles?.order ?? []).join(",")}
                 onBlur={(e) => {
@@ -158,7 +145,7 @@ export default function ConfigPage() {
               />
             </div>
             <div>
-              <div className="gg-label">{t("configWs", "Realtime & WS")}</div>
+              <div className="gg-label" title={t("configWsHelp", "WS/backfill, presence and paging knobs")}>{t("configWs", "Realtime & WS")}</div>
               <div className="config-fields">
                 <label className="gg-label">{t("configSnapshot", "Snapshot size")}</label>
                 <input
@@ -185,9 +172,10 @@ export default function ConfigPage() {
               </div>
             </div>
             <div>
-              <div className="gg-label">{t("configRetention", "Retention")}</div>
+              <div className="gg-label" title={t("configRetentionHelp", "Redis TTLs / DB persistence knobs")}>{t("configRetention", "Retention")}</div>
               <textarea
                 className="gg-textarea"
+                aria-label={t("configRetention", "Retention")}
                 disabled={!canEdit}
                 defaultValue={JSON.stringify((beforeConfig as any).retention ?? {}, null, 2)}
                 onBlur={(e) => {
@@ -202,9 +190,10 @@ export default function ConfigPage() {
               />
             </div>
             <div>
-              <div className="gg-label">{t("configRelay", "smsrelay3 policies")}</div>
+              <div className="gg-label" title={t("configRelayHelp", "Heartbeat, retry, queue, ingest policies")}>{t("configRelay", "smsrelay3 policies")}</div>
               <textarea
                 className="gg-textarea"
+                aria-label={t("configRelay", "smsrelay3 policies")}
                 disabled={!canEdit}
                 defaultValue={JSON.stringify((beforeConfig as any).relay ?? (beforeConfig as any).smsrelay3 ?? {}, null, 2)}
                 onBlur={(e) => {
@@ -219,9 +208,10 @@ export default function ConfigPage() {
               />
             </div>
             <div>
-              <div className="gg-label">{t("configContact", "Contact sync")}</div>
+              <div className="gg-label" title={t("configContactHelp", "Contact sync enable/interval/conflict policies")}>{t("configContact", "Contact sync")}</div>
               <textarea
                 className="gg-textarea"
+                aria-label={t("configContact", "Contact sync")}
                 disabled={!canEdit}
                 defaultValue={JSON.stringify((beforeConfig as any).contacts ?? {}, null, 2)}
                 onBlur={(e) => {
@@ -256,15 +246,18 @@ export default function ConfigPage() {
             value={jsonPreview}
             onChange={(e) => handleDraftChange(e.target.value)}
             readOnly={!canEdit}
+            aria-label={t("configRawJson", "Raw config JSON")}
+            aria-invalid={parseError ? "true" : "false"}
+            aria-describedby={parseError ? "config-errors" : undefined}
             rows={12}
           />
           {parseError && (
-            <div className="login-error">
+            <div className="login-error" role="alert" id="config-errors">
               {t("configDraftInvalid", "Draft invalid")}: {parseError}
             </div>
           )}
           {shapeErrors.length > 0 && !parseError && (
-            <div className="login-error">
+            <div className="login-error" role="alert" id="config-shape-errors">
               {t("configShapeIssues", "Config shape issues")}:
               <ul>
                 {shapeErrors.map((err) => (
