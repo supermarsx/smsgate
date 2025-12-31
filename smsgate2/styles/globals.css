@@ -776,17 +776,23 @@ a {
 
 .filters-inline {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: flex-end;
-  margin: 6px 0 10px;
+  margin: 4px 0 10px;
 }
 
 .filter-group {
   display: grid;
-  gap: 4px;
-  min-width: 140px;
+  gap: 3px;
+  min-width: 130px;
   flex: 1;
+}
+
+.filters-inline .gg-input,
+.filters-inline .gg-select {
+  padding: 7px 9px;
+  font-size: 12px;
 }
 
 .audit-filters {
@@ -1058,6 +1064,10 @@ a {
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
   box-shadow: none;
+  border-radius: 12px;
+  padding: 9px 14px;
+  min-height: 38px;
+  cursor: pointer;
 }
 
 .modal-card .primary {
