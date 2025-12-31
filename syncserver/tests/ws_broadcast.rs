@@ -12,7 +12,6 @@ use syncserver::{
     state::AppState,
     ws_types::ServerMessage,
 };
-use tokio::task::JoinHandle;
 use tower::ServiceExt;
 
 fn app_with_state(state: AppState) -> Router {

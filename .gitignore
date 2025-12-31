@@ -4,3 +4,4 @@
 /smsgate2/coverage
 /smsgate2/.env.local
 /smsrelay3/android/.kotlin
+/syncserver/false
