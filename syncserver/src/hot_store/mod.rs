@@ -11,6 +11,8 @@ use tokio::sync::Mutex;
 
 use crate::domain::SmsEvent;
 
+pub mod redis_store;
+
 /// Default ring buffer capacity for the in-memory hot store.
 const DEFAULT_CAPACITY: usize = 1_000;
 
