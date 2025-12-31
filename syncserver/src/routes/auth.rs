@@ -1,18 +1,18 @@
 //! Authentication endpoints for simple_signin, domain_signin, and OAuth callbacks.
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    extract::{FromRef, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
 use serde::Deserialize;
 use totp_rs::{Algorithm, Secret, TOTP};
+use tracing;
 
 use crate::{
-    auth::{
-        domain::authenticate_domain,
-        oauth::validate_id_token,
-        session::SessionStore,
-        users::{UserStore},
-        AuthContext, Principal,
-    },
-    config::{AuthMode},
+    auth::{domain::authenticate_domain, oauth::validate_id_token, users::UserStore, Principal},
+    config::AuthMode,
     error::AppError,
     state::AppState,
 };
@@ -57,7 +57,8 @@ pub async fn login(
     let principal = match payload.mode {
         AuthMode::SimpleSignin => {
             let store = UserStore::from_ref(&state);
-            let user = store.authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
+            let user = store
+                .authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
                 .map_err(|err| AppError::Validation(err.to_string()))?;
             enforce_totp(cfg, &user, payload.totp_code.as_deref())?;
             Principal::from(user)
@@ -113,27 +114,71 @@ pub struct LogoutRequest {
     pub session_token: String,
 }
 
+/// Request body for password reset.
+#[derive(Debug, Deserialize)]
+pub struct PasswordResetRequest {
+    pub username: String,
+}
+
+/// Request body for password reset confirmation.
+#[derive(Debug, Deserialize)]
+pub struct PasswordResetConfirmRequest {
+    pub token: String,
+    pub new_password: String,
+}
+
+/// POST /api/v1/auth/password_reset/request
+pub async fn request_password_reset(
+    State(state): State<AppState>,
+    Json(payload): Json<PasswordResetRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let token = state
+        .user_store
+        .issue_reset_token(&payload.username)
+        .map_err(|err| AppError::Validation(err.to_string()))?;
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({ "reset_token": token })),
+    ))
+}
+
+/// POST /api/v1/auth/password_reset/confirm
+pub async fn confirm_password_reset(
+    State(state): State<AppState>,
+    Json(payload): Json<PasswordResetConfirmRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    state
+        .user_store
+        .reset_password(&payload.token, &payload.new_password)?;
+    Ok((StatusCode::OK, Json(serde_json::json!({ "status": "ok" }))))
+}
+
 fn enforce_totp(
     cfg: &crate::config::AppConfig,
     user: &crate::auth::users::UserRecord,
     provided_code: Option<&str>,
 ) -> Result<(), AppError> {
     if cfg.auth.require_admin_totp && user.role.name == "admin" {
-        let secret = user
-            .totp_secret
-            .as_ref()
-            .ok_or_else(|| AppError::Validation("totp required".into()))?;
-        let totp = TOTP::new(
-            Algorithm::SHA1,
-            6,
-            1,
-            30,
-            Secret::Encoded(secret.to_string()).to_bytes().map_err(|_| AppError::Validation("invalid totp secret".into()))?,
-        )
-        .map_err(|_| AppError::Validation("invalid totp".into()))?;
-        let code = provided_code.ok_or_else(|| AppError::Validation("totp code required".into()))?;
-        if !totp.check_current(code).unwrap_or(false) {
-            return Err(AppError::Validation("invalid totp code".into()));
+        if let Some(secret) = user.totp_secret.as_ref() {
+            let totp = TOTP::new(
+                Algorithm::SHA1,
+                6,
+                1,
+                30,
+                Secret::Encoded(secret.to_string())
+                    .to_bytes()
+                    .map_err(|_| AppError::Validation("invalid totp secret".into()))?,
+                Some("syncserver".into()),
+                user.username.clone(),
+            )
+            .map_err(|_| AppError::Validation("invalid totp".into()))?;
+            let code =
+                provided_code.ok_or_else(|| AppError::Validation("totp code required".into()))?;
+            if !totp.check_current(code).unwrap_or(false) {
+                return Err(AppError::Validation("invalid totp code".into()));
+            }
+        } else {
+            tracing::warn!("admin login without totp secret configured");
         }
     }
     Ok(())

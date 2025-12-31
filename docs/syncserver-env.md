@@ -21,6 +21,11 @@ Runtime flags are read from `config/config.json` (see `syncserver/config/config.
 - `SYNC_DB_URL` (required for `postgres`/`mysql`; optional for `sqlite`): database connection string.
 - `SYNC_DB_PATH` (`data/syncserver.json` when using `json_db`; optional for `sqlite`): file path for file-backed adapters.
 - `SYNC_AUTH_MODES` (`simple_signin`): comma-separated list of enabled auth modes (`oauth`, `simple_signin`, `domain_signin`).
+- `SYNC_AUTH_PASSWORD_PEPPER` (optional): pepper appended to passwords before hashing with Argon2.
+- `SYNC_SESSION_TTL_SECS` (`86400`): session lifetime for issued user sessions.
+- `SYNC_REQUIRE_ADMIN_TOTP` (`true`): require TOTP for admin logins when a secret is configured.
+- `SYNC_OAUTH_ISSUER` / `SYNC_OAUTH_AUDIENCE` (optional): expected issuer and audience for OAuth/OIDC callbacks.
+- `SYNC_DOMAIN_SHARED_SECRET` (optional): placeholder shared secret for domain_signin acceptance.
 - `SYNC_PRESENCE_ONLINE_MS` (`20000`): heartbeat threshold (ms) for online status.
 - `SYNC_PRESENCE_DEGRADED_MS` (`60000`): heartbeat threshold (ms) for degraded status (above is offline).
 - `SYNC_PAIRING_SESSION_TTL_SECS` (`600`): pairing session expiry in seconds.

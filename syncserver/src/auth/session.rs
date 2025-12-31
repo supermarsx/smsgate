@@ -1,5 +1,6 @@
 //! Session management for user principals.
 
+use axum::extract::FromRef;
 use chrono::{DateTime, Duration, Utc};
 use dashmap::DashMap;
 use rand_core::{OsRng, RngCore};
@@ -62,8 +63,15 @@ impl SessionStore {
     }
 }
 
-fn generate_token() -> String {
+/// Generate a cryptographically random token.
+pub fn generate_token() -> String {
     let mut bytes = [0u8; 32];
     OsRng.fill_bytes(&mut bytes);
     hex::encode(bytes)
+}
+
+impl FromRef<crate::state::AppState> for std::sync::Arc<SessionStore> {
+    fn from_ref(state: &crate::state::AppState) -> Self {
+        state.session_store.clone()
+    }
 }

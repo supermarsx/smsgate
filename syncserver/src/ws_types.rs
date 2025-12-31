@@ -71,6 +71,8 @@ pub struct PagePayload {
 pub enum ClientMessage {
     /// Client requests a pong.
     Ping,
+    /// Client requests a refresh of config snapshot.
+    ConfigRefresh,
     /// Request a page of events older than the given anchor.
     PageBefore {
         anchor_id: String,

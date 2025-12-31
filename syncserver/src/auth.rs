@@ -14,12 +14,12 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
+pub mod domain;
+pub mod oauth;
 pub mod rbac;
 pub mod session;
 pub mod user;
 pub mod users;
-pub mod oauth;
-pub mod domain;
 
 /// Actor types recognized by the system.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

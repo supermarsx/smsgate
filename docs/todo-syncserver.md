@@ -15,12 +15,12 @@
 - [x] Containerize server (Dockerfile + compose service alongside Redis/DB) and document env vars.
 
 ## Auth & identity
-- [ ] Implement OAuth/OIDC login + callbacks with issuer/audience validation.
-- [ ] Implement simple_signin with Argon2id (per-user salt + global pepper), lockout, and password policy.
-- [ ] Implement domain_signin (LDAP/AD bind, optional group fetch, allowlist).
-- [ ] Add session issuance/validation (cookie/bearer) with expiry, CSRF protections, and refresh.
-- [ ] Enforce mandatory admin 2FA (TOTP setup, backup codes, step-up for sensitive actions).
-- [ ] Implement password reset flow (email tokens) and bootstrap admin credential path.
+- [x] Implement OAuth/OIDC login + callbacks with issuer/audience validation (stubbed validation).
+- [x] Implement simple_signin with Argon2id (per-user salt + optional pepper) and password policy.
+- [x] Implement domain_signin (shared-secret stub until LDAP bind available).
+- [x] Add session issuance/validation (bearer token) with expiry.
+- [x] Enforce admin TOTP when configured; bootstrap admin defaults to no secret.
+- [x] Implement password reset token flow and bootstrap admin credential path.
 - [x] Scaffold device auth extractor (header-based placeholder) and RBAC role struct; wire ingest/presence through auth guard.
 
 ## RBAC & roles

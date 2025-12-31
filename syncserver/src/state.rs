@@ -1,5 +1,5 @@
 use crate::{
-    auth::{rbac::RbacStore, DeviceAuthStore},
+    auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
     persistence::{worker::PersistenceWorker, JsonDb, PersistentStore},
@@ -97,6 +97,10 @@ pub struct AppState {
     pub persistence_worker: PersistenceWorker,
     /// Pairing store for session lifecycle.
     pub pairing_store: Arc<crate::pairing::PairingStore>,
+    /// Session store for user principals.
+    pub session_store: Arc<SessionStore>,
+    /// Local user store for simple_signin.
+    pub user_store: Arc<UserStore>,
 }
 
 impl AppState {
@@ -165,6 +169,18 @@ impl AppState {
         let rbac = Arc::new(RbacStore::from_config(&config.rbac));
         let persistence_worker = PersistenceWorker::new(persistence.clone());
         let pairing_store = Arc::new(crate::pairing::PairingStore::new(config.pairing.clone()));
+        let session_store = Arc::new(crate::auth::session::SessionStore::new(&config.auth));
+        let roles: Vec<crate::auth::Role> = config
+            .rbac
+            .roles
+            .iter()
+            .map(|role| crate::auth::Role {
+                name: role.name.clone(),
+                precedence: role.precedence,
+                permissions: role.permissions.clone(),
+            })
+            .collect();
+        let user_store = Arc::new(crate::auth::users::UserStore::new(&config.auth, &roles));
 
         Self {
             config: versioned_config,
@@ -181,6 +197,8 @@ impl AppState {
             rbac,
             persistence_worker,
             pairing_store,
+            session_store,
+            user_store,
         }
     }
 

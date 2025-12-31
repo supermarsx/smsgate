@@ -13,7 +13,10 @@ use crate::auth::{AuthContext, Principal};
 pub struct UserAuth(pub AuthContext);
 
 impl UserAuth {
-    fn session_from_headers(headers: &axum::http::HeaderMap, sessions: &SessionStore) -> Option<AuthContext> {
+    fn session_from_headers(
+        headers: &axum::http::HeaderMap,
+        sessions: &SessionStore,
+    ) -> Option<AuthContext> {
         let token = headers
             .get(axum::http::header::AUTHORIZATION)
             .and_then(|v| v.to_str().ok())

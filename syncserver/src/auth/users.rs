@@ -1,6 +1,7 @@
 //! Simple user store for local credentials and TOTP secrets.
 
 use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use axum::extract::FromRef;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use rand_core::OsRng;
@@ -28,16 +29,22 @@ pub struct UserRecord {
 pub struct UserStore {
     users: DashMap<String, UserRecord>,
     pepper: Option<String>,
-    require_admin_totp: bool,
+    resets: DashMap<String, PasswordResetEntry>,
+}
+
+#[derive(Debug, Clone)]
+struct PasswordResetEntry {
+    user_id: String,
+    expires_at: DateTime<Utc>,
 }
 
 impl UserStore {
     /// Create a new user store with defaults and a bootstrap admin.
     pub fn new(config: &AuthConfig, default_roles: &[Role]) -> Self {
-        let mut store = Self {
+        let store = Self {
             users: DashMap::new(),
             pepper: config.password_pepper.clone(),
-            require_admin_totp: config.require_admin_totp,
+            resets: DashMap::new(),
         };
         // Bootstrap admin if not already seeded.
         if !store.contains_username("admin") {
@@ -98,14 +105,16 @@ impl UserStore {
                 break;
             }
         }
-        let mut entry = found.ok_or_else(|| AppError::Validation("invalid credentials".into()))?;
-        if entry.locked {
+        let entry = found.ok_or_else(|| AppError::Validation("invalid credentials".into()))?;
+        let mut user = entry.value().clone();
+        drop(entry);
+        if user.locked {
             return Err(AppError::Validation("account locked".into()));
         }
-        self.verify_password(password, &entry.password_hash)?;
-        entry.last_login_at = Some(Utc::now());
-        let updated = entry.clone();
-        self.users.insert(entry.id.clone(), updated.clone());
+        self.verify_password(password, &user.password_hash)?;
+        user.last_login_at = Some(Utc::now());
+        let updated = user.clone();
+        self.users.insert(user.id.clone(), updated.clone());
         Ok(updated)
     }
 
@@ -123,8 +132,8 @@ impl UserStore {
     }
 
     fn verify_password(&self, password: &str, hash: &str) -> Result<(), AppError> {
-        let parsed_hash =
-            PasswordHash::new(hash).map_err(|err| AppError::Internal(format!("hash error: {}", err)))?;
+        let parsed_hash = PasswordHash::new(hash)
+            .map_err(|err| AppError::Internal(format!("hash error: {}", err)))?;
         let mut password_material = password.to_string();
         if let Some(pepper) = &self.pepper {
             password_material.push_str(pepper);
@@ -132,6 +141,45 @@ impl UserStore {
         Argon2::default()
             .verify_password(password_material.as_bytes(), &parsed_hash)
             .map_err(|_| AppError::Validation("invalid credentials".into()))
+    }
+
+    /// Issue a password reset token (stub for email delivery).
+    pub fn issue_reset_token(&self, username: &str) -> Result<String, AppError> {
+        let user_id = self
+            .users
+            .iter()
+            .find(|u| u.username == username)
+            .map(|u| u.id.clone())
+            .ok_or_else(|| AppError::Validation("user not found".into()))?;
+        let token = crate::auth::session::generate_token();
+        let entry = PasswordResetEntry {
+            user_id,
+            expires_at: Utc::now() + chrono::Duration::minutes(15),
+        };
+        self.resets.insert(token.clone(), entry);
+        Ok(token)
+    }
+
+    /// Reset a user's password using a reset token.
+    pub fn reset_password(&self, token: &str, new_password: &str) -> Result<(), AppError> {
+        if new_password.len() < 8 {
+            return Err(AppError::Validation("password too short".into()));
+        }
+        let entry = self
+            .resets
+            .get(token)
+            .ok_or_else(|| AppError::Validation("invalid reset token".into()))?;
+        if entry.expires_at < Utc::now() {
+            return Err(AppError::Validation("reset token expired".into()));
+        }
+        let user_id = entry.user_id.clone();
+        drop(entry);
+        let hash = self.hash_password(new_password)?;
+        if let Some(mut user) = self.users.get_mut(&user_id) {
+            user.password_hash = hash;
+        }
+        self.resets.remove(token);
+        Ok(())
     }
 }
 
@@ -141,5 +189,11 @@ impl From<UserRecord> for Principal {
             id: value.id,
             role: value.role,
         }
+    }
+}
+
+impl FromRef<crate::state::AppState> for std::sync::Arc<UserStore> {
+    fn from_ref(state: &crate::state::AppState) -> Self {
+        state.user_store.clone()
     }
 }

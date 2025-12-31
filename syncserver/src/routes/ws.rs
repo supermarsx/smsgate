@@ -104,6 +104,10 @@ async fn handle_client_message(
     match message {
         Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
             Ok(ClientMessage::Ping) => send_json(socket, &ServerMessage::Pong).await?,
+            Ok(ClientMessage::ConfigRefresh) => {
+                let snapshot = state.config_snapshot().await;
+                send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await?;
+            }
             Ok(ClientMessage::PageBefore { anchor_id, limit }) => {
                 send_page(socket, state, PageDirection::Before, anchor_id, limit).await?;
             }

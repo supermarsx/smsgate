@@ -2,6 +2,7 @@ use axum::{routing::get, Router};
 
 use crate::{metrics, state::AppState};
 
+pub mod auth;
 pub mod config;
 pub mod devices;
 pub mod events;
@@ -29,6 +30,16 @@ pub fn router(state: AppState) -> Router {
         .route(
             "/api/v1/pairing/complete",
             axum::routing::post(pairing::complete_session),
+        )
+        .route("/api/v1/auth/login", axum::routing::post(auth::login))
+        .route("/api/v1/auth/logout", axum::routing::post(auth::logout))
+        .route(
+            "/api/v1/auth/password_reset/request",
+            axum::routing::post(auth::request_password_reset),
+        )
+        .route(
+            "/api/v1/auth/password_reset/confirm",
+            axum::routing::post(auth::confirm_password_reset),
         )
         .route("/api/v1/devices", get(devices::list_devices))
         .route(

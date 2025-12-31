@@ -73,6 +73,12 @@
     "group_mapping": {}
   },
   "auth": {
-    "modes": ["simple_signin"]
+    "modes": ["simple_signin"],
+    "password_pepper": null,
+    "session_ttl_secs": 86400,
+    "require_admin_totp": true,
+    "oauth_issuer": null,
+    "oauth_audience": null,
+    "domain_shared_secret": null
   }
 }
