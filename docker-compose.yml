@@ -21,12 +21,23 @@ services:
       - db
 
   syncserver:
-    image: ghcr.io/wiremock/wiremock:3.5.4
+    build:
+      context: ./syncserver
+    environment:
+      SYNC_PORT: 4000
+      SYNC_HOST: 0.0.0.0
+      SYNC_CONFIG_PATH: /app/config/config.json
+      SYNC_HOTSTORE: redis
+      SYNC_REDIS_URL: redis://redis:6379
+      SYNC_DB_ADAPTER: postgres
+      SYNC_DB_URL: postgres://syncserver:syncserver@db:5432/syncserver
+    volumes:
+      - ./syncserver/config:/app/config:ro
     ports:
       - "4000:4000"
-    command: ["--port", "4000", "--global-response-templating"]
-    volumes:
-      - ./docs/mock-syncserver:/home/wiremock
+    depends_on:
+      - redis
+      - db
 
   redis:
     image: redis:7-alpine
