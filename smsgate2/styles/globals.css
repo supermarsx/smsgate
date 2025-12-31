@@ -447,8 +447,8 @@ a {
 
 .nav-brand.small {
   font-size: 16px;
-  padding: 6px 6px;
-  font-weight: 200;
+  padding: 8px 10px;
+  font-weight: 100;
   letter-spacing: 0.02em;
   background: transparent;
   box-shadow: none;
