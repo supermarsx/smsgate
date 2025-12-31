@@ -3,7 +3,7 @@
 ## Current state (gap check)
 - [x] New `syncserver/` Rust crate scaffolded with Axum/Tokio, env-driven host/port, and `/healthz` + `/readyz` JSON endpoints.
 - [x] Auth/RBAC guards on config + device endpoints, pairing flow issuing device tokens (hashed), ingest/presence/hot-store/persistence JSON DB baselines.
-- [ ] WebSocket paging/config updates, audit/login logging, and admin/user/number APIs still pending.
+- [ ] Audit/login logging and admin/user/number APIs still pending; WS + HTTP config snapshots/updates now implemented.
 
 ## Foundations & scaffolding
 - [x] Set up lint/format/test baseline (`cargo fmt`, `clippy` alias, unit/integration test harness); CI workflow pending.
@@ -35,9 +35,9 @@
 - [x] Add bootstrap seeding for initial pairing/admin device policy.
 
 ## Config plane
-- [ ] Load baseline `config.json` with versioning and validation.
-- [ ] Implement PATCH config with validation + audit + persistence.
-- [ ] Broadcast config updates to WS clients (smsgate2) and device clients (smsrelay3).
+- [x] Load baseline `config.json` with versioning and validation.
+- [x] Implement PATCH config with validation + persistence (audit stream pending).
+- [x] Broadcast config updates to WS clients (smsgate2) and device clients (smsrelay3).
 - [x] Expose effective config snapshot for smsgate2 to gate auth modes and role labels.
 
 ## Ingest & event pipeline
@@ -58,7 +58,8 @@
 - [x] Implement WS handshake (unauthenticated stub), ping/pong, and broadcast channel.
 - [x] Serve `WELCOME` + initial `SNAPSHOT` with default limit; event/presence broadcasts wired.
 - [x] Implement paging (`PAGE_BEFORE`/`PAGE_AFTER`) with anchors and retention windows.
-- [ ] Broadcast `EVENT_UPDATE`, `SIM_*`, `CONFIG_UPDATE`, `CONTACT_UPDATE`.
+- [x] Broadcast `CONFIG_UPDATE`.
+- [ ] Broadcast `EVENT_UPDATE`, `SIM_*`, `CONTACT_UPDATE`.
 - [ ] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
 
 ## Storage: hot store + persistence

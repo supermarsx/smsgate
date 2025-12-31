@@ -26,5 +26,6 @@ Runtime flags are read from `config/config.json` (see `syncserver/config/config.
 - `SYNC_PAIRING_SESSION_TTL_SECS` (`600`): pairing session expiry in seconds.
 - `SYNC_BOOTSTRAP_DEVICE_ID` / `SYNC_BOOTSTRAP_DEVICE_TOKEN` (optional): seed a bootstrap relay credential; `SYNC_BOOTSTRAP_DEVICE_NAME` adds a label and `SYNC_BOOTSTRAP_DEVICE_DISABLED=true` pre-disables it.
 - `X-DEVICE-ID` + `Authorization: Bearer <token>`: required on ingest/presence endpoints; tokens are issued via pairing/bootstrap and must belong to an enabled device.
+- Config PATCH writes back to `SYNC_CONFIG_PATH` (default `config/config.json`) and increments an in-memory version that is broadcast over WS.
 
 Docker Compose defaults set `SYNC_PORT=4000`, point Redis/DB to local compose services, and mount `./syncserver/config` into `/app/config`.

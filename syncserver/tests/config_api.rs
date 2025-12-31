@@ -1,7 +1,8 @@
 use axum::{
+    body,
     body::Body,
     http::{Request, StatusCode},
-    routing::{get, patch},
+    routing::get,
     Router,
 };
 use serde_json::json;
@@ -42,7 +43,8 @@ async fn returns_config_snapshot() {
 
     assert_eq!(res.status(), StatusCode::OK);
     let value: serde_json::Value =
-        serde_json::from_slice(&hyper::body::to_bytes(res.into_body()).await.unwrap()).unwrap();
+        serde_json::from_slice(&body::to_bytes(res.into_body(), usize::MAX).await.unwrap())
+            .unwrap();
     assert_eq!(value["version"], 1);
     assert_eq!(value["ingest"]["max_batch"], 42);
     assert!(value["last_updated_at"].as_str().is_some());
@@ -73,9 +75,12 @@ async fn patch_updates_config_and_persists() {
         .await
         .unwrap();
     assert_eq!(patch_res.status(), StatusCode::OK);
-    let value: serde_json::Value =
-        serde_json::from_slice(&hyper::body::to_bytes(patch_res.into_body()).await.unwrap())
-            .unwrap();
+    let value: serde_json::Value = serde_json::from_slice(
+        &body::to_bytes(patch_res.into_body(), usize::MAX)
+            .await
+            .unwrap(),
+    )
+    .unwrap();
     assert_eq!(value["version"], 2);
     assert_eq!(value["ingest"]["max_batch"], 5);
 
