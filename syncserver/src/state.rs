@@ -43,6 +43,7 @@ impl ReadyFlags {
             config_ready: self.config_ready.load(Ordering::Relaxed),
             hot_store_ready: self.hot_store_ready.load(Ordering::Relaxed),
             storage_ready: self.storage_ready.load(Ordering::Relaxed),
+            presence_ready: true,
         }
     }
 }
@@ -54,6 +55,8 @@ pub struct ReadySnapshot {
     pub config_ready: bool,
     pub hot_store_ready: bool,
     pub storage_ready: bool,
+    /// Presence evaluator is active (for future external deps).
+    pub presence_ready: bool,
 }
 
 /// Shared application state injected into Axum routers and handlers.
