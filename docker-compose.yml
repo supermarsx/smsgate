@@ -10,6 +10,9 @@ services:
       NEXT_PUBLIC_API_BASE_URL: http://syncserver:4000/api/v1
       NEXT_PUBLIC_WS_ORIGIN: http://syncserver:4000
       NEXT_PUBLIC_WS_PATH: /api/v1/ws
+    volumes:
+      - ./smsgate2/config:/app/config:ro
+      - ./smsgate2/locales:/app/locales:ro
     ports:
       - "3000:3000"
     depends_on:
