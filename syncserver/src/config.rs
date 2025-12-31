@@ -748,11 +748,11 @@ impl AppConfig {
         }
 
         if let Some(auth) = from.auth {
-            if let Some(modes) = auth.modes {
+            if let Some(modes) = auth.modes.clone() {
                 self.auth.modes = modes;
             }
-            if let Some(pepper) = auth.password_pepper {
-                self.auth.password_pepper = Some(pepper);
+            if let Some(pepper) = auth.password_pepper.clone() {
+                self.auth.password_pepper = pepper;
             }
             if let Some(ttl) = auth.session_ttl_secs {
                 self.auth.session_ttl_secs = ttl;
@@ -760,14 +760,14 @@ impl AppConfig {
             if let Some(require_admin_totp) = auth.require_admin_totp {
                 self.auth.require_admin_totp = require_admin_totp;
             }
-            if let Some(issuer) = auth.oauth_issuer {
-                self.auth.oauth_issuer = Some(issuer);
+            if let Some(issuer) = auth.oauth_issuer.clone() {
+                self.auth.oauth_issuer = issuer;
             }
-            if let Some(aud) = auth.oauth_audience {
-                self.auth.oauth_audience = Some(aud);
+            if let Some(aud) = auth.oauth_audience.clone() {
+                self.auth.oauth_audience = aud;
             }
-            if let Some(secret) = auth.domain_shared_secret {
-                self.auth.domain_shared_secret = Some(secret);
+            if let Some(secret) = auth.domain_shared_secret.clone() {
+                self.auth.domain_shared_secret = secret;
             }
         }
 
