@@ -186,6 +186,16 @@ pub struct AuthConfig {
     pub modes: Vec<AuthMode>,
     /// Global pepper used with Argon2 when hashing passwords (optional).
     pub password_pepper: Option<String>,
+    /// Minimum password length for standard users.
+    pub password_min_length: u32,
+    /// Minimum password length for admin users.
+    pub admin_password_min_length: u32,
+    /// Maximum consecutive failed attempts before temporary lockout.
+    pub max_failed_attempts: u32,
+    /// Lockout duration in seconds after exceeding failed attempts.
+    pub lockout_secs: u64,
+    /// Optional bootstrap admin username (recommended non-default).
+    pub bootstrap_admin_username: Option<String>,
     /// Session TTL seconds for issued user sessions.
     pub session_ttl_secs: u64,
     /// Require TOTP for admin users.
@@ -203,6 +213,11 @@ impl Default for AuthConfig {
         Self {
             modes: vec![AuthMode::SimpleSignin],
             password_pepper: None,
+            password_min_length: 12,
+            admin_password_min_length: 16,
+            max_failed_attempts: 5,
+            lockout_secs: 300,
+            bootstrap_admin_username: Some("admin".into()),
             session_ttl_secs: 86_400,
             require_admin_totp: true,
             oauth_issuer: None,
@@ -786,6 +801,21 @@ impl AppConfig {
             }
             if let Some(pepper) = auth.password_pepper.clone() {
                 self.auth.password_pepper = pepper;
+            }
+            if let Some(min_len) = auth.password_min_length {
+                self.auth.password_min_length = min_len;
+            }
+            if let Some(admin_min) = auth.admin_password_min_length {
+                self.auth.admin_password_min_length = admin_min;
+            }
+            if let Some(max_attempts) = auth.max_failed_attempts {
+                self.auth.max_failed_attempts = max_attempts;
+            }
+            if let Some(lockout_secs) = auth.lockout_secs {
+                self.auth.lockout_secs = lockout_secs;
+            }
+            if let Some(admin_user) = auth.bootstrap_admin_username {
+                self.auth.bootstrap_admin_username = Some(admin_user);
             }
             if let Some(ttl) = auth.session_ttl_secs {
                 self.auth.session_ttl_secs = ttl;
