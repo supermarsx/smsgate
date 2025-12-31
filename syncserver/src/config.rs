@@ -630,6 +630,16 @@ impl AppConfig {
                 "ingest.max_batch must be greater than zero".into(),
             ));
         }
+        for state in &self.ingest.persist_states {
+            match state.as_str() {
+                "new" | "claimed" | "verified" | "rejected" => {}
+                _ => {
+                    return Err(AppError::Validation(format!(
+                        "invalid ingest.persist_states entry: {state}"
+                    )))
+                }
+            }
+        }
 
         if self.presence.online_threshold_ms == 0 || self.presence.degraded_threshold_ms == 0 {
             return Err(AppError::Validation(
@@ -887,6 +897,8 @@ pub struct IngestSnapshot {
     pub dedup_ttl_ms: u64,
     pub hot_store_capacity: usize,
     pub max_batch: usize,
+    pub persist_new: bool,
+    pub persist_states: Vec<String>,
 }
 
 /// Role descriptor exposed to clients.
@@ -914,6 +926,8 @@ impl ClientConfigSnapshot {
                 dedup_ttl_ms: cfg.ingest.dedup_ttl_ms,
                 hot_store_capacity: cfg.ingest.hot_store_capacity,
                 max_batch: cfg.ingest.max_batch,
+                persist_new: cfg.ingest.persist_new,
+                persist_states: cfg.ingest.persist_states.clone(),
             },
             hot_store: match cfg.hot_store.mode {
                 HotStoreMode::Redis => "redis".into(),

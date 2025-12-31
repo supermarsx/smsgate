@@ -111,7 +111,9 @@ pub async fn ingest(
         let _ = state.event_tx.send(ServerMessage::EventNew {
             event: event.clone(),
         });
-        state.persistence_worker.enqueue(event.clone()).await;
+        if ingest_cfg.persist_new {
+            state.persistence_worker.enqueue(event.clone()).await;
+        }
         if let Some(number) = event.number_e164.clone() {
             tracing::debug!(
                 target: "sim",
