@@ -168,9 +168,6 @@ a {
 .gg-section,
 .presence-row,
 .device-card,
-.account-float,
-.status-float,
-.status-more-panel,
 .modal-card,
 .fab {
   animation: fadeScale 240ms ease-out;
@@ -1060,6 +1057,7 @@ a {
   place-items: center;
   z-index: 40;
   padding: 20px;
+  animation: fadeIn 160ms ease;
 }
 
 .modal-card {
@@ -1071,6 +1069,7 @@ a {
   padding: 18px 18px 16px;
   display: grid;
   gap: 16px;
+  animation: fadeScale 180ms ease;
 }
 
 .modal-card .actions {
