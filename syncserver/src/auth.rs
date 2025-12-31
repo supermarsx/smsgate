@@ -84,8 +84,8 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let auth_store = DeviceAuthStore::from_ref(state);
-        let mut headers = parts.headers.clone();
-        let device_id = headers
+        let device_id = parts
+            .headers
             .get("x-device-id")
             .and_then(|v| v.to_str().ok())
             .ok_or_else(|| {
@@ -95,7 +95,11 @@ where
                 )
             })?;
 
-        let bearer = Authorization::<Bearer>::decode(&mut headers)
+        let mut values = parts
+            .headers
+            .get_all(axum::http::header::AUTHORIZATION)
+            .iter();
+        let bearer = Authorization::<Bearer>::decode(&mut values)
             .map_err(|_| (StatusCode::UNAUTHORIZED, "missing bearer token".to_string()))?;
 
         if auth_store.validate(device_id, bearer.token()) {
