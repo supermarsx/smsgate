@@ -103,7 +103,13 @@ async fn transition_event(
     let _ = state.event_tx.send(ServerMessage::EventUpdate {
         event: updated.clone(),
     });
-    state.persistence_worker.enqueue(updated.clone()).await;
+    let persist_states = {
+        let cfg = state.config.read().await;
+        cfg.config.ingest.persist_states.clone()
+    };
+    if should_persist(&persist_states, &updated.state) {
+        state.persistence_worker.enqueue(updated.clone()).await;
+    }
     tracing::info!(
         target: "ingest",
         actor = %actor,
@@ -127,6 +133,16 @@ async fn transition_event(
         .await;
 
     Ok(updated)
+}
+
+fn should_persist(states: &[String], target_state: &EventState) -> bool {
+    let key = match target_state {
+        EventState::New => "new",
+        EventState::Claimed => "claimed",
+        EventState::Verified => "verified",
+        EventState::Rejected => "rejected",
+    };
+    states.iter().any(|s| s.eq_ignore_ascii_case(key))
 }
 
 fn apply_transition(

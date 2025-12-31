@@ -5,7 +5,12 @@ use axum::{
     Router,
 };
 use serde_json::json;
-use syncserver::{auth::DeviceAuthStore, config::AppConfig, routes::ingest, state::AppState};
+use syncserver::{
+    auth::DeviceAuthStore,
+    config::AppConfig,
+    routes::{self, ingest},
+    state::AppState,
+};
 use tower::ServiceExt;
 
 fn app_with_state(state: AppState) -> Router {
@@ -114,4 +119,71 @@ async fn deduplicates_by_content_hash() {
 
     let events = state.hot_store.latest(5).await;
     assert_eq!(events.len(), 1);
+}
+
+#[tokio::test]
+async fn persistence_policy_applies_state_rules() {
+    let mut config = AppConfig::default();
+    let dir = tempfile::tempdir().unwrap();
+    let db_path = dir.path().join("events.json");
+    config.database.path = Some(db_path.display().to_string());
+    config.ingest.persist_new = false;
+    config.ingest.persist_states = vec!["verified".into()];
+    let mut state = AppState::new(config).await;
+    state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
+    let app = routes::router(state.clone());
+
+    let payload = json!({
+        "events": [
+            {
+                "id": "evt-policy",
+                "device_id": "dev-1",
+                "number_e164": "+123",
+                "sender": "alice",
+                "content": "hello",
+                "device_received_at": "2024-12-31T00:00:00Z"
+            }
+        ]
+    });
+
+    let _ = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/ingest")
+                .method("POST")
+                .header("content-type", "application/json")
+                .header("x-device-id", "dev-1")
+                .header("authorization", "Bearer t0k3n")
+                .body(Body::from(payload.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    // Persist_new is disabled, so file should remain empty.
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    let contents = tokio::fs::read_to_string(&db_path)
+        .await
+        .unwrap_or_default();
+    assert!(contents.trim().is_empty());
+
+    // Transition to verified, which should trigger persistence.
+    let _ = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/events/evt-policy/verify")
+                .method("POST")
+                .header("x-user-id", "admin")
+                .header("x-user-role", "admin")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    let contents = tokio::fs::read_to_string(&db_path).await.unwrap();
+    let lines: Vec<_> = contents.lines().collect();
+    assert_eq!(lines.len(), 1);
 }
