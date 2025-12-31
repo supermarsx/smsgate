@@ -3,7 +3,7 @@ use axum::{routing::get, Router};
 use crate::{metrics, state::AppState};
 
 mod health;
-mod ingest;
+pub mod ingest;
 
 /// Build the Axum router with health, readiness, and metrics endpoints.
 pub fn router(state: AppState) -> Router {
