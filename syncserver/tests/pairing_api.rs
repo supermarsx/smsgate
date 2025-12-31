@@ -6,7 +6,6 @@ use axum::{
 };
 use serde_json::json;
 use syncserver::{
-    auth::DeviceAuthStore,
     config::AppConfig,
     routes::{ingest, pairing},
     state::AppState,
