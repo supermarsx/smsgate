@@ -8,7 +8,9 @@ use axum::{
 };
 #[cfg(target_os = "linux")]
 use prometheus::process_collector::ProcessCollector;
-use prometheus::{opts, Encoder, Gauge, GaugeVec, Histogram, Registry, TextEncoder};
+use prometheus::{
+    opts, Encoder, Gauge, GaugeVec, Histogram, IntCounterVec, Registry, TextEncoder,
+};
 
 use crate::{error::AppError, state::AppState};
 

@@ -74,10 +74,12 @@ async fn handle_sim_inventory(
 ) {
     let (updated, changed) = state.sim_inventory.upsert(device_id, sims);
     if changed {
-        let _ = state.event_tx.send(ServerMessage::SimUpdate {
-            device_id: device_id.to_string(),
-            sims: updated.clone(),
-        });
+        let _ = state.event_tx.send(ServerMessage::SimUpdate(
+            crate::ws_types::SimUpdate {
+                device_id: device_id.to_string(),
+                sims: updated.clone(),
+            },
+        ));
         state
             .audit
             .log_action(

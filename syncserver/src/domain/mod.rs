@@ -93,7 +93,7 @@ pub struct HeartbeatSample {
 }
 
 /// SIM snapshot entry for multi-SIM devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimSnapshot {
     /// SIM slot index (0-based).
     pub slot_index: u8,
