@@ -46,7 +46,7 @@ function LoginBody() {
   }
 
   return (
-    <main className="gg-panel">
+    <main className="gg-panel login-page">
       <header className="gg-panel__header">
         <div className="gg-pill">{t("authLabel", "Auth")}</div>
         <h1 className="gg-title">{t("heroTitle")}</h1>
