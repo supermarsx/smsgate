@@ -17,18 +17,17 @@ const apiOrigin = (() => {
   }
 })();
 const wsOrigin = process.env.NEXT_PUBLIC_WS_ORIGIN ?? fileConfig.wsOrigin ?? apiOrigin;
-const qrOrigin = process.env.NEXT_PUBLIC_QR_ORIGIN ?? fileConfig.qrOrigin ?? "https://api.qrserver.com";
 
 const nextConfig = {
   reactStrictMode: true,
   async headers() {
     const isDev = process.env.NODE_ENV !== "production";
-    const scriptSrc = isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self'";
+    const scriptSrc = isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'";
     const csp = [
       "default-src 'self'",
       "style-src 'self' 'unsafe-inline'",
       scriptSrc,
-      `img-src 'self' data: blob: ${qrOrigin}`,
+      "img-src 'self' data: blob:",
       `connect-src 'self' ${apiOrigin} ${wsOrigin} ws: wss:`,
       "font-src 'self' data:",
       "frame-ancestors 'none'"
