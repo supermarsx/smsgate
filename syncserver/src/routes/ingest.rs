@@ -97,9 +97,7 @@ pub async fn ingest(
         let _ = state.event_tx.send(ServerMessage::EventNew {
             event: event.clone(),
         });
-        if let Err(err) = state.persistence.persist_event(&event).await {
-            tracing::warn!(error = %err, "failed to persist event");
-        }
+        state.persistence_worker.enqueue(event).await;
         accepted += 1;
     }
 

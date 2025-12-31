@@ -10,6 +10,8 @@ use tokio::{
 
 use crate::domain::SmsEvent;
 
+pub mod worker;
+
 /// Interface for durable storage of events (and later audit/login records).
 #[async_trait]
 pub trait PersistentStore: Send + Sync {

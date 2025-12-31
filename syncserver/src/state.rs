@@ -1,8 +1,8 @@
 use crate::{
     auth::{rbac::RbacStore, DeviceAuthStore},
     config::AppConfig,
-    hot_store::{HotStore, MemoryHotStore},
-    persistence::{JsonDb, PersistentStore},
+    hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
+    persistence::{worker::PersistenceWorker, JsonDb, PersistentStore},
     presence::PresenceStore,
     ws_types::ServerMessage,
 };
@@ -89,6 +89,8 @@ pub struct AppState {
     pub persistence: Arc<dyn PersistentStore>,
     /// RBAC store for user roles and group mapping.
     pub rbac: Arc<RbacStore>,
+    /// Persistence worker for asynchronous writes.
+    pub persistence_worker: PersistenceWorker,
 }
 
 impl AppState {
@@ -109,9 +111,30 @@ impl AppState {
         ready_flags.config_ready.store(true, Ordering::Relaxed);
 
         let metrics = Metrics::new().expect("failed to initialize metrics");
-        let hot_store: Arc<dyn HotStore> =
-            Arc::new(MemoryHotStore::new(config.ingest.hot_store_capacity));
-        ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
+        let hot_store: Arc<dyn HotStore> = match config.hot_store.mode {
+            config::HotStoreMode::Redis => {
+                if let Some(url) = &config.hot_store.redis_url {
+                    match RedisHotStore::new(url, config.ingest.hot_store_capacity).await {
+                        Ok(store) => {
+                            ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
+                            Arc::new(store)
+                        }
+                        Err(err) => {
+                            tracing::error!(error = %err, "failed to init redis hot store, falling back to memory");
+                            ready_flags.hot_store_ready.store(false, Ordering::Relaxed);
+                            Arc::new(MemoryHotStore::new(config.ingest.hot_store_capacity))
+                        }
+                    }
+                } else {
+                    tracing::warn!("redis hot store selected without url, using memory fallback");
+                    Arc::new(MemoryHotStore::new(config.ingest.hot_store_capacity))
+                }
+            }
+            config::HotStoreMode::Memory => {
+                ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
+                Arc::new(MemoryHotStore::new(config.ingest.hot_store_capacity))
+            }
+        };
         let presence = Arc::new(PresenceStore::new(config.presence.clone()));
         let (event_tx, _rx) = broadcast::channel(1024);
         let connection_count = Arc::new(AtomicUsize::new(0));
@@ -129,6 +152,7 @@ impl AppState {
             .expect("init json db"),
         );
         let rbac = Arc::new(RbacStore::from_config(&config.rbac));
+        let persistence_worker = PersistenceWorker::new(persistence.clone());
 
         Self {
             config,
@@ -142,6 +166,7 @@ impl AppState {
             device_auth,
             persistence,
             rbac,
+            persistence_worker,
         }
     }
 
