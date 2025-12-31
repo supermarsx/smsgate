@@ -108,12 +108,6 @@ export function ProtectedShell({ children }: Props) {
         </nav>
       </aside>
       <section className="shell-main">
-        <header className="shell-topbar">
-          <div className="topbar-meta">
-            <span className="pill pill-muted">{getRoleLabel(session.user.role, roleLabels)}</span>
-          </div>
-          <div className="topbar-actions" />
-        </header>
         {!status.connected && (
           <div className="banner warn">
             {t("reconnectingBanner", "Reconnecting to realtime stream... showing cached data.")}{" "}
