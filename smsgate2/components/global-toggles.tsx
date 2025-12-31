@@ -17,6 +17,9 @@ const LOCALE_LABELS: Record<string, string> = {
   "es-ES": "Español"
 };
 
+/**
+ * Floating UI for theme switch and locale selection.
+ */
 export function GlobalToggles() {
   const { theme, toggle } = useTheme();
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);

@@ -20,6 +20,9 @@ const ConfigContext = createContext<ConfigContextValue>({
   loading: true
 });
 
+/**
+ * Loads remote configuration, exposes it via context, and keeps role settings in sync.
+ */
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
   const { session } = useSession();
   const [config, setConfig] = useState<ConfigPayload | null>(null);
@@ -67,6 +70,9 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
 }
 
+/**
+ * Access the current configuration context.
+ */
 export function useConfig(): ConfigContextValue {
   return useContext(ConfigContext);
 }

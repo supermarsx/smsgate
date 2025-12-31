@@ -18,6 +18,9 @@ type Props = {
   onLogin: (session: Session) => void;
 };
 
+/**
+ * Auth entry UI supporting SSO, username/password, and domain login flows with reset helpers.
+ */
 export function LoginPanel({ onLogin }: Props) {
   const locale = getInitialLocale();
   const t = useMemo(() => {

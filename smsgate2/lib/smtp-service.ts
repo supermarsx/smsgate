@@ -31,6 +31,7 @@ let draining = false;
 
 /**
  * Enqueue an async SMTP job. Rejects immediately if SMTP is disabled.
+ * @param job Job function to run sequentially.
  */
 export function enqueueSmtpJob<T>(job: () => Promise<T>): Promise<T> {
   if (!smtpEnabled()) {
