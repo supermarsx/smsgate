@@ -52,26 +52,6 @@ export default function ConfigPage() {
   const jsonPreview = draft || (config ? JSON.stringify(config.data ?? config, null, 2) : "");
   const beforeConfig = config?.data ?? config ?? {};
 
-  async function handleSave() {
-    if (!config || !canEdit) return;
-    setSaving(true);
-    try {
-      const parsed = draft ? JSON.parse(draft) : (config.data ?? config);
-      setParseError(null);
-      const shapeIssues = validateConfigShape(parsed as any);
-      setShapeErrors(shapeIssues);
-      if (shapeIssues.length) {
-        throw new Error("Config shape invalid");
-      }
-      await updateConfig(safeSession, { ...config, data: parsed }, etag);
-      await refresh();
-    } catch (err) {
-      setParseError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
   function handleDraftChange(next: string) {
     setDraft(next);
     try {
@@ -377,7 +357,7 @@ export default function ConfigPage() {
                     ...(relayDraft ? { relay: relayDraft } : {}),
                     ...(contactsDraft ? { contacts: contactsDraft } : {})
                   } as any;
-                  const shapeIssues = validateShape(merged);
+                  const shapeIssues = validateConfigShape(merged);
                   setShapeErrors(shapeIssues);
                   if (shapeIssues.length) throw new Error("Config shape invalid");
                   await updateConfig(safeSession, { ...config, data: merged }, etag);
