@@ -62,6 +62,10 @@ function buildConfig(): AppConfig {
     ...baseFileConfig,
     ...(process.env.NODE_ENV !== "production" ? devFileConfig : {})
   };
+  const locales =
+    Array.isArray(mergedFileConfig.locales) && mergedFileConfig.locales.length
+      ? mergedFileConfig.locales
+      : ["en-US", "pt-PT", "es-ES"];
   const apiBaseUrl = validateUrlish(
     strEnv("NEXT_PUBLIC_API_BASE_URL", mergedFileConfig.apiBaseUrl ?? "http://localhost:4000/api/v1"),
     "API base URL"
@@ -69,10 +73,8 @@ function buildConfig(): AppConfig {
   const wsPath = strEnv("NEXT_PUBLIC_WS_PATH", mergedFileConfig.wsPath ?? "/api/v1/ws");
   const wsOrigin = strEnv("NEXT_PUBLIC_WS_ORIGIN", mergedFileConfig.wsOrigin ?? "");
   const qrOrigin = strEnv("NEXT_PUBLIC_QR_ORIGIN", mergedFileConfig.qrOrigin ?? "");
-  const locales = ["en-US", "pt-PT", "es-ES"];
-  const defaultLocale = locales.includes(strEnv("NEXT_PUBLIC_LOCALE_DEFAULT", "en-US"))
-    ? strEnv("NEXT_PUBLIC_LOCALE_DEFAULT", "en-US")
-    : "en-US";
+  const envLocale = strEnv("NEXT_PUBLIC_LOCALE_DEFAULT", mergedFileConfig.defaultLocale ?? "en-US");
+  const defaultLocale = locales.includes(envLocale) ? envLocale : "en-US";
 
   const authModes: AuthModes = {
     oauth: boolEnv("NEXT_PUBLIC_AUTH_OAUTH", mergedFileConfig.authModes?.oauth ?? true),
