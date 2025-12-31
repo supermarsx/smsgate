@@ -249,7 +249,7 @@ impl AppState {
         let audit = AuditService::new(persistence.clone(), config.database.enable_audit_log);
         let numbers = Arc::new(NumberStore::default());
         let sim_inventory = Arc::new(SimInventoryStore::default());
-        let contacts = Arc::new(ContactStore::default());
+        let contacts = Arc::new(ContactStore::new(PathBuf::from("data/contacts.json")));
 
         let state = Self {
             config: versioned_config,

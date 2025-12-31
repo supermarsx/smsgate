@@ -47,7 +47,7 @@ This list captures the blocking gaps between the three codebases and the specs s
 
 ## Config shape & caching
 - [ ] Align config payload: UI expects `{ version, data: {...}, authModes }` with ETag; server returns `ClientConfigSnapshot` (presence/ingest/hot_store/roles). Decide canonical shape and adjust both UI client and server serializer.
-- [ ] Add If-None-Match/ETag support on `/api/v1/config` responses and ensure CONFIG_UPDATE casing/shape matches spec.
+- [x] Add If-None-Match/ETag support on `/api/v1/config` responses; still need CONFIG_UPDATE casing/shape alignment.
 - [ ] Broadcast CONFIG_UPDATE with the same shape consumed by smsgate2 and smsrelay3.
 
 ## Testing/validation

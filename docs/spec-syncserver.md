@@ -529,7 +529,7 @@ A background worker writes persisted events to DB.
 ### 13.6 Config
 
 - `GET /api/v1/config`
-- `PATCH /api/v1/config`
+- `PATCH /api/v1/config` (ETag support recommended)
 - `GET /api/v1/device/config` (ETag/versioned snapshot for devices)
 
 ---

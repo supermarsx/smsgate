@@ -29,14 +29,18 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/config",
             get(config::get_config).patch(config::patch_config),
         )
-        .route(
-            "/api/v1/pairing/session",
-            axum::routing::post(pairing::create_session),
-        )
-        .route(
-            "/api/v1/pairing/complete",
-            axum::routing::post(pairing::complete_session),
-        )
+            .route(
+                "/api/v1/pairing/session",
+                axum::routing::post(pairing::create_session),
+            )
+            .route(
+                "/api/v1/pairing/session/:session_id",
+                axum::routing::get(pairing::get_session),
+            )
+            .route(
+                "/api/v1/pairing/complete",
+                axum::routing::post(pairing::complete_session),
+            )
             .route("/api/v1/auth/login", axum::routing::post(auth::login))
             .route(
                 "/api/v1/auth/simple_signin",
@@ -51,11 +55,15 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/auth/password_reset/request",
             axum::routing::post(auth::request_password_reset),
         )
-        .route(
-            "/api/v1/auth/password_reset/confirm",
-            axum::routing::post(auth::confirm_password_reset),
-        )
-        .route("/api/v1/devices", get(devices::list_devices))
+            .route(
+                "/api/v1/auth/password_reset/confirm",
+                axum::routing::post(auth::confirm_password_reset),
+            )
+            .route(
+                "/api/v1/auth/refresh",
+                axum::routing::post(auth::refresh_session),
+            )
+            .route("/api/v1/devices", get(devices::list_devices))
         .route(
             "/api/v1/devices/:device_id/rename",
             axum::routing::post(devices::rename_device),
@@ -153,19 +161,52 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/admin/numbers/:e164/assign",
             axum::routing::post(admin::assign_number),
         )
-        .route(
-            "/api/v1/admin/numbers/:e164/unassign",
-            axum::routing::post(admin::unassign_number),
-        )
-        .route("/api/v1/admin/roles", axum::routing::get(admin::list_roles))
-        .route(
-            "/api/v1/admin/roles",
-            axum::routing::post(admin::create_role),
-        )
-        .route(
-            "/api/v1/admin/rbac/groups",
-            axum::routing::put(admin::update_group_mapping),
-        )
-        .route("/metrics", get(metrics::metrics_handler))
-        .with_state(state)
-}
+            .route(
+                "/api/v1/admin/numbers/:e164/unassign",
+                axum::routing::post(admin::unassign_number),
+            )
+            .route(
+                "/api/v1/admin/numbers/:e164",
+                axum::routing::delete(admin::delete_number),
+            )
+            .route("/api/v1/admin/roles", axum::routing::get(admin::list_roles))
+            .route(
+                "/api/v1/admin/roles",
+                axum::routing::post(admin::create_role),
+            )
+            .route(
+                "/api/v1/admin/rbac/groups",
+                axum::routing::put(admin::update_group_mapping),
+            )
+            // UI compatibility aliases (non-admin paths)
+            .route("/api/v1/users", axum::routing::get(admin::list_users))
+            .route("/api/v1/users", axum::routing::post(admin::create_user))
+            .route(
+                "/api/v1/users/:user_id",
+                axum::routing::patch(admin::update_user).delete(admin::delete_user),
+            )
+            .route(
+                "/api/v1/users/:user_id/unlock",
+                axum::routing::post(admin::unlock_user),
+            )
+            .route(
+                "/api/v1/users/:user_id/force-logout",
+                axum::routing::post(admin::force_logout),
+            )
+            .route("/api/v1/numbers", axum::routing::get(admin::list_numbers))
+            .route("/api/v1/numbers", axum::routing::post(admin::create_number))
+            .route(
+                "/api/v1/numbers/:e164",
+                axum::routing::patch(admin::update_number).delete(admin::delete_number),
+            )
+            .route(
+                "/api/v1/numbers/:e164/assign",
+                axum::routing::post(admin::assign_number),
+            )
+            .route(
+                "/api/v1/numbers/:e164/assign",
+                axum::routing::delete(admin::unassign_number),
+            )
+            .route("/metrics", get(metrics::metrics_handler))
+            .with_state(state)
+    }

@@ -7,11 +7,11 @@ use crate::config::PairingConfig;
 
 /// Stored pairing session state.
 #[derive(Debug, Clone)]
-pub struct PairingSession {
-    pub id: String,
-    pub expires_at: DateTime<Utc>,
-    pub used: bool,
-}
+    pub struct PairingSession {
+        pub id: String,
+        pub expires_at: DateTime<Utc>,
+        pub used: bool,
+    }
 
 /// Response payload for session creation.
 #[derive(Debug, Serialize)]
@@ -42,7 +42,7 @@ pub struct PairingStore {
     config: PairingConfig,
 }
 
-impl PairingStore {
+    impl PairingStore {
     pub fn new(config: PairingConfig) -> Self {
         Self {
             sessions: DashMap::new(),
@@ -74,11 +74,11 @@ impl PairingStore {
     }
 
     /// Complete a pairing session and emit device credentials.
-    pub fn complete_session(
-        &self,
-        req: PairingCompleteRequest,
-    ) -> Result<PairingCompleteResponse, String> {
-        if let Some(mut entry) = self.sessions.get_mut(&req.session_id) {
+        pub fn complete_session(
+            &self,
+            req: PairingCompleteRequest,
+        ) -> Result<PairingCompleteResponse, String> {
+            if let Some(mut entry) = self.sessions.get_mut(&req.session_id) {
             if entry.used {
                 return Err("session already used".into());
             }
@@ -92,7 +92,12 @@ impl PairingStore {
                 device_id,
                 device_token,
             });
+            }
+            Err("session not found".into())
         }
-        Err("session not found".into())
+
+        /// Fetch pairing session status.
+        pub fn get_status(&self, session_id: &str) -> Option<PairingSession> {
+            self.sessions.get(session_id).map(|s| s.clone())
+        }
     }
-}

@@ -56,6 +56,7 @@ export type ConfigUpdate = {
     simpleSignin: boolean;
     domainSignin: boolean;
   };
+  // additional config fields will be ignored until server alignment lands
 };
 
 export type SnapshotPayload = {

@@ -180,7 +180,7 @@ async fn handle_client_message(
     message: Message,
 ) -> Result<(), ()> {
     match message {
-            Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
+        Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
                 Ok(ClientMessage::Ping) => send_json(socket, &ServerMessage::Pong).await?,
                 Ok(ClientMessage::ConfigRefresh) => {
                     let snapshot = state.config_snapshot().await;

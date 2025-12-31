@@ -11,7 +11,7 @@ use crate::{
 
 /// Server -> client messages.
 #[derive(Debug, Clone, Serialize)]
-#[serde(tag = "type", content = "data")]
+#[serde(tag = "type", content = "payload", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ServerMessage {
     /// Initial greeting with protocol version.
     Welcome { version: &'static str },
@@ -94,7 +94,7 @@ pub struct PagePayload {
 
 /// Client -> server messages.
 #[derive(Debug, Clone, serde::Deserialize)]
-#[serde(tag = "type", content = "data")]
+#[serde(tag = "type", content = "payload", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ClientMessage {
     /// Client requests a pong.
     Ping,

@@ -1,6 +1,6 @@
 //! Pairing endpoints for issuing device credentials.
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::{State, Path}, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -20,6 +20,14 @@ pub struct PairingSessionResponseBody {
     pub session_id: String,
     pub qr_payload: String,
     pub expires_at: String,
+}
+
+/// Response body for pairing session status.
+#[derive(Debug, Serialize)]
+pub struct PairingSessionStatusBody {
+    pub session_id: String,
+    pub expires_at: String,
+    pub used: bool,
 }
 
 /// Response body for pairing completion.
@@ -112,6 +120,27 @@ pub async fn complete_session(
             device_id: completed.device_id,
             device_token: completed.device_token,
             config: cfg_snapshot,
+        }),
+    ))
+}
+
+/// GET /api/v1/pairing/session/:id
+pub async fn get_session(
+    UserAuth(user): UserAuth,
+    State(state): State<AppState>,
+    Path(session_id): Path<String>,
+) -> Result<impl IntoResponse, AppError> {
+    require_permission(&user, permissions::DEVICES_WRITE)?;
+    let status = state
+        .pairing_store
+        .get_status(&session_id)
+        .ok_or_else(|| AppError::Validation("session not found".into()))?;
+    Ok((
+        StatusCode::OK,
+        Json(PairingSessionStatusBody {
+            session_id: status.id,
+            expires_at: status.expires_at.to_rfc3339(),
+            used: status.used,
         }),
     ))
 }

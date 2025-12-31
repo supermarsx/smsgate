@@ -160,48 +160,20 @@ export async function loginSimple(
   mfaCode?: string
 ): Promise<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }> {
   try {
-    const data = await apiFetch<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }>(
-      "/auth/simple_signin",
-      {
-        method: "POST",
-        body: JSON.stringify({ username, password, mfaCode })
-      }
-    );
-    if (data.requiresPasswordChange) {
-      return { ...data, requiresPasswordChange: true };
-    }
-    if (data.session) saveSession(data.session, true);
-    return data;
+    const res = await apiFetch<{
+      session_token: string;
+      user_id: string;
+      role: string;
+      expires_at: string;
+    }>("/api/v1/auth/simple_signin", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
+    const session = toSession(res, "simple_signin");
+    saveSession(session, true);
+    return { session };
   } catch (err) {
-    const message = (err as Error).message ?? "";
-    const lower = message.toLowerCase();
-    const isNetworkError =
-      lower.includes("network") || lower.includes("fetch") || lower.includes("timeout") || message === "";
-
-    const offlineAdminEnabled =
-      appConfig.allowOfflineAdmin && !!appConfig.adminDefaults?.username && !!appConfig.adminDefaults?.password;
-    const offlineCredsMatch =
-      offlineAdminEnabled &&
-      username === appConfig.adminDefaults?.username &&
-      password === appConfig.adminDefaults?.password;
-
-    if (isNetworkError && offlineCredsMatch) {
-      const session: Session = {
-        accessToken: "offline-admin",
-        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
-        user: {
-          id: "offline-admin",
-          name: "Offline Admin",
-          email: appConfig.adminDefaults?.username,
-          role: "admin",
-          authMode: "simple_signin"
-        }
-      };
-      saveSession(session, true);
-      return { session };
-    }
-
-    return { error: message };
+    return { error: (err as Error).message };
   }
 }
 
@@ -216,18 +188,18 @@ export async function loginDomain(
   mfaCode?: string
 ): Promise<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }> {
   try {
-    const data = await apiFetch<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }>(
-      "/auth/domain_signin",
-      {
-        method: "POST",
-        body: JSON.stringify({ username, password, domain, mfaCode })
-      }
-    );
-    if (data.requiresPasswordChange) {
-      return { ...data, requiresPasswordChange: true };
-    }
-    if (data.session) saveSession(data.session, true);
-    return data;
+    const res = await apiFetch<{
+      session_token: string;
+      user_id: string;
+      role: string;
+      expires_at: string;
+    }>("/api/v1/auth/domain_signin", {
+      method: "POST",
+      body: JSON.stringify({ username, password, domain })
+    });
+    const session = toSession(res, "domain_signin");
+    saveSession(session, true);
+    return { session };
   } catch (err) {
     return { error: (err as Error).message };
   }
@@ -239,12 +211,18 @@ export async function loginDomain(
  */
 export async function refreshSession(refreshToken: string): Promise<Session | null> {
   try {
-    const data = await apiFetch<{ session: Session }>("/auth/refresh", {
+    const data = await apiFetch<{
+      session_token: string;
+      user_id: string;
+      role: string;
+      expires_at: string;
+    }>("/api/v1/auth/refresh", {
       method: "POST",
-      body: JSON.stringify({ refreshToken })
+      body: JSON.stringify({ session_token: refreshToken })
     });
-    if (data.session) saveSession(data.session, true);
-    return data.session;
+    const session = toSession(data, "simple_signin");
+    saveSession(session, true);
+    return session;
   } catch {
     clearSession();
     return null;
@@ -257,11 +235,30 @@ export async function refreshSession(refreshToken: string): Promise<Session | nu
  */
 export async function logout(): Promise<void> {
   try {
-    await apiFetch<void>("/auth/logout", { method: "POST" });
+    const session = loadSession();
+    await apiFetch<void>("/api/v1/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({ session_token: session?.accessToken })
+    });
   } catch {
     // ignore client-side logout failure
   }
   clearSession();
+}
+
+function toSession(res: { session_token: string; user_id: string; role: string; expires_at: string }, mode: SessionUser["authMode"]): Session {
+  return {
+    accessToken: res.session_token,
+    refreshToken: res.session_token,
+    expiresAt: Date.parse(res.expires_at),
+    user: {
+      id: res.user_id,
+      name: res.user_id,
+      email: res.user_id,
+      role: res.role,
+      authMode: mode
+    }
+  };
 }
 
 /**

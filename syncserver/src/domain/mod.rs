@@ -52,6 +52,10 @@ pub struct SmsEvent {
     pub content_hash: String,
     /// Optional parsed OTP/code.
     pub parsed_code: Option<String>,
+    /// Optional user who claimed/verified/rejected.
+    pub claimed_by: Option<String>,
+    /// When the claim/verification/rejection occurred.
+    pub claimed_at: Option<DateTime<Utc>>,
     /// Current state of the event.
     pub state: EventState,
     /// Source of the event.

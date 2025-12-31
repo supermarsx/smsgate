@@ -16,17 +16,31 @@ use crate::{
 pub async fn get_config(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
 ) -> Result<impl IntoResponse, AppError> {
     if !user.has_permission(permissions::CONFIG_READ) {
         return Err(AppError::Validation("forbidden".into()));
     }
     let snapshot = state.config_snapshot().await;
+    let etag = format!("\"{}\"", snapshot.version);
+    if let Some(if_none) = headers
+        .get(axum::http::header::IF_NONE_MATCH)
+        .and_then(|v| v.to_str().ok())
+    {
+        if if_none == etag {
+            return Ok((StatusCode::NOT_MODIFIED, ()));
+        }
+    }
     tracing::debug!(
         target: "config",
         actor = %user.actor_label(),
         "config snapshot served"
     );
-    Ok((StatusCode::OK, Json(snapshot)))
+    Ok((
+        StatusCode::OK,
+        [(axum::http::header::ETAG, etag)],
+        Json(snapshot),
+    ))
 }
 
 /// PATCH /api/v1/config
@@ -77,5 +91,10 @@ pub async fn patch_config(
         )
         .await;
 
-    Ok((StatusCode::OK, Json(snapshot)))
+    let etag = format!("\"{}\"", snapshot.version);
+    Ok((
+        StatusCode::OK,
+        [(axum::http::header::ETAG, etag)],
+        Json(snapshot),
+    ))
 }

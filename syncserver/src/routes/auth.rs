@@ -45,6 +45,12 @@ pub struct LoginResponse {
     pub expires_at: String,
 }
 
+/// Request body for refresh.
+#[derive(Debug, Deserialize)]
+pub struct RefreshRequest {
+    pub session_token: String,
+}
+
 /// POST /api/v1/auth/login
 pub async fn login(
     State(state): State<AppState>,
@@ -282,6 +288,32 @@ pub async fn logout(
 #[derive(Debug, Deserialize)]
 pub struct LogoutRequest {
     pub session_token: String,
+}
+
+/// POST /api/v1/auth/refresh
+pub async fn refresh_session(
+    State(state): State<AppState>,
+    Json(payload): Json<RefreshRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let existing = state
+        .session_store
+        .validate(&payload.session_token)
+        .ok_or_else(|| AppError::Validation("invalid session".into()))?;
+    // Reissue a new session for the same principal and revoke the old one.
+    state.session_store.revoke(&payload.session_token);
+    let session = state.session_store.create_session(existing.principal.clone());
+    Ok((
+        StatusCode::OK,
+        Json(LoginResponse {
+            session_token: session.token.clone(),
+            user_id: match &existing.principal {
+                Principal::User { id, .. } => id.clone(),
+                Principal::Device { id } => id.clone(),
+            },
+            role: principal_role(&existing.principal),
+            expires_at: session.expires_at.to_rfc3339(),
+        }),
+    ))
 }
 
 /// Request body for password reset.

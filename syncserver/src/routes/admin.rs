@@ -66,6 +66,31 @@ pub struct GroupMappingRequest {
     pub mapping: std::collections::HashMap<String, String>,
 }
 
+/// DELETE /api/v1/admin/numbers/:e164
+pub async fn delete_number(
+    UserAuth(user): UserAuth,
+    State(state): State<AppState>,
+    ctx: RequestContext,
+    Path(e164): Path<String>,
+) -> Result<impl IntoResponse, AppError> {
+    require_permission(&user, permissions::NUMBERS_WRITE)?;
+    state.numbers.delete(&e164);
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "admin.number.delete".into(),
+            Some(e164.clone()),
+            "success".into(),
+            serde_json::json!({}),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
+    Ok((StatusCode::NO_CONTENT, ()))
+}
+
 /// GET /api/v1/admin/users
 pub async fn list_users(
     UserAuth(user): UserAuth,

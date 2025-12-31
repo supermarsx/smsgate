@@ -128,7 +128,7 @@ async fn transition_event(
         .ok_or_else(|| AppError::Validation("event not found".into()))?;
     let previous_state = existing.state.clone();
 
-    let next = apply_transition(existing, target_state)?;
+    let next = apply_transition(existing, target_state, actor)?;
     let updated = state
         .hot_store
         .update_event(next.clone())
@@ -184,7 +184,13 @@ fn should_persist(states: &[String], target_state: &EventState) -> bool {
 fn apply_transition(
     mut event: crate::domain::SmsEvent,
     target_state: EventState,
+    actor: &str,
 ) -> Result<crate::domain::SmsEvent, AppError> {
+    // Set claim metadata when transitioning out of New into other states.
+    if target_state != EventState::New {
+        event.claimed_by = Some(actor.to_string());
+        event.claimed_at = Some(chrono::Utc::now());
+    }
     if event.state == target_state {
         return Ok(event);
     }
