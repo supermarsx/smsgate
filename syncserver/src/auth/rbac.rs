@@ -1,6 +1,7 @@
 //! RBAC store that resolves roles and permissions.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::{
     auth::Role,
@@ -64,8 +65,8 @@ fn to_role(def: &RoleDefinition) -> Role {
     }
 }
 
-impl axum::extract::FromRef<crate::state::AppState> for RbacStore {
+impl axum::extract::FromRef<crate::state::AppState> for Arc<tokio::sync::RwLock<RbacStore>> {
     fn from_ref(state: &crate::state::AppState) -> Self {
-        state.rbac.as_ref().clone_store()
+        state.rbac.clone()
     }
 }

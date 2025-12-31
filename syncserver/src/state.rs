@@ -3,6 +3,7 @@ use crate::{
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
+    management::NumberStore,
     persistence::{sql::SqlStore, worker::PersistenceWorker, JsonDb, PersistentStore},
     presence::PresenceStore,
     ws_types::ServerMessage,
@@ -93,7 +94,7 @@ pub struct AppState {
     /// Persistent store for events/audit.
     pub persistence: Arc<dyn PersistentStore>,
     /// RBAC store for user roles and group mapping.
-    pub rbac: Arc<RbacStore>,
+    pub rbac: Arc<tokio::sync::RwLock<RbacStore>>,
     /// Persistence worker for asynchronous writes.
     pub persistence_worker: PersistenceWorker,
     /// Pairing store for session lifecycle.
@@ -104,6 +105,8 @@ pub struct AppState {
     pub user_store: Arc<UserStore>,
     /// Audit service for recording security and config changes.
     pub audit: AuditService,
+    /// Number registry for admin operations.
+    pub numbers: Arc<NumberStore>,
 }
 
 impl AppState {
@@ -214,7 +217,9 @@ impl AppState {
                 }
             }
         };
-        let rbac = Arc::new(RbacStore::from_config(&config.rbac));
+        let rbac = Arc::new(tokio::sync::RwLock::new(RbacStore::from_config(
+            &config.rbac,
+        )));
         let persistence_worker = PersistenceWorker::new(persistence.clone());
         let pairing_store = Arc::new(crate::pairing::PairingStore::new(config.pairing.clone()));
         let session_store = Arc::new(crate::auth::session::SessionStore::new(&config.auth));
@@ -230,6 +235,7 @@ impl AppState {
             .collect();
         let user_store = Arc::new(crate::auth::users::UserStore::new(&config.auth, &roles));
         let audit = AuditService::new(persistence.clone(), config.database.enable_audit_log);
+        let numbers = Arc::new(NumberStore::default());
 
         Self {
             config: versioned_config,
@@ -249,6 +255,7 @@ impl AppState {
             session_store,
             user_store,
             audit,
+            numbers,
         }
     }
 

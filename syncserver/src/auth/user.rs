@@ -56,14 +56,14 @@ impl UserAuth {
 #[async_trait]
 impl<S> FromRequestParts<S> for UserAuth
 where
-    RbacStore: FromRef<S>,
+    Arc<tokio::sync::RwLock<RbacStore>>: FromRef<S>,
     Arc<SessionStore>: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let rbac = RbacStore::from_ref(state);
+        let rbac = Arc::<tokio::sync::RwLock<RbacStore>>::from_ref(state);
         let sessions = Arc::<SessionStore>::from_ref(state);
 
         if let Some(ctx) = Self::session_from_headers(&parts.headers, &sessions) {
@@ -81,8 +81,9 @@ where
                 )
             })?;
 
-        let role = Self::role_from_headers(&parts.headers, &rbac)
-            .or_else(|| rbac.role_by_name("admin"))
+        let rbac_guard = rbac.read().await;
+        let role = Self::role_from_headers(&parts.headers, &rbac_guard)
+            .or_else(|| rbac_guard.role_by_name("admin"))
             .ok_or_else(|| (StatusCode::FORBIDDEN, "no matching role".to_string()))?;
 
         Ok(UserAuth(AuthContext {

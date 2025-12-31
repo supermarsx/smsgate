@@ -1,0 +1,2 @@
+{"id":"ebf98081-b59d-47d3-a3a9-0114b53f5f6a","actor":"user:admin-tester","action":"admin.role.create","target":"auditor","result":"success","correlation_id":null,"details":{"precedence":10},"occurred_at":"2025-12-31T18:10:13.557252300Z","ip":null,"user_agent":null}
+{"id":"10be818c-7453-4314-b94c-14f089a6d9ca","actor":"user:admin-tester","action":"admin.role.create","target":"auditor","result":"success","correlation_id":null,"details":{"precedence":10},"occurred_at":"2025-12-31T18:10:58.152924100Z","ip":null,"user_agent":null}

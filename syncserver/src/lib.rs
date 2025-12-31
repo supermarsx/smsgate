@@ -7,6 +7,7 @@ pub mod config;
 pub mod domain;
 pub mod error;
 pub mod hot_store;
+pub mod management;
 pub mod metrics;
 pub mod pairing;
 pub mod persistence;

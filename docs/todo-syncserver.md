@@ -77,10 +77,10 @@
 - [x] Upgrade `/readyz` to include dependency checks (Redis/DB/config) and surface degraded state.
 
 ## Admin & management APIs
-- [ ] CRUD endpoints for users/numbers/roles/rbac-mapping with validation + pagination.
-- [ ] Force logout/unlock endpoints for users.
-- [ ] Number assign/unassign endpoints with validation and audit.
-- [ ] Device diagnostics endpoint for smsgate2 per spec.
+- [x] CRUD endpoints for users/numbers/roles/rbac-mapping with validation + pagination.
+- [x] Force logout/unlock endpoints for users.
+- [x] Number assign/unassign endpoints with validation and audit.
+- [x] Device diagnostics endpoint for smsgate2 per spec.
 
 ## Testing & quality
 - [ ] Unit tests for config loader, auth hashing/policy, dedup logic, hot store ring buffer.

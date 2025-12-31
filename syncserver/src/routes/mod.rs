@@ -2,6 +2,7 @@ use axum::{routing::get, Router};
 
 use crate::{metrics, state::AppState};
 
+pub mod admin;
 pub mod auth;
 pub mod config;
 pub mod context;
@@ -77,6 +78,42 @@ pub fn router(state: AppState) -> Router {
             axum::routing::post(presence::heartbeat),
         )
         .route("/api/v1/ws", axum::routing::get(ws::ws_handler))
+        .route("/api/v1/admin/users", axum::routing::get(admin::list_users))
+        .route("/api/v1/admin/users", axum::routing::post(admin::create_user))
+        .route(
+            "/api/v1/admin/users/:user_id",
+            axum::routing::patch(admin::update_user).delete(admin::delete_user),
+        )
+        .route(
+            "/api/v1/admin/users/:user_id/unlock",
+            axum::routing::post(admin::unlock_user),
+        )
+        .route(
+            "/api/v1/admin/users/:user_id/force_logout",
+            axum::routing::post(admin::force_logout),
+        )
+        .route(
+            "/api/v1/admin/numbers",
+            axum::routing::get(admin::list_numbers).post(admin::create_number),
+        )
+        .route(
+            "/api/v1/admin/numbers/:e164",
+            axum::routing::patch(admin::update_number),
+        )
+        .route(
+            "/api/v1/admin/numbers/:e164/assign",
+            axum::routing::post(admin::assign_number),
+        )
+        .route(
+            "/api/v1/admin/numbers/:e164/unassign",
+            axum::routing::post(admin::unassign_number),
+        )
+        .route("/api/v1/admin/roles", axum::routing::get(admin::list_roles))
+        .route("/api/v1/admin/roles", axum::routing::post(admin::create_role))
+        .route(
+            "/api/v1/admin/rbac/groups",
+            axum::routing::put(admin::update_group_mapping),
+        )
         .route("/metrics", get(metrics::metrics_handler))
         .with_state(state)
 }

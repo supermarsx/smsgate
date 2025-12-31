@@ -61,6 +61,22 @@ impl SessionStore {
     pub fn revoke(&self, token: &str) {
         self.sessions.remove(token);
     }
+
+    /// Revoke all sessions for a principal id (user or device).
+    pub fn revoke_by_principal(&self, principal_id: &str) {
+        let keys: Vec<String> = self
+            .sessions
+            .iter()
+            .filter_map(|entry| match &entry.principal {
+                Principal::User { id, .. } if id == principal_id => Some(entry.token.clone()),
+                Principal::Device { id } if id == principal_id => Some(entry.token.clone()),
+                _ => None,
+            })
+            .collect();
+        for token in keys {
+            self.sessions.remove(&token);
+        }
+    }
 }
 
 /// Generate a cryptographically random token.

@@ -68,6 +68,18 @@ impl UserStore {
         self.users.iter().any(|u| u.username == username)
     }
 
+    /// Fetch a user by id.
+    pub fn get(&self, user_id: &str) -> Option<UserRecord> {
+        self.users.get(user_id).map(|v| v.value().clone())
+    }
+
+    /// Return a sorted list of users for admin listing.
+    pub fn list(&self) -> Vec<UserRecord> {
+        let mut records: Vec<_> = self.users.iter().map(|u| u.value().clone()).collect();
+        records.sort_by(|a, b| a.username.cmp(&b.username));
+        records
+    }
+
     /// Create a local user with the provided credentials.
     pub fn create_user(
         &self,
@@ -180,6 +192,51 @@ impl UserStore {
         }
         self.resets.remove(token);
         Ok(())
+    }
+
+    /// Directly set a user's password (admin path).
+    pub fn set_password(&self, user_id: &str, new_password: &str) -> Result<UserRecord, AppError> {
+        if new_password.len() < 8 {
+            return Err(AppError::Validation("password too short".into()));
+        }
+        let hash = self.hash_password(new_password)?;
+        if let Some(mut user) = self.users.get_mut(user_id) {
+            user.password_hash = hash;
+            return Ok(user.clone());
+        }
+        Err(AppError::Validation("user not found".into()))
+    }
+
+    /// Update a user's role.
+    pub fn set_role(&self, user_id: &str, role: Role) -> Result<UserRecord, AppError> {
+        if let Some(mut user) = self.users.get_mut(user_id) {
+            user.role = role;
+            return Ok(user.clone());
+        }
+        Err(AppError::Validation("user not found".into()))
+    }
+
+    /// Lock or unlock a user account.
+    pub fn set_locked(&self, user_id: &str, locked: bool) -> Result<UserRecord, AppError> {
+        if let Some(mut user) = self.users.get_mut(user_id) {
+            user.locked = locked;
+            return Ok(user.clone());
+        }
+        Err(AppError::Validation("user not found".into()))
+    }
+
+    /// Delete a user.
+    pub fn delete(&self, user_id: &str) {
+        self.users.remove(user_id);
+    }
+
+    /// Rebind user roles from a fresh RBAC store (used when roles change).
+    pub fn rebind_roles(&self, rbac: &crate::auth::rbac::RbacStore) {
+        for mut user in self.users.iter_mut() {
+            if let Some(role) = rbac.role_by_name(&user.role.name) {
+                user.role = role;
+            }
+        }
     }
 }
 

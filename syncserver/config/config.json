@@ -1,0 +1,96 @@
+{
+  "env": "development",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "ws_max_connections": 5000,
+    "ws_snapshot_limit": 10,
+    "ws_ping_interval_ms": 15000
+  },
+  "ingest": {
+    "dedup_ttl_ms": 60000,
+    "hot_store_capacity": 1000,
+    "max_batch": 100
+  },
+  "presence": {
+    "online_threshold_ms": 20000,
+    "degraded_threshold_ms": 60000
+  },
+  "rbac": {
+    "roles": [
+      {
+        "name": "admin",
+        "precedence": 100,
+        "permissions": [
+          "events.read",
+          "events.claim",
+          "events.verify",
+          "events.reject",
+          "devices.read",
+          "devices.write",
+          "devices.disable",
+          "devices.rotate_token",
+          "numbers.read",
+          "numbers.write",
+          "users.read",
+          "users.write",
+          "users.force_logout",
+          "users.unlock",
+          "config.read",
+          "config.write",
+          "audit.read",
+          "logins.read"
+        ]
+      },
+      {
+        "name": "manager",
+        "precedence": 50,
+        "permissions": [
+          "events.read",
+          "events.claim",
+          "events.verify",
+          "devices.read",
+          "numbers.read",
+          "users.read",
+          "audit.read",
+          "logins.read"
+        ]
+      },
+      {
+        "name": "auditor",
+        "precedence": 10,
+        "permissions": [
+          "audit.read"
+        ]
+      }
+    ],
+    "group_mapping": {
+      "group-a": "auditor"
+    }
+  },
+  "pairing": {
+    "session_ttl_secs": 600,
+    "bootstrap_device": null
+  },
+  "hot_store": {
+    "mode": "memory",
+    "redis_url": null
+  },
+  "database": {
+    "adapter": "json_db",
+    "url": null,
+    "path": "data/syncserver.json",
+    "enable_audit_log": true
+  },
+  "auth": {
+    "modes": [
+      "simple_signin"
+    ],
+    "password_pepper": null,
+    "session_ttl_secs": 86400,
+    "require_admin_totp": true,
+    "oauth_issuer": null,
+    "oauth_audience": null,
+    "domain_shared_secret": null
+  }
+}
