@@ -159,7 +159,9 @@ export default function ConfigPage() {
             </div>
             <div>
               <div className="gg-label">{t("configContactSync", "Contact sync")}</div>
-              <div className="gg-value">{contactsCfg.enabled ? t("statusEnabled", "Enabled") : t("statusDisabled", "Disabled")}</div>
+              <div className="gg-value">
+                {contactsCfg.enabled ? t("statusEnabled", "Enabled") : t("statusDisabled", "Disabled")}
+              </div>
               <div className="muted">
                 {t("configLastImportLabel", "Last import")}: {contactsCfg.lastImport ?? contactsCfg.last_import ?? "-"}
               </div>

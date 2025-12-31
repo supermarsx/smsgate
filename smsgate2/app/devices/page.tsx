@@ -373,8 +373,8 @@ export default function DevicesPage() {
                     <div className="gg-value">{d.rttMs ?? "-"}</div>
                   </div>
                   <div className="kv">
-                  <div className="gg-label">{t("presenceLabel", "Presence")}</div>
-                  <div className="gg-value">{d.state ?? t("statusUnknown", "unknown")}</div>
+                    <div className="gg-label">{t("presenceLabel", "Presence")}</div>
+                    <div className="gg-value">{d.state ?? t("statusUnknown", "unknown")}</div>
                   </div>
                   <div className="kv">
                     <div className="gg-label">{t("simsLabel", "SIMs")}</div>

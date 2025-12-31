@@ -84,7 +84,6 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
     ```
 
   ### Email templates
-
   - templates/email/password-reset.html: password reset with gradient header and plaintext fallback URL placeholder `{{reset_link}}`.
   - templates/email/device-alert.html: new-device alert with metadata placeholders (`{{event_time}}`, `{{event_ip}}`, `{{user_agent}}`).
   - Both templates use the Graphite/ink gradient palette already used in the app shell (deep navy background, neon accent bar) to stay on-brand.

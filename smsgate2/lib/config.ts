@@ -136,7 +136,10 @@ function buildConfig(): AppConfig {
     ),
     "API base URL"
   );
-  const wsPath = strEnv("NEXT_PUBLIC_WS_PATH", mergedFileConfig.urls?.wsPath ?? mergedFileConfig.wsPath ?? "/api/v1/ws");
+  const wsPath = strEnv(
+    "NEXT_PUBLIC_WS_PATH",
+    mergedFileConfig.urls?.wsPath ?? mergedFileConfig.wsPath ?? "/api/v1/ws"
+  );
   const wsOrigin = strEnv("NEXT_PUBLIC_WS_ORIGIN", mergedFileConfig.urls?.wsOrigin ?? mergedFileConfig.wsOrigin ?? "");
   const qrOrigin = strEnv(
     "NEXT_PUBLIC_QR_ORIGIN",

@@ -159,7 +159,6 @@ a {
   }
 }
 
-
 .page-transition {
   animation: fadeIn 220ms ease-in;
 }
@@ -1266,7 +1265,10 @@ a {
   color: var(--primary);
   cursor: pointer;
   box-shadow: var(--shadow-2);
-  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    border-color var(--transition);
   position: relative;
   user-select: none;
 }
@@ -1331,7 +1333,10 @@ a {
 }
 
 .fab .emoji-tint {
-  transition: transform var(--transition), filter var(--transition), text-shadow var(--transition);
+  transition:
+    transform var(--transition),
+    filter var(--transition),
+    text-shadow var(--transition);
 }
 
 .fab:active .emoji-tint {
@@ -1403,7 +1408,9 @@ a {
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.04);
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .icon-themed:hover {

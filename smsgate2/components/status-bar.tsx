@@ -38,7 +38,9 @@ export function StatusBar() {
     { key: "lastError", label: t("lastError", "Last error"), value: status.lastError, tone: "warn" as const }
   ];
 
-  const quickIndicators = metrics.filter((m) => m.value !== undefined && m.value !== null && m.value !== "").slice(0, 3);
+  const quickIndicators = metrics
+    .filter((m) => m.value !== undefined && m.value !== null && m.value !== "")
+    .slice(0, 3);
   const moreItems = metrics.filter((m) => m.value !== undefined && m.value !== null && m.value !== "");
 
   return (

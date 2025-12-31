@@ -128,14 +128,20 @@ export function ProtectedShell({ children }: Props) {
         {!status.connected && (
           <div className="banner warn">
             {t("reconnectingBanner", "Reconnecting to realtime stream... showing cached data.")}{" "}
-            {friendlyError && mapWsErrorKey(status.lastError ?? undefined) !== "wsOfflineMode" ? `(${friendlyError})` : ""}
+            {friendlyError && mapWsErrorKey(status.lastError ?? undefined) !== "wsOfflineMode"
+              ? `(${friendlyError})`
+              : ""}
           </div>
         )}
         {session.user.requiresPasswordChange && (
-          <div className="banner warn">{t("passwordChangeRequired", "Password change required before accessing the console.")}</div>
+          <div className="banner warn">
+            {t("passwordChangeRequired", "Password change required before accessing the console.")}
+          </div>
         )}
         {session.user.requires2fa && (
-          <div className="banner warn">{t("mfaRequired", "2FA enrollment required; sign in with MFA to continue.")}</div>
+          <div className="banner warn">
+            {t("mfaRequired", "2FA enrollment required; sign in with MFA to continue.")}
+          </div>
         )}
         {debugOpen && (
           <div className="debug-overlay">

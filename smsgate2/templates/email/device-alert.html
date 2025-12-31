@@ -14,9 +14,9 @@
       }
       .wrapper {
         width: 100%;
-        background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 35%),
-          radial-gradient(circle at 80% 0%, rgba(34, 197, 94, 0.09), transparent 35%),
-          #0f172a;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 35%),
+          radial-gradient(circle at 80% 0%, rgba(34, 197, 94, 0.09), transparent 35%), #0f172a;
         padding: 32px 12px;
       }
       .card {
@@ -84,7 +84,7 @@
       <div class="card">
         <div class="bar"></div>
         <div class="content">
-          <p class="muted" style="margin-bottom: 10px;">SMSGate Security</p>
+          <p class="muted" style="margin-bottom: 10px">SMSGate Security</p>
           <h1>New device signed in</h1>
           <p>Hello {{user_name}},</p>
           <p>
@@ -92,22 +92,22 @@
             your account immediately.
           </p>
           <div class="box">
-            <p style="margin: 0 0 6px; font-weight: 600;">Device details</p>
-            <p class="muted" style="margin: 0;">
+            <p style="margin: 0 0 6px; font-weight: 600">Device details</p>
+            <p class="muted" style="margin: 0">
               Time: {{event_time}}<br />
               Location: {{event_city}}, {{event_country}}<br />
               IP: {{event_ip}}<br />
               User agent: {{user_agent}}
             </p>
           </div>
-          <p style="margin: 18px 0 12px;">
+          <p style="margin: 18px 0 12px">
             <a class="cta" href="{{lock_account_link}}" target="_blank" rel="noopener">Lock account</a>
           </p>
           <p class="muted">
             This message was sent automatically. If the activity seems suspicious, lock your account and reset your
             password.
           </p>
-          <p class="muted" style="margin-top: 16px;">Need help? Contact your administrator.</p>
+          <p class="muted" style="margin-top: 16px">Need help? Contact your administrator.</p>
         </div>
       </div>
     </div>

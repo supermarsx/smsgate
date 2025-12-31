@@ -22,8 +22,11 @@ describe("config extended", () => {
   });
 
   it("disables allowOfflineAdmin when env forces false", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.NEXT_PUBLIC_ALLOW_OFFLINE_ADMIN = "false";
+    process.env = {
+      ...process.env,
+      NODE_ENV: "production",
+      NEXT_PUBLIC_ALLOW_OFFLINE_ADMIN: "false"
+    };
     const { appConfig } = await import("../lib/config");
     expect(appConfig.allowOfflineAdmin).toBe(false);
   });
