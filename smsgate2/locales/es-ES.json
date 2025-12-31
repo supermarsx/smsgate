@@ -1,6 +1,6 @@
 {
-  "heroTitle": "smsgate2 andamiaje del panel",
-  "heroSubtitle": "Next.js 14 (app dir) + Bun + Bulma. Conecta REST/WS de syncserver y UI Graphite Glass después.",
+  "heroTitle": "smsgate2 secure console",
+  "heroSubtitle": "Unified login for operators, admins, and SSO users. Pick your configured method below.",
   "nextSteps": "Próximos pasos",
   "wireConfig": "Conectar cargador de config/env (API base, ruta WS, modos de auth, locale).",
   "authScreen": "Añadir pantalla de login (oauth / simple_signin / domain_signin).",
@@ -292,5 +292,6 @@
   "offlineResetCta": "Reset without email",
   "offlineResetHelp": "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy.",
   "authLabel": "Auth",
-  "loginWsStatus": "WS status"
+  "loginWsStatus": "WS status",
+  "loginChooseMode": "Select a sign-in option available for your tenant."
 }

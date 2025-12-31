@@ -42,26 +42,6 @@ export function LoginPanel({ onLogin }: Props) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetStatus, setResetStatus] = useState<string | null>(null);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
-  const authStatuses = [
-    {
-      key: "oauth" as Mode,
-      label: t("authSso", "SSO / OAuth"),
-      enabled: appConfig.authModes.oauth,
-      hint: t("authSsoHint", "Use your identity provider")
-    },
-    {
-      key: "simple_signin" as Mode,
-      label: t("authPassword", "Username / Password"),
-      enabled: appConfig.authModes.simpleSignin,
-      hint: t("authPasswordHint", "Local account sign-in")
-    },
-    {
-      key: "domain_signin" as Mode,
-      label: t("authDomain", "Domain Login (LDAP/AD)"),
-      enabled: appConfig.authModes.domainSignin,
-      hint: t("authDomainHint", "Bind against your directory")
-    }
-  ];
 
   function handleSelect(next: Mode) {
     setMode(next);
@@ -191,16 +171,7 @@ export function LoginPanel({ onLogin }: Props) {
 
   return (
     <div className="login-panel">
-      <div className="auth-status-grid">
-        {authStatuses.map((s) => (
-          <div key={s.key} className={`status-chip ${s.enabled ? "ok" : "warn"}`}>
-            <span className={`status-dot ${s.enabled ? "ok" : "warn"}`} />
-            <div className="chip-label">{s.label}</div>
-            <div className="chip-value">{s.enabled ? "Enabled" : "Disabled"}</div>
-            <div className="muted small">{s.hint}</div>
-          </div>
-        ))}
-      </div>
+      <div className="muted small">{t("loginChooseMode", "Select a sign-in option available for your tenant.")}</div>
       <div className="login-panel__modes">
         {appConfig.authModes.oauth && (
           <button
