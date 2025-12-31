@@ -6,6 +6,7 @@
   "allowOfflineAdmin": true,
   "smtp": {
     "enabled": true,
+    "allowInvalidCert": false,
     "host": "localhost",
     "port": 1025,
     "secure": false,

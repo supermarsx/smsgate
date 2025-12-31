@@ -13,6 +13,7 @@ export type AppConfig = {
   primaryAuthMode?: "oauth" | "simple_signin" | "domain_signin";
   smtp?: {
     enabled?: boolean;
+    allowInvalidCert?: boolean;
     host: string;
     port: number;
     secure: boolean;
@@ -94,10 +95,15 @@ function buildConfig(): AppConfig {
     : undefined;
 
   const smtpEnabled = boolEnv("NEXT_PUBLIC_SMTP_ENABLED", mergedFileConfig.smtp?.enabled ?? true);
+  const smtpAllowInvalidCert = boolEnv(
+    "NEXT_PUBLIC_SMTP_ALLOW_INVALID_CERT",
+    mergedFileConfig.smtp?.allowInvalidCert ?? false
+  );
   const smtp = mergedFileConfig.smtp
     ? {
         ...mergedFileConfig.smtp,
-        enabled: smtpEnabled
+        enabled: smtpEnabled,
+        allowInvalidCert: smtpAllowInvalidCert
       }
     : undefined;
 

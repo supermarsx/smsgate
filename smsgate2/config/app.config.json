@@ -6,6 +6,7 @@
   "allowOfflineAdmin": false,
   "smtp": {
     "enabled": true,
+    "allowInvalidCert": false,
     "host": "smtp.example.com",
     "port": 587,
     "secure": false,
