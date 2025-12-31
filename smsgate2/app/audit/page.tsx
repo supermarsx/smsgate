@@ -4,9 +4,15 @@ import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { useEffect, useMemo, useState } from "react";
 import { getAudit } from "../../lib/rest";
+import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 export default function AuditPage() {
   const { session } = useSession();
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   const [rows, setRows] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -81,14 +87,16 @@ export default function AuditPage() {
     <ProtectedShell>
       <div className="gg-panel">
         <div className="gg-panel__header">
-          <div className="gg-pill">Audit</div>
-          <h1 className="gg-title">Audit log</h1>
-          <p className="gg-subtitle">
-            Tables with filters (time, actor, action, device, number) and pagination/export.
-          </p>
+          <div className="gg-pill">{t("auditTitle", "Audit")}</div>
+          <h1 className="gg-title">{t("auditSubtitle", "Audit log")}</h1>
+          <p className="gg-subtitle">{t("auditDescription", "Tables with filters (time, actor, action, device, number) and pagination/export.")}</p>
         </div>
-        {error && <div className="login-error">Error: {error}</div>}
-        {loading && <div className="muted">Loading...</div>}
+        {error && (
+          <div className="login-error">
+            {t("errorPrefix", "Error")}: {error}
+          </div>
+        )}
+        {loading && <div className="muted">{t("loading", "Loading...")}</div>}
         <div className="filter-row">
           <label className="gg-label" htmlFor="audit-filter">
             Filter
@@ -101,7 +109,7 @@ export default function AuditPage() {
               setFilter(e.target.value);
               setPage(0);
             }}
-            placeholder="Search actor/action/device/number"
+            placeholder={t("auditSearch", "Search actor/action/device/number")}
           />
         </div>
         <div className="filter-row">
@@ -117,9 +125,9 @@ export default function AuditPage() {
               setPage(0);
             }}
           >
-            <option value="__all__">All</option>
-            <option value="success">success</option>
-            <option value="fail">fail</option>
+            <option value="__all__">{t("all", "All")}</option>
+            <option value="success">{t("auditSuccess", "success")}</option>
+            <option value="fail">{t("auditFail", "fail")}</option>
           </select>
           <label className="gg-label" htmlFor="audit-device">
             Device
@@ -156,9 +164,9 @@ export default function AuditPage() {
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
           >
-            <option value="all">All</option>
-            <option value="1h">Last hour</option>
-            <option value="24h">Last 24h</option>
+            <option value="all">{t("all", "All")}</option>
+            <option value="1h">{t("lastHour", "Last hour")}</option>
+            <option value="24h">{t("last24h", "Last 24h")}</option>
           </select>
         </div>
         <div className="presence-list">
@@ -172,7 +180,7 @@ export default function AuditPage() {
               </div>
             </div>
           ))}
-          {!rows.length && !loading && <div className="muted">No audit events yet.</div>}
+          {!rows.length && !loading && <div className="muted">{t("auditNoEvents", "No audit events yet.")}</div>}
         </div>
         <div className="pagination">
           <button className="ghost" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>

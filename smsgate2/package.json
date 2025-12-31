@@ -13,6 +13,8 @@
     "test": "vitest run --pool=forks",
     "test:watch": "vitest watch --pool=forks",
     "test:e2e": "playwright test",
+    "test:i18n": "vitest run tests/i18n.test.ts",
+    "scan:i18n": "node scripts/find-i18n-hardcoded.js",
     "format": "bun --bun prettier --check .",
     "format:write": "bun --bun prettier --write .",
     "package": "docker build -f Dockerfile -t smsgate2:ci ."

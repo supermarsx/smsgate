@@ -69,10 +69,11 @@
 - [x] Devices: align degraded/offline thresholds to spec (queue depth, heartbeat age); diagnostics cards should be schema-driven.
 - [x] E2E: add Playwright login→dashboard→claim→config edit + offline/reconnect; load test WS pagination/fanout.
 - [x] CI/package: add smoke/healthcheck for built image; docker-compose should exercise real syncserver (not just Wiremock).
-- [ ] Auth hardening: enforce default-admin password change + email-reset flow, and force 2FA enrollment before full access.
-- [ ] RBAC config-driven: respect role labels/order from config (incl. AD/LDAP group mapping) instead of fixed enums; nav/permissions should follow config.
-- [ ] Config UX: apply schema validation + tooltips per section (reject invalid structure client-side).
+- [x] Auth hardening: enforce default-admin password change + email-reset flow, and force 2FA enrollment before full access.
+- [x] RBAC config-driven: respect role labels/order from config (incl. AD/LDAP group mapping) instead of fixed enums; nav/permissions should follow config.
+- [x] Config UX: apply schema validation + tooltips per section (reject invalid structure client-side).
 - [x] Home/login: SSR-friendly redirect and no flash; CSP/connect-src should allow QR generator or make QR generation local.
+- [ ] i18n coverage: move remaining hardcoded strings (nav labels, banners, actions, table headers) into locale files and provide en-US/pt-PT/es-ES keys; ensure components consume translations.
 
 ## Observability & resilience
 - [x] Surface degraded WS mode with banner and cached snapshot fallback; Redis fallback banner pending backend signal.

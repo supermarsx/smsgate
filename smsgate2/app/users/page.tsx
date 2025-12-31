@@ -2,7 +2,8 @@
 
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
-import { useEffect, useState } from "react";
+import { useConfig } from "../../components/config-provider";
+import { useEffect, useMemo, useState } from "react";
 import {
   disableUser,
   enableUser,
@@ -13,15 +14,20 @@ import {
   unlockUser,
   updateUserRole
 } from "../../lib/rest";
+import { DEFAULT_ROLE_ORDER, getRoleLabel } from "../../lib/roles";
 
 export default function UsersPage() {
   const { session } = useSession();
+  const { config } = useConfig();
   const [users, setUsers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [passwords, setPasswords] = useState<Record<string, string>>({});
   const [devicePhones, setDevicePhones] = useState<Record<string, string>>({});
+  const rolesConfig = useMemo(() => ((config?.data as any)?.roles ?? {}) as any, [config]);
+  const roleOrder = rolesConfig.order?.length ? rolesConfig.order : DEFAULT_ROLE_ORDER;
+  const roleLabels = rolesConfig.labels ?? {};
 
   useEffect(() => {
     if (!session) return;
@@ -52,7 +58,8 @@ export default function UsersPage() {
               <div>
                 <div className="gg-value">{u.name ?? u.email ?? u.id}</div>
                 <div className="muted">
-                  Role: {u.role ?? "-"} | Auth: {u.authMode ?? "-"} | Status: {u.disabled ? "disabled" : "active"}
+                  Role: {getRoleLabel(u.role, roleLabels)} | Auth: {u.authMode ?? "-"} | Status:{" "}
+                  {u.disabled ? "disabled" : "active"}
                 </div>
                 {u.locked && <div className="login-error">Locked out</div>}
                 {Array.isArray(u.groups) && <div className="muted">Groups: {u.groups.join(", ")}</div>}
@@ -76,9 +83,9 @@ export default function UsersPage() {
                     }
                   }}
                 >
-                  {["viewer", "verifier", "manager", "admin"].map((role) => (
+                  {roleOrder.map((role: string) => (
                     <option key={role} value={role}>
-                      {role}
+                      {getRoleLabel(role, roleLabels)}
                     </option>
                   ))}
                 </select>

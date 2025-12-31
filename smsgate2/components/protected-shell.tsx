@@ -8,7 +8,7 @@ import { allowedNav, getRoleLabel } from "../lib/roles";
 import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useTheme } from "./theme";
-import { SUPPORTED_LOCALES, getInitialLocale, setPreferredLocale, type Locale } from "../lib/i18n";
+import { SUPPORTED_LOCALES, getInitialLocale, getTranslations, setPreferredLocale, type Locale } from "../lib/i18n";
 import { useConfig } from "./config-provider";
 
 type Props = {
@@ -36,6 +36,9 @@ export function ProtectedShell({ children }: Props) {
   const rolesConfig = useMemo(() => ((config?.data as any)?.roles ?? {}) as any, [config]);
   const roleOrder = rolesConfig?.order;
   const roleLabels = rolesConfig?.labels ?? {};
+
+  const translations = useMemo(() => getTranslations(locale), [locale]);
+  const t = useMemo(() => (key: string, fallback: string) => translations[key] ?? fallback, [translations]);
 
   const navItems = useMemo(() => (session ? allowedNav(session.user.role, roleOrder) : []), [roleOrder, session]);
   useEffect(() => {
@@ -68,7 +71,7 @@ export function ProtectedShell({ children }: Props) {
   if (unauthorized) {
     return (
       <div className="gg-panel">
-        <div className="login-error">Unauthorized for this route; redirecting...</div>
+        <div className="login-error">{t("unauthorized", "Unauthorized for this route; redirecting...")}</div>
       </div>
     );
   }
@@ -90,7 +93,7 @@ export function ProtectedShell({ children }: Props) {
               className={`nav-link ${pathname === item.path ? "is-active" : ""}`}
               onClick={() => setNavOpen(false)}
             >
-              {item.label}
+              {t(`nav${item.label}`, item.label)}
             </Link>
           ))}
         </nav>
@@ -100,7 +103,7 @@ export function ProtectedShell({ children }: Props) {
           <div className="topbar-meta">
             <span className="pill pill-muted">{getRoleLabel(session.user.role, roleLabels)}</span>
             <div className="account-chip">
-              <div className="gg-label">Account</div>
+              <div className="gg-label">{t("account", "Account")}</div>
               <div className="gg-value">{session.user.email ?? session.user.name}</div>
               {session.user.email && <div className="muted small">{session.user.name}</div>}
             </div>
@@ -115,26 +118,30 @@ export function ProtectedShell({ children }: Props) {
               <div className="chip-value">{status.connected ? "Online" : "Offline"}</div>
               <div className="muted small">RTT {status.clientRtt ?? "-"}</div>
             </div>
-            <div className="status-chip info" title="Device presence and RTT">
+            <div className="status-chip info" title={t("presenceLabel", "Device presence and RTT")}>
               <span className="status-dot" />
-              <div className="chip-label">Devices</div>
+              <div className="chip-label">{t("devicesLabel", "Devices")}</div>
               <div className="chip-value">{status.devicesOnline ?? 0} online</div>
               <div className="muted small">RTT {status.deviceRtt ?? "-"}</div>
             </div>
-            <div className="status-chip ok" title="Ingest to render latency">
+            <div className="status-chip ok" title={t("dashboardIngest", "Ingest to render latency")}>
               <span className="status-dot" />
-              <div className="chip-label">Latency</div>
+              <div className="chip-label">{t("latencyLabel", "Latency")}</div>
               <div className="chip-value">{status.ingestLatency ?? "-"}</div>
-              <div className="muted small">Errors {status.wsErrors ?? 0}</div>
+              <div className="muted small">
+                {t("errorPrefix", "Error")}: {status.wsErrors ?? 0}
+              </div>
             </div>
-            <div className="status-chip" title="WS reconnects">
+            <div className="status-chip" title={t("reconnects", "WS reconnects")}>
               <span className="status-dot" />
-              <div className="chip-label">Reconnects</div>
+              <div className="chip-label">{t("reconnects", "Reconnects")}</div>
               <div className="chip-value">{status.reconnects ?? 0}</div>
-              <div className="muted small">Role {session.user.role}</div>
+              <div className="muted small">
+                {t("navUsers", "Role")} {session.user.role}
+              </div>
             </div>
-            <button className="ghost" onClick={toggle} title="Toggle theme">
-              Theme: {theme === "dark" ? "Dark" : "Light"}
+            <button className="ghost" onClick={toggle} title={t("themeToggle", "Toggle theme")}>
+              {t("themeToggle", "Toggle theme")}: {theme === "dark" ? "Dark" : "Light"}
             </button>
             <select
               className="gg-select topbar-select"
@@ -161,14 +168,14 @@ export function ProtectedShell({ children }: Props) {
           </div>
         )}
         {session.user.requiresPasswordChange && (
-          <div className="banner warn">Password change required before accessing the console.</div>
+          <div className="banner warn">{t("passwordChangeRequired", "Password change required before accessing the console.")}</div>
         )}
         {session.user.requires2fa && (
-          <div className="banner warn">2FA enrollment required; sign in with MFA to continue.</div>
+          <div className="banner warn">{t("mfaRequired", "2FA enrollment required; sign in with MFA to continue.")}</div>
         )}
         {debugOpen && (
           <div className="debug-overlay">
-            <div className="gg-label">Debug snapshot</div>
+            <div className="gg-label">{t("debugSnapshot", "Debug snapshot")}</div>
             <pre className="pairing-pre">{JSON.stringify(status, null, 2)}</pre>
             <div className="actions">
               <button className="ghost" onClick={() => setShowLogs((v) => !v)}>

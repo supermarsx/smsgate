@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { appConfig, wsUrl } from "../lib/config";
 import {
   buildOAuthAuthorizeUrl,
@@ -10,6 +10,7 @@ import {
   requestPasswordReset,
   type Session
 } from "../lib/auth";
+import { getInitialLocale, getTranslations } from "../lib/i18n";
 
 type Mode = "oauth" | "simple_signin" | "domain_signin";
 
@@ -18,6 +19,11 @@ type Props = {
 };
 
 export function LoginPanel({ onLogin }: Props) {
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   const [mode, setMode] = useState<Mode | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -34,6 +40,7 @@ export function LoginPanel({ onLogin }: Props) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetStatus, setResetStatus] = useState<string | null>(null);
+  const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
 
   function handleSelect(next: Mode) {
     setMode(next);
@@ -123,6 +130,37 @@ export function LoginPanel({ onLogin }: Props) {
       if (res.session) {
         onLogin(res.session);
       }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleOfflineReset(e: React.FormEvent) {
+    e.preventDefault();
+    if (!offlineReset.token || !offlineReset.password) {
+      setError("Reset token and new password are required");
+      return;
+    }
+    if (offlineReset.password !== offlineReset.confirm) {
+      setError("Passwords do not match");
+      return;
+    }
+    setPending(true);
+    setError(null);
+    try {
+      const res = await changePassword({
+        token: offlineReset.token,
+        username: form.username || "admin",
+        newPassword: offlineReset.password,
+        mfaCode: form.mfaCode || undefined
+      });
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      if (res.session) onLogin(res.session);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -263,6 +301,33 @@ export function LoginPanel({ onLogin }: Props) {
               </button>
             </div>
             {resetStatus && <div className="muted small">{resetStatus}</div>}
+          </div>
+          <div className="form-row">
+            <label htmlFor="offline-reset">Offline reset (token)</label>
+            <input
+              id="offline-reset"
+              placeholder="Paste reset token"
+              value={offlineReset.token}
+              onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
+            />
+            <input
+              type="password"
+              placeholder="New password"
+              value={offlineReset.password}
+              onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
+            />
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={offlineReset.confirm}
+              onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
+            />
+            <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
+              Reset without email
+            </button>
+            <div className="muted small">
+              Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset.
+            </div>
           </div>
         </form>
       )}
