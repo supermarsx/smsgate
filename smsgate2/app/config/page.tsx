@@ -13,6 +13,7 @@ import { useMemo, useState } from "react";
 import { fetchContacts, exportContacts, toggleContactSync } from "../../lib/rest";
 import { getTranslations, useLocale } from "../../lib/i18n";
 import { validateConfigShape } from "../../lib/config-validators";
+import { appConfig } from "../../lib/config";
 
 /**
  * Configuration editor with validation, diff preview, and contact utilities.
@@ -49,6 +50,19 @@ export default function ConfigPage() {
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
   if (!session) return null;
+  if (!(appConfig.limits?.routes?.config ?? false)) {
+    return (
+      <ProtectedShell>
+        <div className="gg-panel">
+          <div className="gg-panel__header">
+            <div className="gg-pill">{t("navConfig", "Config")}</div>
+            <h1 className="gg-title">{t("accessBlocked", "Access disabled by configuration.")}</h1>
+          </div>
+          <p className="gg-subtitle">{t("configLoadError", "Config editor is turned off by policy.")}</p>
+        </div>
+      </ProtectedShell>
+    );
+  }
 
   const safeSession = session as NonNullable<typeof session>;
   const contactsCfg = ((config?.data as any)?.contacts ?? {}) as {

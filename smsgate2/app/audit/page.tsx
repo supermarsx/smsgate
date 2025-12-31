@@ -9,6 +9,7 @@ import { useSession } from "../../components/session-provider";
 import { useEffect, useMemo, useState } from "react";
 import { getAudit } from "../../lib/rest";
 import { getTranslations, useLocale } from "../../lib/i18n";
+import { appConfig } from "../../lib/config";
 
 /**
  * Audit log table with filtering, paging, and export.
@@ -34,6 +35,8 @@ export default function AuditPage() {
   const [actorFilter, setActorFilter] = useState<string>("");
   const [actionFilter, setActionFilter] = useState<string>("__all__");
   const [targetFilter, setTargetFilter] = useState<string>("__all__");
+  const routeAllowed = appConfig.limits?.routes?.audit ?? false;
+  const auditLimits = appConfig.limits?.actions?.audit ?? {};
   useEffect(() => {
     const now = Date.now();
     if (timeRange === "1h") setCutoff(now - 60 * 60 * 1000);
@@ -42,13 +45,13 @@ export default function AuditPage() {
   }, [timeRange]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !routeAllowed) return;
     setLoading(true);
     getAudit(session)
       .then(setRows)
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [routeAllowed, session]);
 
   const pageSize = 10;
   const filtered = useMemo(() => {
@@ -90,6 +93,7 @@ export default function AuditPage() {
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
 
   function exportCsv(items: any[]) {
+    if (!auditLimits.export) return;
     const header = ["action", "actor", "device", "number", "timestamp"];
     const body = items.map((r) =>
       header
@@ -113,6 +117,20 @@ export default function AuditPage() {
   }
 
   if (!session) return null;
+
+  if (!routeAllowed) {
+    return (
+      <ProtectedShell>
+        <div className="gg-panel">
+          <div className="gg-panel__header">
+            <div className="gg-pill">{t("navAudit", "Audit")}</div>
+            <h1 className="gg-title">{t("accessBlocked", "Access disabled by configuration.")}</h1>
+          </div>
+          <p className="gg-subtitle">{t("auditDescription", "This section is currently unavailable.")}</p>
+        </div>
+      </ProtectedShell>
+    );
+  }
 
   return (
     <ProtectedShell>

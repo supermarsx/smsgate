@@ -9,6 +9,7 @@ import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { getLoginEvents } from "../../lib/rest";
 import { getTranslations, useLocale } from "../../lib/i18n";
+import { appConfig } from "../../lib/config";
 
 /**
  * Login events history with filters and CSV/JSON export.
@@ -32,6 +33,7 @@ export default function LoginsPage() {
   const [cutoff, setCutoff] = useState<number | null>(null);
   const [authMode, setAuthMode] = useState<string>("__all__");
   const [reason, setReason] = useState<string>("__all__");
+  const routeAllowed = appConfig.limits?.routes?.logins ?? false;
   useEffect(() => {
     const now = Date.now();
     if (timeRange === "1h") setCutoff(now - 60 * 60 * 1000);
@@ -40,13 +42,13 @@ export default function LoginsPage() {
   }, [timeRange]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !routeAllowed) return;
     setLoading(true);
     getLoginEvents(session)
       .then(setRows)
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [routeAllowed, session]);
 
   const pageSize = 10;
   const filtered = useMemo(() => {
@@ -96,6 +98,20 @@ export default function LoginsPage() {
   }
 
   if (!session) return null;
+
+  if (!routeAllowed) {
+    return (
+      <ProtectedShell>
+        <div className="gg-panel">
+          <div className="gg-panel__header">
+            <div className="gg-pill">{t("navLogins", "Logins")}</div>
+            <h1 className="gg-title">{t("accessBlocked", "Access disabled by configuration.")}</h1>
+          </div>
+          <p className="gg-subtitle">{t("loginsDescription", "This section is currently unavailable.")}</p>
+        </div>
+      </ProtectedShell>
+    );
+  }
 
   return (
     <ProtectedShell>
