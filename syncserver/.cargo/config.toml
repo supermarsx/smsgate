@@ -5,3 +5,10 @@ lint = "clippy --all-targets --all-features -- -D warnings"
 check-all = "check --all-targets --all-features"
 # Run tests across all targets.
 test-all = "test --all-targets"
+
+[build]
+rustflags = [
+    "-C", "debuginfo=0",
+    "-C", "incremental=false",
+    "-C", "link-arg=/DEBUG:FASTLINK"
+]

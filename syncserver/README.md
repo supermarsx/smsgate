@@ -63,6 +63,15 @@ Cross-platform helpers:
 
 Both build release binaries for `syncserver`, `syncctl`, and `migrate` into `dist/<target>/`. Adjust targets via `TARGETS` (shell) or `-Targets` (PowerShell). Targets must be installed via `rustup target add`.
 
+## Dev scripts
+
+- `scripts/fmt-syncserver.(sh|ps1)` – format the workspace.
+- `scripts/lint-syncserver.(sh|ps1)` – clippy with warnings as errors.
+- `scripts/type-syncserver.(sh|ps1)` – `cargo check` across targets/features.
+- `scripts/test-syncserver.(sh|ps1)` – full test suite.
+- `scripts/build-syncserver.(sh|ps1)` – release build.
+- `scripts/check-syncserver.(sh|ps1)` – run fmt → lint → type → test → release build.
+
 ## Tests
 
 ```bash
