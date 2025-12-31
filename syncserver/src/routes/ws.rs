@@ -9,7 +9,6 @@ use axum::{
     },
     response::Response,
 };
-use futures::SinkExt;
 use tokio::time::timeout;
 
 use crate::{state::AppState, ws_types::ServerMessage};
