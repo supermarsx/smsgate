@@ -8,6 +8,7 @@ import { allowedNav, getRoleLabel } from "../lib/roles";
 import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useConfig } from "./config-provider";
+import { mapWsErrorKey } from "../lib/status";
 import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
 
 type Props = {
@@ -29,6 +30,11 @@ export function ProtectedShell({ children }: Props) {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
   }, [locale]);
+  const friendlyError = useMemo(() => {
+    const key = mapWsErrorKey(status.lastError ?? undefined);
+    if (key) return t(key, status.lastError ?? key);
+    return status.lastError;
+  }, [status.lastError, t]);
 
   useEffect(() => {
     if (!session && typeof window !== "undefined") {
@@ -93,7 +99,7 @@ export function ProtectedShell({ children }: Props) {
         {!status.connected && (
           <div className="banner warn">
             {t("reconnectingBanner", "Reconnecting to realtime stream... showing cached data.")}{" "}
-            {status.lastError ? `(${status.lastError})` : ""}
+            {friendlyError && mapWsErrorKey(status.lastError ?? undefined) !== "wsOfflineMode" ? `(${friendlyError})` : ""}
           </div>
         )}
         {session.user.requiresPasswordChange && (
