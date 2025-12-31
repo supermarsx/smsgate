@@ -3,3 +3,4 @@
 /smsgate2/tsconfig.tsbuildinfo
 /smsgate2/coverage
 /smsgate2/.env.local
+/smsrelay3/android/.kotlin
