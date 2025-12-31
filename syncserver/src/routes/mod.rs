@@ -2,6 +2,7 @@ use axum::{routing::get, Router};
 
 use crate::{metrics, state::AppState};
 
+pub mod devices;
 pub mod config;
 mod health;
 pub mod ingest;
@@ -24,6 +25,23 @@ pub fn router(state: AppState) -> Router {
         .route(
             "/api/v1/pairing/complete",
             axum::routing::post(pairing::complete_session),
+        )
+        .route("/api/v1/devices", get(devices::list_devices))
+        .route(
+            "/api/v1/devices/:device_id/rename",
+            axum::routing::post(devices::rename_device),
+        )
+        .route(
+            "/api/v1/devices/:device_id/disable",
+            axum::routing::post(devices::disable_device),
+        )
+        .route(
+            "/api/v1/devices/:device_id/enable",
+            axum::routing::post(devices::enable_device),
+        )
+        .route(
+            "/api/v1/devices/:device_id/diagnostics",
+            axum::routing::get(devices::diagnostics),
         )
         .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
         .route(

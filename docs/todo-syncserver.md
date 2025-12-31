@@ -2,8 +2,8 @@
 
 ## Current state (gap check)
 - [x] New `syncserver/` Rust crate scaffolded with Axum/Tokio, env-driven host/port, and `/healthz` + `/readyz` JSON endpoints.
-- [ ] No auth/RBAC, device pairing, ingest pipeline, hot store, or persistence implemented yet.
-- [ ] No WebSocket gateway, config plane, audit/login logging, or admin/user/number APIs exist.
+- [x] Auth/RBAC guards on config + device endpoints, pairing flow issuing device tokens (hashed), ingest/presence/hot-store/persistence JSON DB baselines.
+- [ ] WebSocket paging/config updates, audit/login logging, and admin/user/number APIs still pending.
 
 ## Foundations & scaffolding
 - [x] Set up lint/format/test baseline (`cargo fmt`, `clippy` alias, unit/integration test harness); CI workflow pending.
@@ -30,9 +30,9 @@
 
 ## Device pairing & credentials
 - [x] Implement pairing session endpoints (`/api/v1/pairing/session`, `/complete`) that emit QR payloads.
-- [x] Issue device ids/tokens (hashed server-side) for pairing completion (rotation/enable/disable pending).
-- [ ] Provide device rename/disable/enable endpoints and diagnostics fetch stub.
-- [ ] Add bootstrap seeding for initial pairing/admin device policy.
+- [x] Issue device ids/tokens (hashed server-side) for pairing completion (rotation pending).
+- [x] Provide device rename/disable/enable endpoints and diagnostics fetch stub.
+- [x] Add bootstrap seeding for initial pairing/admin device policy.
 
 ## Config plane
 - [ ] Load baseline `config.json` with versioning and validation.
@@ -41,7 +41,7 @@
 - [x] Expose effective config snapshot for smsgate2 to gate auth modes and role labels.
 
 ## Ingest & event pipeline
-- [ ] Implement `/api/v1/ingest` with device auth, normalization, and dedup TTL keys.
+- [x] Implement `/api/v1/ingest` with device auth, normalization, and dedup TTL keys.
 - [x] Compute content hash + optional parsed_code extraction for OTPs.
 - [x] Append events to hot store ring buffer and emit `EVENT_NEW` over WS (WS emit pending).
 - [ ] Implement state transitions (`claim/verify/reject`) with validation + audit + broadcast.
@@ -57,7 +57,7 @@
 ## WebSocket gateway & paging
 - [x] Implement WS handshake (unauthenticated stub), ping/pong, and broadcast channel.
 - [x] Serve `WELCOME` + initial `SNAPSHOT` with default limit; event/presence broadcasts wired (subscriptions/paging pending).
-- [ ] Implement paging (`PAGE_BEFORE`/`PAGE_AFTER`) with anchors and retention windows.
+- [x] Implement paging (`PAGE_BEFORE`/`PAGE_AFTER`) with anchors and retention windows.
 - [ ] Broadcast `EVENT_UPDATE`, `SIM_*`, `CONFIG_UPDATE`, `CONTACT_UPDATE`.
 - [ ] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
 

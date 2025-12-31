@@ -8,7 +8,7 @@ use axum::{
     http::{request::Parts, StatusCode},
 };
 use dashmap::DashMap;
-use headers::{authorization::Bearer, Authorization, Header};
+use headers::{authorization::Bearer, Authorization};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use chrono::{DateTime, Utc};
@@ -206,16 +206,19 @@ impl DeviceAuthStore {
     pub fn diagnostics(&self, device_id: &str) -> Result<DeviceRecord, String> {
         self.devices
             .get(device_id)
-            .map(|entry| entry.clone())
+            .map(|entry| entry.value().clone())
             .ok_or_else(|| "device not found".to_string())
     }
 
     /// List all device records (unsorted).
     pub fn list(&self) -> Vec<DeviceRecord> {
-        self.devices.iter().map(|entry| entry.clone()).collect()
+        self.devices
+            .iter()
+            .map(|entry| entry.value().clone())
+            .collect()
     }
 
-    /// Validate a device token; updates last_seen_on success.
+    /// Validate a device token; updates last_seen on success.
     pub fn validate(&self, device_id: &str, token: &str) -> Result<DeviceRecord, DeviceAuthError> {
         if let Some(mut entry) = self.devices.get_mut(device_id) {
             if !entry.enabled {
