@@ -242,7 +242,7 @@ impl Default for AuthConfig {
             weak_passwords: default_weak_passwords(),
             max_failed_attempts: 5,
             lockout_secs: 300,
-            bootstrap_admin_username: Some("admin".into()),
+            bootstrap_admin_username: Some("smsgate-admin".into()),
             smtp: None,
             session_ttl_secs: 86_400,
             require_admin_totp: true,

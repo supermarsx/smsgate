@@ -25,7 +25,7 @@ pub enum ServerMessage {
         metrics: Option<MetricsSnapshot>,
     },
     /// Initial configuration snapshot to seed UI gating.
-    ConfigSnapshot { config: ClientConfigSnapshot },
+    ConfigSnapshot { config: ConfigUpdate },
     /// New event appended.
     EventNew { event: SmsEvent },
     /// Existing event updated (state transitions).
@@ -37,7 +37,7 @@ pub enum ServerMessage {
     /// Contact update (placeholder shape).
     ContactUpdate(ContactUpdate),
     /// Config update broadcast after changes.
-    ConfigUpdate { config: ClientConfigSnapshot },
+    ConfigUpdate { config: ConfigUpdate },
     /// Service degraded notice (e.g., hot-store fallback).
     Degraded { reason: String },
     /// Pong response to client ping.
