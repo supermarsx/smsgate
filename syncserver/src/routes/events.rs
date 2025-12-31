@@ -11,6 +11,7 @@ use crate::{
     auth::{permissions, user::UserAuth},
     domain::EventState,
     error::AppError,
+    routes::context::RequestContext,
     state::AppState,
     ws_types::ServerMessage,
 };
@@ -27,9 +28,12 @@ pub async fn claim_event(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     Path(event_id): Path<String>,
+    ctx: RequestContext,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::EVENTS_CLAIM)?;
-    let updated = transition_event(&state, &event_id, EventState::Claimed).await?;
+    let updated =
+        transition_event(&state, &user.actor_label(), &ctx, &event_id, EventState::Claimed, "event.claim")
+            .await?;
     Ok((StatusCode::OK, Json(EventResponse::from(updated))))
 }
 
@@ -38,9 +42,18 @@ pub async fn verify_event(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     Path(event_id): Path<String>,
+    ctx: RequestContext,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::EVENTS_VERIFY)?;
-    let updated = transition_event(&state, &event_id, EventState::Verified).await?;
+    let updated = transition_event(
+        &state,
+        &user.actor_label(),
+        &ctx,
+        &event_id,
+        EventState::Verified,
+        "event.verify",
+    )
+    .await?;
     Ok((StatusCode::OK, Json(EventResponse::from(updated))))
 }
 
@@ -49,22 +62,35 @@ pub async fn reject_event(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     Path(event_id): Path<String>,
+    ctx: RequestContext,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::EVENTS_REJECT)?;
-    let updated = transition_event(&state, &event_id, EventState::Rejected).await?;
+    let updated = transition_event(
+        &state,
+        &user.actor_label(),
+        &ctx,
+        &event_id,
+        EventState::Rejected,
+        "event.reject",
+    )
+    .await?;
     Ok((StatusCode::OK, Json(EventResponse::from(updated))))
 }
 
 async fn transition_event(
     state: &AppState,
+    actor: &str,
+    ctx: &RequestContext,
     event_id: &str,
     target_state: EventState,
+    action: &str,
 ) -> Result<crate::domain::SmsEvent, AppError> {
     let existing = state
         .hot_store
         .get_event(event_id)
         .await
         .ok_or_else(|| AppError::Validation("event not found".into()))?;
+    let previous_state = existing.state.clone();
 
     let next = apply_transition(existing, target_state)?;
     let updated = state
@@ -78,6 +104,27 @@ async fn transition_event(
         event: updated.clone(),
     });
     state.persistence_worker.enqueue(updated.clone()).await;
+    tracing::info!(
+        target: "ingest",
+        actor = %actor,
+        event_id = %event_id,
+        from = ?previous_state,
+        to = ?updated.state,
+        "event transitioned"
+    );
+    state
+        .audit
+        .log_action(
+            actor.to_string(),
+            action.into(),
+            Some(event_id.to_string()),
+            "success".into(),
+            serde_json::json!({ "from": previous_state, "to": updated.state }),
+            ctx.correlation_id.clone(),
+            ctx.ip.clone(),
+            ctx.user_agent.clone(),
+        )
+        .await;
 
     Ok(updated)
 }

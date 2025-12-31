@@ -55,6 +55,14 @@ impl AuthContext {
         matches!(self.principal, Principal::Device { .. })
     }
 
+    /// Returns a string label suitable for audit entries.
+    pub fn actor_label(&self) -> String {
+        match &self.principal {
+            Principal::User { id, .. } => format!("user:{id}"),
+            Principal::Device { id } => format!("device:{id}"),
+        }
+    }
+
     pub fn role(&self) -> Option<&Role> {
         match &self.principal {
             Principal::User { role, .. } => Some(role),

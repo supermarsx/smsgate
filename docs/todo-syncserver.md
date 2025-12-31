@@ -3,7 +3,7 @@
 ## Current state (gap check)
 - [x] New `syncserver/` Rust crate scaffolded with Axum/Tokio, env-driven host/port, and `/healthz` + `/readyz` JSON endpoints.
 - [x] Auth/RBAC guards on config + device endpoints, pairing flow issuing device tokens (hashed), ingest/presence/hot-store/persistence JSON DB baselines.
-- [ ] Audit/login logging and admin/user/number APIs still pending; WS + HTTP config snapshots/updates now implemented.
+- [x] Audit/login logging wired; admin/user/number APIs still pending; WS + HTTP config snapshots/updates now implemented.
 
 ## Foundations & scaffolding
 - [x] Set up lint/format/test baseline (`cargo fmt`, `clippy` alias, unit/integration test harness); CI workflow pending.
@@ -70,11 +70,11 @@
 - [x] Wire persistence worker respecting policy, retention, and pruning tasks (baseline enqueue to JSON DB).
 
 ## Audit, logging, observability
-- [ ] Implement structured audit log (actor/action/target/result/details/correlation id).
-- [ ] Implement login event log with IP/UA/mode/result + 2FA status.
-- [ ] Add structured log categories (auth/ingest/paging/presence/sim/config/storage).
-- [ ] Wire OpenTelemetry traces/spans around ingest + WS broadcast paths.
-- [ ] Upgrade `/readyz` to include dependency checks (Redis/DB/config) and surface degraded state.
+- [x] Implement structured audit log (actor/action/target/result/details/correlation id).
+- [x] Implement login event log with IP/UA/mode/result + 2FA status.
+- [x] Add structured log categories (auth/ingest/paging/presence/sim/config/storage).
+- [x] Wire OpenTelemetry traces/spans around ingest + WS broadcast paths.
+- [x] Upgrade `/readyz` to include dependency checks (Redis/DB/config) and surface degraded state.
 
 ## Admin & management APIs
 - [ ] CRUD endpoints for users/numbers/roles/rbac-mapping with validation + pagination.

@@ -7,6 +7,7 @@ use crate::{
     auth::{permissions, user::UserAuth},
     config::{ClientConfigSnapshot, PartialConfig, VersionedConfig},
     error::AppError,
+    routes::context::RequestContext,
     state::AppState,
     ws_types::ServerMessage,
 };
@@ -20,6 +21,11 @@ pub async fn get_config(
         return Err(AppError::Validation("forbidden".into()));
     }
     let snapshot = state.config_snapshot().await;
+    tracing::debug!(
+        target: "config",
+        actor = %user.actor_label(),
+        "config snapshot served"
+    );
     Ok((StatusCode::OK, Json(snapshot)))
 }
 
@@ -27,6 +33,7 @@ pub async fn get_config(
 pub async fn patch_config(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(patch): Json<PartialConfig>,
 ) -> Result<impl IntoResponse, AppError> {
     if !user.has_permission(permissions::CONFIG_WRITE) {
@@ -49,6 +56,26 @@ pub async fn patch_config(
     let _ = state.event_tx.send(ServerMessage::ConfigUpdate {
         config: snapshot.clone(),
     });
+
+    tracing::info!(
+        target: "config",
+        actor = %user.actor_label(),
+        version = updated.version,
+        "config patched"
+    );
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "config.patch".into(),
+            None,
+            "success".into(),
+            serde_json::json!({ "version": updated.version }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
 
     Ok((StatusCode::OK, Json(snapshot)))
 }

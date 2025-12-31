@@ -95,6 +95,12 @@ pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
     if !snapshot.storage_ready {
         reasons.push("storage not ready".to_string());
     }
+    if !snapshot.config_ready {
+        reasons.push("config not loaded".to_string());
+    }
+    if !snapshot.http_ready {
+        reasons.push("http listener not bound".to_string());
+    }
 
     let payload = ReadyResponse {
         status,

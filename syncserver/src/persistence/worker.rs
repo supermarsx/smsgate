@@ -16,7 +16,12 @@ impl PersistenceWorker {
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 if let Err(err) = store.persist_event(&event).await {
-                    tracing::warn!(error = %err, "persistence worker failed to persist event");
+                    tracing::warn!(
+                        target: "storage",
+                        error = %err,
+                        event_id = %event.id,
+                        "persistence worker failed to persist event"
+                    );
                     // Basic backoff to avoid hammering storage on repeated errors.
                     tokio::time::sleep(Duration::from_millis(200)).await;
                 }

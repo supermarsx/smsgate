@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     auth::permissions, auth::user::UserAuth, auth::AuthContext, error::AppError,
-    pairing::PairingCompleteRequest, state::AppState,
+    pairing::PairingCompleteRequest, routes::context::RequestContext, state::AppState,
 };
 
 /// Request body for creating a pairing session.
@@ -33,10 +33,30 @@ pub struct PairingCompleteBody {
 pub async fn create_session(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(_): Json<PairingSessionRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::DEVICES_WRITE)?;
     let session = state.pairing_store.create_session();
+    tracing::info!(
+        target: "auth",
+        actor = %user.actor_label(),
+        session_id = %session.session_id,
+        "pairing session created"
+    );
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "pairing.session.create".into(),
+            Some(session.session_id.clone()),
+            "success".into(),
+            serde_json::json!({ "expires_at": session.expires_at }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
     Ok((
         StatusCode::OK,
         Json(PairingSessionResponseBody {
@@ -50,6 +70,7 @@ pub async fn create_session(
 /// POST /api/v1/pairing/complete
 pub async fn complete_session(
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(payload): Json<PairingCompleteRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let device_name = payload.device_name.clone();
@@ -64,6 +85,24 @@ pub async fn complete_session(
         &completed.device_token,
         device_name,
     );
+    tracing::info!(
+        target: "auth",
+        device_id = %completed.device_id,
+        "pairing session completed"
+    );
+    state
+        .audit
+        .log_action(
+            format!("pairing:{}", completed.device_id),
+            "pairing.complete".into(),
+            Some(completed.device_id.clone()),
+            "success".into(),
+            serde_json::json!({ "issued_token": true }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
 
     Ok((
         StatusCode::OK,

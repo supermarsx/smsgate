@@ -14,6 +14,7 @@ use crate::{
     auth::DeviceAuth,
     domain::{EventSource, EventState, SmsEvent},
     error::AppError,
+    routes::context::RequestContext,
     state::AppState,
     ws_types::ServerMessage,
 };
@@ -62,10 +63,20 @@ pub struct IngestResponse {
 
 /// Entry point for `/api/v1/ingest`.
 pub async fn ingest(
-    DeviceAuth(_): DeviceAuth,
+    DeviceAuth(device): DeviceAuth,
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(payload): Json<IngestRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    let ingest_span = tracing::info_span!(
+        target: "ingest",
+        "ingest_request",
+        otel.name = "ingest.request",
+        device = %device.actor_label(),
+        events = payload.events.len() as u64
+    );
+    let _guard = ingest_span.enter();
+
     let cfg = state.config.read().await;
     let ingest_cfg = cfg.config.ingest.clone();
 
@@ -101,8 +112,37 @@ pub async fn ingest(
             event: event.clone(),
         });
         state.persistence_worker.enqueue(event).await;
+        if let Some(number) = event.number_e164.clone() {
+            tracing::debug!(
+                target: "sim",
+                device_id = %event.device_id,
+                number = %number,
+                "ingest observed number assignment"
+            );
+        }
         accepted += 1;
     }
+
+    tracing::info!(
+        target: "ingest",
+        device = %device.actor_label(),
+        accepted,
+        deduped,
+        "ingest processed batch"
+    );
+    state
+        .audit
+        .log_action(
+            device.actor_label(),
+            "ingest.accept".into(),
+            None,
+            "success".into(),
+            serde_json::json!({ "accepted": accepted, "deduped": deduped }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
 
     state.metrics.observe_http("/api/v1/ingest", StatusCode::OK);
 

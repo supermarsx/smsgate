@@ -13,6 +13,7 @@ use crate::{
     auth::{permissions, user::UserAuth, AuthContext, DeviceRecord},
     domain::PresenceState,
     error::AppError,
+    routes::context::RequestContext,
     state::AppState,
 };
 
@@ -113,6 +114,7 @@ pub async fn rename_device(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     Path(device_id): Path<String>,
+    ctx: RequestContext,
     Json(payload): Json<RenameDeviceRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::DEVICES_WRITE)?;
@@ -120,6 +122,25 @@ pub async fn rename_device(
         .device_auth
         .rename(&device_id, payload.name)
         .map_err(AppError::Validation)?;
+    tracing::info!(
+        target: "sim",
+        actor = %user.actor_label(),
+        device_id = %device_id,
+        "device renamed"
+    );
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "device.rename".into(),
+            Some(device_id.clone()),
+            "success".into(),
+            serde_json::json!({ "name": updated.name }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
     Ok((StatusCode::OK, Json(DeviceResponse::from(updated))))
 }
 
@@ -128,6 +149,7 @@ pub async fn disable_device(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     Path(device_id): Path<String>,
+    ctx: RequestContext,
     Json(payload): Json<DisableDeviceRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::DEVICES_DISABLE)?;
@@ -135,6 +157,25 @@ pub async fn disable_device(
         .device_auth
         .set_enabled(&device_id, false, payload.reason)
         .map_err(AppError::Validation)?;
+    tracing::info!(
+        target: "sim",
+        actor = %user.actor_label(),
+        device_id = %device_id,
+        "device disabled"
+    );
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "device.disable".into(),
+            Some(device_id.clone()),
+            "success".into(),
+            serde_json::json!({ "reason": updated.disabled_reason }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
     Ok((StatusCode::OK, Json(DeviceResponse::from(updated))))
 }
 
@@ -143,12 +184,32 @@ pub async fn enable_device(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     Path(device_id): Path<String>,
+    ctx: RequestContext,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::DEVICES_DISABLE)?;
     let updated = state
         .device_auth
         .set_enabled(&device_id, true, None)
         .map_err(AppError::Validation)?;
+    tracing::info!(
+        target: "sim",
+        actor = %user.actor_label(),
+        device_id = %device_id,
+        "device enabled"
+    );
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "device.enable".into(),
+            Some(device_id.clone()),
+            "success".into(),
+            serde_json::json!({ "enabled": true }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
     Ok((StatusCode::OK, Json(DeviceResponse::from(updated))))
 }
 

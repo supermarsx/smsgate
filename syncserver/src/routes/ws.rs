@@ -5,7 +5,7 @@ use std::time::Duration;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        State,
+        ConnectInfo, State,
     },
     response::Response,
 };
@@ -17,17 +17,21 @@ use crate::{
 };
 
 /// Upgrade HTTP requests to WebSocket and spawn session tasks.
-pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
+pub async fn ws_handler(
+    ws: WebSocketUpgrade,
+    State(state): State<AppState>,
+    ConnectInfo(peer): ConnectInfo<std::net::SocketAddr>,
+) -> Response {
     if !state.try_acquire_connection().await {
         return Response::builder()
             .status(axum::http::StatusCode::TOO_MANY_REQUESTS)
             .body(axum::body::Body::from("max connections reached"))
             .unwrap();
     }
-    ws.on_upgrade(move |socket| handle_socket(socket, state))
+    ws.on_upgrade(move |socket| handle_socket(socket, state, peer))
 }
 
-async fn handle_socket(mut socket: WebSocket, state: AppState) {
+async fn handle_socket(mut socket: WebSocket, state: AppState, peer: std::net::SocketAddr) {
     let mut rx = state.subscribe_events();
     let cfg = state.config.read().await;
     let snapshot_limit = cfg.config.server.ws_snapshot_limit as usize;
@@ -49,6 +53,15 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
         return;
     }
 
+    let session_span = tracing::info_span!(
+        target: "paging",
+        "ws_session",
+        otel.name = "ws.session",
+        peer = %peer,
+        connections = state.connection_count.load(std::sync::atomic::Ordering::Relaxed)
+    );
+    let _guard = session_span.enter();
+
     loop {
         tokio::select! {
             msg = socket.recv() => {
@@ -63,6 +76,13 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
             broadcast = rx.recv() => {
                 match broadcast {
                     Ok(server_msg) => {
+                        let send_span = tracing::info_span!(
+                            target: "paging",
+                            "ws_broadcast",
+                            otel.name = "ws.broadcast",
+                            message = message_label(&server_msg)
+                        );
+                        let _guard = send_span.enter();
                         if send_json(&mut socket, &server_msg).await.is_err() {
                             break;
                         }
@@ -157,6 +177,7 @@ async fn send_json(socket: &mut WebSocket, msg: &ServerMessage) -> Result<(), ()
                 .await
                 .is_err()
             {
+                tracing::warn!(target: "paging", message = message_label(msg), "ws send timeout");
                 return Err(());
             }
             Ok(())
@@ -198,4 +219,21 @@ async fn send_page(
         newest_id,
     };
     send_json(socket, &ServerMessage::Page(payload)).await
+}
+
+fn message_label(msg: &ServerMessage) -> &'static str {
+    match msg {
+        ServerMessage::Welcome { .. } => "welcome",
+        ServerMessage::Snapshot { .. } => "snapshot",
+        ServerMessage::Page(_) => "page",
+        ServerMessage::EventNew { .. } => "event_new",
+        ServerMessage::EventUpdate { .. } => "event_update",
+        ServerMessage::PresenceUpdate(_) => "presence_update",
+        ServerMessage::ConfigSnapshot { .. } => "config_snapshot",
+        ServerMessage::ConfigUpdate { .. } => "config_update",
+        ServerMessage::ContactUpdate { .. } => "contact_update",
+        ServerMessage::SimUpdate { .. } => "sim_update",
+        ServerMessage::Degraded { .. } => "degraded_notice",
+        ServerMessage::Pong => "pong",
+    }
 }

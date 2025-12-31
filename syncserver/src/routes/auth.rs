@@ -9,6 +9,7 @@ use crate::{
     auth::{domain::authenticate_domain, oauth::validate_id_token, Principal},
     config::AuthMode,
     error::AppError,
+    routes::context::RequestContext,
     state::AppState,
 };
 
@@ -41,45 +42,156 @@ pub struct LoginResponse {
 /// POST /api/v1/auth/login
 pub async fn login(
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(payload): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let cfg_guard = state.config.read().await;
-    let cfg = &cfg_guard.config;
+    let cfg = cfg_guard.config.clone();
     if !cfg.auth.modes.contains(&payload.mode) {
-        return Err(AppError::Validation("auth mode disabled".into()));
+        let err = AppError::Validation("auth mode disabled".into());
+        state
+            .audit
+            .log_login(
+                payload.username.clone(),
+                payload.mode,
+                "mode_disabled".into(),
+                ctx.ip.clone().unwrap_or_else(|| "unknown".into()),
+                ctx.user_agent.clone(),
+                false,
+                ctx.correlation_id.clone(),
+            )
+            .await;
+        tracing::warn!(
+            target: "auth",
+            mode = ?payload.mode,
+            identity = %payload.username,
+            "auth mode disabled"
+        );
+        return Err(err);
     }
 
-    let principal = match payload.mode {
-        AuthMode::SimpleSignin => {
-            let store = state.user_store.clone();
-            let user = store
-                .authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
-                .map_err(|err| AppError::Validation(err.to_string()))?;
-            enforce_totp(cfg, &user, payload.totp_code.as_deref())?;
-            Principal::from(user)
-        }
-        AuthMode::DomainSignin => {
-            let password = payload
-                .password
-                .as_deref()
-                .ok_or_else(|| AppError::Validation("password required".into()))?;
-            authenticate_domain(&cfg.auth, &payload.username, password)?
-        }
-        AuthMode::Oauth => {
-            let issuer = payload
-                .issuer
-                .as_deref()
-                .ok_or_else(|| AppError::Validation("issuer required".into()))?;
-            let audience = payload
-                .audience
-                .as_deref()
-                .ok_or_else(|| AppError::Validation("audience required".into()))?;
-            validate_id_token(&cfg.auth, &payload.username, issuer, audience)?
+    let login_span = tracing::info_span!(
+        target: "auth",
+        "auth_login",
+        mode = ?payload.mode,
+        identity = %payload.username
+    );
+    let _guard = login_span.enter();
+
+    let attempt = (|| -> Result<(Principal, bool), AppError> {
+        let mut two_fa_passed = false;
+        let principal = match payload.mode {
+            AuthMode::SimpleSignin => {
+                let store = state.user_store.clone();
+                let user = store
+                    .authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
+                    .map_err(|err| AppError::Validation(err.to_string()))?;
+                enforce_totp(&cfg, &user, payload.totp_code.as_deref())?;
+                if cfg.auth.require_admin_totp
+                    && user.role.name == "admin"
+                    && user.totp_secret.is_some()
+                {
+                    two_fa_passed = true;
+                }
+                Ok(Principal::from(user))
+            }
+            AuthMode::DomainSignin => {
+                let password = payload
+                    .password
+                    .as_deref()
+                    .ok_or_else(|| AppError::Validation("password required".into()))?;
+                authenticate_domain(&cfg.auth, &payload.username, password)
+            }
+            AuthMode::Oauth => {
+                let issuer = payload
+                    .issuer
+                    .as_deref()
+                    .ok_or_else(|| AppError::Validation("issuer required".into()))?;
+                let audience = payload
+                    .audience
+                    .as_deref()
+                    .ok_or_else(|| AppError::Validation("audience required".into()))?;
+                validate_id_token(&cfg.auth, &payload.username, issuer, audience)
+            }
+        }?;
+        Ok((principal, two_fa_passed))
+    })();
+
+    let (principal, two_fa_passed) = match attempt {
+        Ok(ok) => ok,
+        Err(err) => {
+            let result = err.to_string();
+            state
+                .audit
+                .log_login(
+                    payload.username.clone(),
+                    payload.mode,
+                    result.clone(),
+                    ctx.ip.clone().unwrap_or_else(|| "unknown".into()),
+                    ctx.user_agent.clone(),
+                    false,
+                    ctx.correlation_id.clone(),
+                )
+                .await;
+            state
+                .audit
+                .log_action(
+                    format!("identity:{}", payload.username),
+                    "auth.login".into(),
+                    None,
+                    result.clone(),
+                    serde_json::json!({ "mode": format!("{:?}", payload.mode) }),
+                    ctx.correlation_id.clone(),
+                    ctx.ip.clone(),
+                    ctx.user_agent.clone(),
+                )
+                .await;
+            tracing::warn!(
+                target: "auth",
+                mode = ?payload.mode,
+                identity = %payload.username,
+                error = %result,
+                "login failed"
+            );
+            return Err(err);
         }
     };
     drop(cfg_guard);
 
     let session = state.session_store.create_session(principal.clone());
+    let actor = principal_actor(&principal);
+    tracing::info!(
+        target: "auth",
+        actor = %actor,
+        session = %session.token,
+        "login succeeded"
+    );
+    state
+        .audit
+        .log_login(
+            payload.username.clone(),
+            payload.mode,
+            "success".into(),
+            ctx.ip.clone().unwrap_or_else(|| "unknown".into()),
+            ctx.user_agent.clone(),
+            two_fa_passed,
+            ctx.correlation_id.clone(),
+        )
+        .await;
+    state
+        .audit
+        .log_action(
+            actor,
+            "auth.login".into(),
+            None,
+            "success".into(),
+            serde_json::json!({ "mode": format!("{:?}", payload.mode) }),
+            ctx.correlation_id.clone(),
+            ctx.ip.clone(),
+            ctx.user_agent.clone(),
+        )
+        .await;
+
     Ok((
         StatusCode::OK,
         Json(LoginResponse {
@@ -97,9 +209,29 @@ pub async fn login(
 /// POST /api/v1/auth/logout
 pub async fn logout(
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(payload): Json<LogoutRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    let actor = state
+        .session_store
+        .validate(&payload.session_token)
+        .map(|session| principal_actor(&session.principal))
+        .unwrap_or_else(|| "session:unknown".into());
     state.session_store.revoke(&payload.session_token);
+    state
+        .audit
+        .log_action(
+            actor.clone(),
+            "auth.logout".into(),
+            None,
+            "success".into(),
+            serde_json::json!({ "session": payload.session_token }),
+            ctx.correlation_id.clone(),
+            ctx.ip.clone(),
+            ctx.user_agent.clone(),
+        )
+        .await;
+    tracing::info!(target: "auth", actor = %actor, "logout completed");
     Ok((StatusCode::OK, Json(serde_json::json!({ "status": "ok" }))))
 }
 
@@ -125,12 +257,26 @@ pub struct PasswordResetConfirmRequest {
 /// POST /api/v1/auth/password_reset/request
 pub async fn request_password_reset(
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(payload): Json<PasswordResetRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let token = state
         .user_store
         .issue_reset_token(&payload.username)
         .map_err(|err| AppError::Validation(err.to_string()))?;
+    state
+        .audit
+        .log_action(
+            format!("identity:{}", payload.username),
+            "auth.password_reset_request".into(),
+            None,
+            "issued".into(),
+            serde_json::json!({ "username": payload.username }),
+            ctx.correlation_id.clone(),
+            ctx.ip.clone(),
+            ctx.user_agent.clone(),
+        )
+        .await;
     Ok((
         StatusCode::OK,
         Json(serde_json::json!({ "reset_token": token })),
@@ -140,11 +286,25 @@ pub async fn request_password_reset(
 /// POST /api/v1/auth/password_reset/confirm
 pub async fn confirm_password_reset(
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(payload): Json<PasswordResetConfirmRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     state
         .user_store
         .reset_password(&payload.token, &payload.new_password)?;
+    state
+        .audit
+        .log_action(
+            "password_reset".into(),
+            "auth.password_reset_confirm".into(),
+            None,
+            "success".into(),
+            serde_json::json!({ "token_prefix": payload.token.chars().take(6).collect::<String>() }),
+            ctx.correlation_id.clone(),
+            ctx.ip.clone(),
+            ctx.user_agent.clone(),
+        )
+        .await;
     Ok((StatusCode::OK, Json(serde_json::json!({ "status": "ok" }))))
 }
 
@@ -183,5 +343,13 @@ fn principal_role(principal: &Principal) -> String {
     match principal {
         Principal::User { role, .. } => role.name.clone(),
         Principal::Device { .. } => "device".into(),
+    }
+}
+
+/// Render an actor label for audit logging.
+fn principal_actor(principal: &Principal) -> String {
+    match principal {
+        Principal::User { id, .. } => format!("user:{id}"),
+        Principal::Device { id } => format!("device:{id}"),
     }
 }

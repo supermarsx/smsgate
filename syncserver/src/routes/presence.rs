@@ -47,6 +47,13 @@ pub async fn heartbeat(
     state
         .metrics
         .observe_http("/api/v1/presence/heartbeat", StatusCode::OK);
+    tracing::debug!(
+        target: "presence",
+        device_id = %payload.device_id,
+        queue_depth = payload.queue_depth,
+        state = ?presence,
+        "heartbeat processed"
+    );
 
     Ok((StatusCode::OK, Json(HeartbeatResponse { presence })))
 }
