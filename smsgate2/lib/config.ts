@@ -1,11 +1,20 @@
+/**
+ * Supported UI theme modes. These names align with the toggles in the shell.
+ */
 type ThemeChoice = "light" | "dark" | "system";
 
+/**
+ * Booleans that gate UI paths in the login shell.
+ */
 type AuthModes = {
   oauth: boolean;
   simpleSignin: boolean;
   domainSignin: boolean;
 };
 
+/**
+ * Top-level runtime configuration consumed by the UI. Values come from JSON files and env vars.
+ */
 export type AppConfig = {
   apiBaseUrl: string;
   wsPath: string;
@@ -39,6 +48,10 @@ export type AppConfig = {
   };
 };
 
+/**
+ * Central configuration loader. Combines JSON defaults with env overrides and
+ * exposes a typed AppConfig for the UI and service helpers.
+ */
 import baseFileConfigJson from "../config/app.config.json";
 import devFileConfigJson from "../config/app.config.dev.json";
 
@@ -54,18 +67,27 @@ type FileConfig = Partial<AppConfig> & {
 const baseFileConfig: FileConfig = (baseFileConfigJson as unknown as FileConfig) ?? {};
 const devFileConfig: FileConfig = (devFileConfigJson as unknown as FileConfig) ?? {};
 
+/**
+ * Read a boolean env var ("true"/"1") with a fallback.
+ */
 const boolEnv = (key: string, fallback: boolean): boolean => {
   const raw = process.env[key];
   if (raw === undefined) return fallback;
   return raw === "true" || raw === "1";
 };
 
+/**
+ * Read a string env var with trimming and fallback.
+ */
 const strEnv = (key: string, fallback: string): string => {
   const raw = process.env[key];
   if (!raw || !raw.trim()) return fallback;
   return raw.trim();
 };
 
+/**
+ * Validate an http(s) URL when provided; allow relative paths unchanged.
+ */
 function validateUrlish(value: string, label: string): string {
   try {
     if (!value.startsWith("http")) return value;
@@ -76,6 +98,10 @@ function validateUrlish(value: string, label: string): string {
   }
 }
 
+/**
+ * Merge file-based config with env overrides and produce the final typed AppConfig.
+ * Env vars always win; dev config overlays base config in non-production.
+ */
 function buildConfig(): AppConfig {
   const mergedFileConfig: FileConfig = {
     ...baseFileConfig,
@@ -177,61 +203,14 @@ function buildConfig(): AppConfig {
   };
 }
 
+/**
+ * Build the websocket URL by combining the configured origin with the WS path.
+ */
 export const appConfig = buildConfig();
 
-export function wsUrl(): string {
-  const origin =
-    appConfig.wsOrigin ?? (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
-  return origin.replace(/^http/, "ws") + appConfig.wsPath;
-}
-  const defaultLocale = locales.includes(envLocale) ? envLocale : "en-US";
-  const allowOfflineAdmin = boolEnv(
-    "NEXT_PUBLIC_ALLOW_OFFLINE_ADMIN",
-    mergedFileConfig.allowOfflineAdmin ?? process.env.NODE_ENV !== "production"
-  );
-
-  const authModes: AuthModes = {
-    oauth: boolEnv("NEXT_PUBLIC_AUTH_OAUTH", mergedFileConfig.authModes?.oauth ?? true),
-    simpleSignin: boolEnv("NEXT_PUBLIC_AUTH_SIMPLE_SIGNIN", mergedFileConfig.authModes?.simpleSignin ?? true),
-    domainSignin: boolEnv("NEXT_PUBLIC_AUTH_DOMAIN_SIGNIN", mergedFileConfig.authModes?.domainSignin ?? false)
-      adminDefaults,
-  };
-  const primaryAuthModeEnv = strEnv("NEXT_PUBLIC_AUTH_PRIMARY", mergedFileConfig.primaryAuthMode ?? "");
-      defaultLocale,
-      theme
-    ? (primaryAuthModeEnv as AppConfig["primaryAuthMode"])
-    : undefined;
-
-  const smtpEnabled = boolEnv("NEXT_PUBLIC_SMTP_ENABLED", mergedFileConfig.smtp?.enabled ?? true);
-  const smtpAllowInvalidCert = boolEnv(
-    "NEXT_PUBLIC_SMTP_ALLOW_INVALID_CERT",
-    mergedFileConfig.smtp?.allowInvalidCert ?? false
-  );
-  const smtp = mergedFileConfig.smtp
-    ? {
-        ...mergedFileConfig.smtp,
-        enabled: smtpEnabled,
-        allowInvalidCert: smtpAllowInvalidCert
-      }
-    : undefined;
-
-  return {
-    apiBaseUrl,
-    wsPath,
-    wsOrigin: wsOrigin || undefined,
-    qrOrigin: qrOrigin || undefined,
-    allowOfflineAdmin,
-    primaryAuthMode,
-    smtp,
-    offlineReset: mergedFileConfig.offlineReset,
-    authModes,
-    locales,
-    defaultLocale
-  };
-}
-
-export const appConfig = buildConfig();
-
+/**
+ * Compose the full websocket URL, preferring explicit origin and falling back to browser location.
+ */
 export function wsUrl(): string {
   const origin =
     appConfig.wsOrigin ?? (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");

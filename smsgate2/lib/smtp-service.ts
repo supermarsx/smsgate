@@ -1,32 +1,48 @@
-// Lightweight SMTP task queue so email work does not block the UI thread.
+/**
+ * Lightweight SMTP task queue so email work does not block the UI thread.
+ * Jobs are run sequentially in a macrotask, letting the UI stay responsive.
+ */
 import { appConfig } from "./config";
 
+/**
+ * True when SMTP is enabled in config (default on).
+ */
 export function smtpEnabled(): boolean {
   const smtp = appConfig.smtp;
   return Boolean(smtp && (smtp.enabled ?? true));
 }
 
+/**
+ * True when TLS verification may be bypassed for SMTP (insecure; default off).
+ */
 export function smtpAllowsInvalidCert(): boolean {
   const smtp = appConfig.smtp;
   return Boolean(smtp && (smtp.allowInvalidCert ?? false));
 }
 
-type Job<T> = {
-  run: () => Promise<T>;
-  resolve: (value: T | PromiseLike<T>) => void;
+type Job = {
+  run: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
   reject: (reason?: unknown) => void;
 };
 
-const queue: Job<unknown>[] = [];
+const queue: Job[] = [];
 let draining = false;
 
+/**
+ * Enqueue an async SMTP job. Rejects immediately if SMTP is disabled.
+ */
 export function enqueueSmtpJob<T>(job: () => Promise<T>): Promise<T> {
   if (!smtpEnabled()) {
     return Promise.reject(new Error("SMTP is disabled by configuration"));
   }
 
   return new Promise<T>((resolve, reject) => {
-    queue.push({ run: job, resolve, reject });
+    queue.push({
+      run: job,
+      resolve: resolve as (value: unknown) => void,
+      reject
+    });
     scheduleDrain();
   });
 }
@@ -51,6 +67,9 @@ async function drainQueue(): Promise<void> {
   draining = false;
 }
 
+/**
+ * Observability helper for tests and telemetry.
+ */
 export function smtpQueueDepth(): number {
   return queue.length;
 }
