@@ -1,17 +1,12 @@
 //! Authentication endpoints for simple_signin, domain_signin, and OAuth callbacks.
 
-use axum::{
-    extract::{FromRef, State},
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::Deserialize;
 use totp_rs::{Algorithm, Secret, TOTP};
 use tracing;
 
 use crate::{
-    auth::{domain::authenticate_domain, oauth::validate_id_token, users::UserStore, Principal},
+    auth::{domain::authenticate_domain, oauth::validate_id_token, Principal},
     config::AuthMode,
     error::AppError,
     state::AppState,
@@ -56,7 +51,7 @@ pub async fn login(
 
     let principal = match payload.mode {
         AuthMode::SimpleSignin => {
-            let store = UserStore::from_ref(&state);
+            let store = state.user_store.clone();
             let user = store
                 .authenticate(&payload.username, payload.password.as_deref().unwrap_or(""))
                 .map_err(|err| AppError::Validation(err.to_string()))?;

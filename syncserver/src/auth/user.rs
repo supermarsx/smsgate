@@ -1,5 +1,7 @@
 //! Simple user auth extractor using headers (placeholder until OAuth/simple_signin are wired).
 
+use std::sync::Arc;
+
 use axum::{
     async_trait,
     extract::{FromRef, FromRequestParts},
@@ -55,14 +57,14 @@ impl UserAuth {
 impl<S> FromRequestParts<S> for UserAuth
 where
     RbacStore: FromRef<S>,
-    SessionStore: FromRef<S>,
+    Arc<SessionStore>: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let rbac = RbacStore::from_ref(state);
-        let sessions = SessionStore::from_ref(state);
+        let sessions = Arc::<SessionStore>::from_ref(state);
 
         if let Some(ctx) = Self::session_from_headers(&parts.headers, &sessions) {
             return Ok(UserAuth(ctx));
