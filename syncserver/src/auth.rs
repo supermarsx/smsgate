@@ -1,5 +1,6 @@
 //! Authentication and RBAC scaffolding.
-//! Device auth is currently a simple token header check; RBAC structs are defined for future enforcement.
+//! Device auth is a header-based token check backed by an in-memory registry with enable/disable
+//! controls; RBAC structs are defined for future enforcement.
 
 use axum::{
     async_trait,
@@ -10,6 +11,7 @@ use dashmap::DashMap;
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use chrono::{DateTime, Utc};
 
 pub mod rbac;
 pub mod user;
@@ -63,21 +65,56 @@ impl AuthContext {
     }
 }
 
-/// Device token map used for simple header-based auth (placeholder).
+/// Device record kept in-memory for token validation and admin operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceRecord {
+    /// Device identifier issued during pairing.
+    pub id: String,
+    /// Friendly name chosen during pairing or via rename.
+    pub name: Option<String>,
+    /// Whether the device is allowed to authenticate.
+    pub enabled: bool,
+    /// When the device was first seen/registered.
+    pub created_at: DateTime<Utc>,
+    /// Last successful auth timestamp (ingest/presence).
+    pub last_seen_at: Option<DateTime<Utc>>,
+    /// When the token was last rotated/issued.
+    pub last_token_rotated_at: Option<DateTime<Utc>>,
+    /// Reason provided when disabled.
+    pub disabled_reason: Option<String>,
+    /// Hashed token for validation (never expose raw token).
+    pub token_hash: String,
+}
+
+/// Validation failures for device tokens.
+#[derive(Debug, Clone)]
+pub enum DeviceAuthError {
+    /// Device entry not found.
+    NotFound,
+    /// Device is disabled with an optional reason.
+    Disabled(Option<String>),
+    /// Provided bearer token is invalid.
+    InvalidToken,
+}
+
+/// Device token map used for header-based auth with enable/disable controls.
 #[derive(Debug, Clone, Default)]
 pub struct DeviceAuthStore {
-    tokens: DashMap<String, String>,
+    devices: DashMap<String, DeviceRecord>,
 }
 
 impl DeviceAuthStore {
+    /// Create a new, empty device auth store.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn from_rbac_config(roles: &[crate::config::RoleDefinition]) -> Self {
         let mut store = DeviceAuthStore::default();
         // Placeholder: seed a demo device token based on role name if provided via env later.
         for role in roles {
             if role.name == "device" {
-                store
-                    .tokens
-                    .insert("device-1".into(), "devtoken-placeholder".into());
+                store.set_token("device-1", "devtoken-placeholder");
             }
         }
         store
@@ -88,17 +125,109 @@ impl DeviceAuthStore {
         self
     }
 
-    /// Set a device token (hashed) for validation.
-    pub fn set_token(&self, device_id: &str, token: &str) {
+    /// Set or rotate a device token (hashed) for validation and enable the device.
+    pub fn set_token(&self, device_id: &str, token: &str) -> DeviceRecord {
         let hashed = hash_token(token);
-        self.tokens.insert(device_id.to_string(), hashed);
+        let now = Utc::now();
+        let mut entry = self.devices.entry(device_id.to_string()).or_insert_with(|| DeviceRecord {
+            id: device_id.to_string(),
+            name: None,
+            enabled: true,
+            created_at: now,
+            last_seen_at: None,
+            last_token_rotated_at: Some(now),
+            disabled_reason: None,
+            token_hash: hashed.clone(),
+        });
+        entry.enabled = true;
+        entry.disabled_reason = None;
+        entry.token_hash = hashed;
+        entry.last_token_rotated_at = Some(now);
+        entry.clone()
     }
 
-    pub fn validate(&self, device_id: &str, token: &str) -> bool {
-        self.tokens
+    /// Register a device with name + token, enabling it if previously disabled.
+    pub fn register_with_name(
+        &self,
+        device_id: &str,
+        token: &str,
+        name: Option<String>,
+    ) -> DeviceRecord {
+        let mut record = self.set_token(device_id, token);
+        if let Some(name) = name {
+            if let Some(mut entry) = self.devices.get_mut(device_id) {
+                entry.name = Some(name);
+                record = entry.clone();
+            }
+        }
+        record
+    }
+
+    /// Seed a bootstrap device from configuration.
+    pub fn register_bootstrap(&self, bootstrap: &crate::config::BootstrapDevice) -> DeviceRecord {
+        let mut record = self.register_with_name(
+            &bootstrap.id,
+            &bootstrap.token,
+            bootstrap.name.clone(),
+        );
+        if !bootstrap.enabled {
+            record = self
+                .set_enabled(&bootstrap.id, false, Some("bootstrap disabled".into()))
+                .unwrap_or(record);
+        }
+        record
+    }
+
+    /// Rename a device; fails if the device does not exist.
+    pub fn rename(&self, device_id: &str, name: String) -> Result<DeviceRecord, String> {
+        if let Some(mut entry) = self.devices.get_mut(device_id) {
+            entry.name = Some(name);
+            return Ok(entry.clone());
+        }
+        Err("device not found".into())
+    }
+
+    /// Enable or disable a device with an optional reason.
+    pub fn set_enabled(
+        &self,
+        device_id: &str,
+        enabled: bool,
+        reason: Option<String>,
+    ) -> Result<DeviceRecord, String> {
+        if let Some(mut entry) = self.devices.get_mut(device_id) {
+            entry.enabled = enabled;
+            entry.disabled_reason = if enabled { None } else { reason };
+            return Ok(entry.clone());
+        }
+        Err("device not found".into())
+    }
+
+    /// Fetch a device record for diagnostics.
+    pub fn diagnostics(&self, device_id: &str) -> Result<DeviceRecord, String> {
+        self.devices
             .get(device_id)
-            .map(|stored| stored.value() == &hash_token(token))
-            .unwrap_or(false)
+            .map(|entry| entry.clone())
+            .ok_or_else(|| "device not found".to_string())
+    }
+
+    /// List all device records (unsorted).
+    pub fn list(&self) -> Vec<DeviceRecord> {
+        self.devices.iter().map(|entry| entry.clone()).collect()
+    }
+
+    /// Validate a device token; updates last_seen_on success.
+    pub fn validate(&self, device_id: &str, token: &str) -> Result<DeviceRecord, DeviceAuthError> {
+        if let Some(mut entry) = self.devices.get_mut(device_id) {
+            if !entry.enabled {
+                return Err(DeviceAuthError::Disabled(entry.disabled_reason.clone()));
+            }
+            if entry.token_hash == hash_token(token) {
+                entry.last_seen_at = Some(Utc::now());
+                return Ok(entry.clone());
+            }
+            return Err(DeviceAuthError::InvalidToken);
+        }
+        Err(DeviceAuthError::NotFound)
     }
 }
 
@@ -139,14 +268,20 @@ where
         let bearer = Authorization::<Bearer>::decode(&mut values)
             .map_err(|_| (StatusCode::UNAUTHORIZED, "missing bearer token".to_string()))?;
 
-        if auth_store.validate(device_id, bearer.token()) {
-            Ok(DeviceAuth(AuthContext {
+        match auth_store.validate(device_id, bearer.token()) {
+            Ok(_) => Ok(DeviceAuth(AuthContext {
                 principal: Principal::Device {
                     id: device_id.to_string(),
                 },
-            }))
-        } else {
-            Err((StatusCode::UNAUTHORIZED, "invalid device token".to_string()))
+            })),
+            Err(DeviceAuthError::NotFound) => Err((StatusCode::UNAUTHORIZED, "unknown device".into())),
+            Err(DeviceAuthError::InvalidToken) => {
+                Err((StatusCode::UNAUTHORIZED, "invalid device token".into()))
+            }
+            Err(DeviceAuthError::Disabled(reason)) => Err((
+                StatusCode::FORBIDDEN,
+                reason.unwrap_or_else(|| "device disabled".into()),
+            )),
         }
     }
 }
