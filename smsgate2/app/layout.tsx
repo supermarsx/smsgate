@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ConfigProvider>
             <ThemeProvider>
               <StatusProvider>
-                <div className="gg-shell">{children}</div>
+                <div className="gg-shell page-transition">{children}</div>
                 <GlobalToggles />
               </StatusProvider>
             </ThemeProvider>

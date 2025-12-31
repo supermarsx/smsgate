@@ -136,6 +136,23 @@ a {
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.page-transition {
+  animation: fadeIn 220ms ease-in;
+}
+
+.page-transition.fade-out {
+  animation: fadeOut 180ms ease-out;
+}
+
 .login-page {
   max-width: 520px;
   margin: 48px auto;
