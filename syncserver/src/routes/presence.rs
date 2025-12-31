@@ -4,6 +4,7 @@ use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 
 use crate::{
+    auth::DeviceAuth,
     domain::{HeartbeatSample, PresenceState},
     error::AppError,
     state::AppState,
@@ -19,6 +20,7 @@ pub struct HeartbeatResponse {
 
 /// POST /api/v1/presence/heartbeat
 pub async fn heartbeat(
+    DeviceAuth(_): DeviceAuth,
     State(state): State<AppState>,
     Json(payload): Json<HeartbeatSample>,
 ) -> Result<impl IntoResponse, AppError> {

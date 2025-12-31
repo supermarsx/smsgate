@@ -1,4 +1,5 @@
 use crate::{
+    auth::DeviceAuthStore,
     config::AppConfig,
     hot_store::{HotStore, MemoryHotStore},
     presence::PresenceStore,
@@ -81,6 +82,8 @@ pub struct AppState {
     pub event_tx: broadcast::Sender<ServerMessage>,
     /// Current WS connection count.
     pub connection_count: Arc<AtomicUsize>,
+    /// Device auth store (placeholder).
+    pub device_auth: DeviceAuthStore,
 }
 
 impl AppState {
@@ -107,6 +110,7 @@ impl AppState {
         let presence = Arc::new(PresenceStore::new(config.presence.clone()));
         let (event_tx, _rx) = broadcast::channel(1024);
         let connection_count = Arc::new(AtomicUsize::new(0));
+        let device_auth = DeviceAuthStore::default();
 
         Self {
             config,
@@ -117,6 +121,7 @@ impl AppState {
             presence,
             event_tx,
             connection_count,
+            device_auth,
         }
     }
 

@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::{
+    auth::DeviceAuth,
     domain::{EventSource, EventState, SmsEvent},
     error::AppError,
     state::AppState,
@@ -61,6 +62,7 @@ pub struct IngestResponse {
 
 /// Entry point for `/api/v1/ingest`.
 pub async fn ingest(
+    DeviceAuth(_): DeviceAuth,
     State(state): State<AppState>,
     Json(payload): Json<IngestRequest>,
 ) -> Result<impl IntoResponse, AppError> {

@@ -21,6 +21,7 @@
 - [ ] Add session issuance/validation (cookie/bearer) with expiry, CSRF protections, and refresh.
 - [ ] Enforce mandatory admin 2FA (TOTP setup, backup codes, step-up for sensitive actions).
 - [ ] Implement password reset flow (email tokens) and bootstrap admin credential path.
+- [x] Scaffold device auth extractor (header-based placeholder) and RBAC role struct; wire ingest/presence through auth guard.
 
 ## RBAC & roles
 - [ ] Define configurable roles/permissions with precedence and labels.
