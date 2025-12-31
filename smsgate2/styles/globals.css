@@ -425,7 +425,7 @@ a {
   box-shadow: var(--shadow-2);
   backdrop-filter: blur(calc(var(--blur) + 4px));
   -webkit-backdrop-filter: blur(calc(var(--blur) + 4px));
-  min-height: calc(100vh - 64px);
+  min-height: auto;
 }
 
 .nav-brand-row {
@@ -442,10 +442,11 @@ a {
 
 .nav-brand.small {
   font-size: 16px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 4px 0;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: transparent;
+  box-shadow: none;
 }
 
 .nav-link {
@@ -1115,6 +1116,7 @@ a {
   border-radius: 8px;
   text-align: left;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .fab-option.active {
@@ -1130,7 +1132,7 @@ a {
   position: fixed;
   right: 18px;
   top: 12px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: rgba(16, 23, 34, 0.7);
@@ -1145,7 +1147,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 @media (max-width: 960px) {

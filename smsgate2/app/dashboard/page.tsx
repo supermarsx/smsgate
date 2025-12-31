@@ -15,6 +15,14 @@ export default function DashboardPage() {
   const { refresh: refreshConfig } = useConfig();
   const { setStatus, addLog } = useStatus();
   const locale = getInitialLocale();
+  const addLogRef = useRef(addLog);
+  const setStatusRef = useRef(setStatus);
+  useEffect(() => {
+    addLogRef.current = addLog;
+  }, [addLog]);
+  useEffect(() => {
+    setStatusRef.current = setStatus;
+  }, [setStatus]);
   const t = useMemo(() => {
     const dict = getTranslations(locale);
     return (key: string, fallback: string) => dict[key] ?? fallback;
@@ -48,7 +56,7 @@ export default function DashboardPage() {
     const client = new WsClient(session, {
       numbers: session.user.numbers,
       onConfigUpdate: () => refreshConfig(),
-      log: (type, detail) => addLog({ ts: Date.now(), type, detail })
+      log: (type, detail) => addLogRef.current({ ts: Date.now(), type, detail })
     });
     clientRef.current = client;
     const unsubscribe = client.subscribe((state) => {
@@ -59,15 +67,15 @@ export default function DashboardPage() {
       const deviceRtts = Object.values(state.presence)
         .map((p) => p.rttMs)
         .filter((rtt): rtt is number => typeof rtt === "number");
-      setDeviceRtt(deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "—");
+      setDeviceRtt(deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "-");
       setConnected(state.connected);
       setLastError(state.lastError);
       setHasMore(true);
-      setStatus({
+      setStatusRef.current({
         connected: state.connected,
         ingestLatency: formatLatency(state.metrics),
-        clientRtt: state.clientRttMs ? `${state.clientRttMs} ms` : "—",
-        deviceRtt: deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "—",
+        clientRtt: state.clientRttMs ? `${state.clientRttMs} ms` : "-",
+        deviceRtt: deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "-",
         devicesOnline: Object.values(state.presence).filter((p) => p.state === "online").length,
         lastError: state.lastError,
         wsErrors: state.wsErrors ?? 0,
@@ -79,7 +87,7 @@ export default function DashboardPage() {
       unsubscribe();
       client.disconnect();
     };
-  }, [session, addLog, refreshConfig, setStatus]);
+  }, [session, refreshConfig]);
 
   useEffect(() => {
     const target = scrollRef.current;

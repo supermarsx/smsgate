@@ -15,6 +15,12 @@ type Props = {
   children: React.ReactNode;
 };
 
+const LOCALE_LABELS: Record<string, string> = {
+  "en-US": "English (US)",
+  "pt-PT": "Português (PT)",
+  "es-ES": "Español (ES)"
+};
+
 export function ProtectedShell({ children }: Props) {
   const { session, setSession } = useSession();
   const pathname = usePathname();
@@ -105,14 +111,6 @@ export function ProtectedShell({ children }: Props) {
         <header className="shell-topbar">
           <div className="topbar-meta">
             <span className="pill pill-muted">{getRoleLabel(session.user.role, roleLabels)}</span>
-            <div className="account-chip">
-              <div className="gg-label">{t("account", "Account")}</div>
-              <div className="gg-value">{session.user.email ?? session.user.name}</div>
-              {session.user.email && <div className="muted small">{session.user.name}</div>}
-            </div>
-            <span className={`badge ${session.user.requires2fa ? "degraded" : "online"}`}>
-              {session.user.requires2fa ? t("twoFaRequired", "2FA required") : t("twoFaReady", "2FA ready")}
-            </span>
           </div>
           <div className="topbar-actions">
             <button className="ghost" onClick={() => setDebugOpen((v) => !v)}>
@@ -257,7 +255,7 @@ export function ProtectedShell({ children }: Props) {
                     }}
                     type="button"
                   >
-                    {loc}
+                    {LOCALE_LABELS[loc] ?? loc}
                   </button>
                 ))}
               </div>
@@ -275,7 +273,10 @@ export function ProtectedShell({ children }: Props) {
               {t("logout", "Logout")}
             </button>
           </div>
-          <div className="muted small">{getRoleLabel(session.user.role, roleLabels)}</div>
+          <div className="muted small">
+            {getRoleLabel(session.user.role, roleLabels)} •{" "}
+            {session.user.requires2fa ? t("twoFaRequired", "2FA required") : t("twoFaReady", "2FA ready")}
+          </div>
         </div>
       </section>
     </div>
