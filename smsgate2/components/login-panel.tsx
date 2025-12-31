@@ -42,6 +42,7 @@ export function LoginPanel({ onLogin }: Props) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetStatus, setResetStatus] = useState<string | null>(null);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
+  const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
 
   function handleSelect(next: Mode) {
     setMode(next);
@@ -305,33 +306,35 @@ export function LoginPanel({ onLogin }: Props) {
             </div>
             {resetStatus && <div className="muted small">{resetStatus}</div>}
           </div>
-          <div className="form-row">
-            <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
-            <input
-              id="offline-reset"
-              value={offlineReset.token}
-              onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
-            />
-            <input
-              type="password"
-              value={offlineReset.password}
-              onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
-            />
-            <input
-              type="password"
-              value={offlineReset.confirm}
-              onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
-            />
-            <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
-              {t("offlineResetCta", "Reset without email")}
-            </button>
-            <div className="muted small">
-              {t(
-                "offlineResetHelp",
-                "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
-              )}
+          {offlineResetEnabled && (
+            <div className="form-row">
+              <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
+              <input
+                id="offline-reset"
+                value={offlineReset.token}
+                onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
+              />
+              <input
+                type="password"
+                value={offlineReset.password}
+                onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
+              />
+              <input
+                type="password"
+                value={offlineReset.confirm}
+                onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
+              />
+              <button type="button" className="ghost" disabled={pending} onClick={handleOfflineReset}>
+                {t("offlineResetCta", "Reset without email")}
+              </button>
+              <div className="muted small">
+                {t(
+                  "offlineResetHelp",
+                  "Use when SMTP is unavailable. Token can come from admin CLI or manual backend reset. New password must meet your policy."
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </form>
       )}
 

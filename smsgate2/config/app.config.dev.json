@@ -17,7 +17,7 @@
     "defaultAdminPassword": "changeme"
   },
   "authModes": {
-    "oauth": true,
+    "oauth": false,
     "simpleSignin": true,
     "domainSignin": false
   },
