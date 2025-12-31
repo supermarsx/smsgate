@@ -1197,8 +1197,9 @@ a {
 }
 
 .ghost.icon {
-  padding: 6px 8px;
+  padding: 10px 12px;
   min-width: 0;
+  font-size: 16px;
 }
 
 @media (max-width: 960px) {
