@@ -51,6 +51,34 @@ pub async fn login(
     ctx: RequestContext,
     Json(payload): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    perform_login(state, ctx, payload).await
+}
+
+/// POST /api/v1/auth/simple_signin (alias)
+pub async fn simple_signin(
+    State(state): State<AppState>,
+    ctx: RequestContext,
+    Json(mut payload): Json<LoginRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    payload.mode = AuthMode::SimpleSignin;
+    perform_login(state, ctx, payload).await
+}
+
+/// POST /api/v1/auth/domain_signin (alias)
+pub async fn domain_signin(
+    State(state): State<AppState>,
+    ctx: RequestContext,
+    Json(mut payload): Json<LoginRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    payload.mode = AuthMode::DomainSignin;
+    perform_login(state, ctx, payload).await
+}
+
+async fn perform_login(
+    state: AppState,
+    ctx: RequestContext,
+    payload: LoginRequest,
+) -> Result<impl IntoResponse, AppError> {
     let cfg_guard = state.config.read().await;
     let cfg = cfg_guard.config.clone();
     if !cfg.auth.modes.contains(&payload.mode) {

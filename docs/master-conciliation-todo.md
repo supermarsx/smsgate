@@ -18,12 +18,14 @@ This list captures the blocking gaps between the three codebases and the specs s
 ## WebSocket protocol
 - [ ] Use header `Authorization: Bearer <session>` for WS auth (UI currently passes `?token=` query; server expects header).
 - [ ] Align message names/shapes: UI expects `WELCOME|SNAPSHOT|EVENT_PAGE|PRESENCE_UPDATE|METRICS_UPDATE|CONTACT_UPDATE|CONFIG_UPDATE|ERROR`; server emits `Welcome|Snapshot|Page|PresenceUpdate|SimUpdate|ConfigUpdate|Degraded|Pong` with different casing/fields.
-- [ ] Add metrics + presence arrays and SIM/number details to Snapshot payload per spec; include e2e latency stats for dashboard status bar.
+- [x] Presence snapshot includes SIM snapshots; CONTACT_UPDATE now broadcasts when device uploads contacts.
+- [ ] Add metrics + presence arrays and SIM/number details to Snapshot payload per spec; include e2e latency stats for dashboard status bar (metrics still stubbed).
 - [ ] Implement SUBSCRIBE/PAGE contract parity: server currently supports `PageBefore/PageAfter`; UI sends `PAGE {before,limit}` and `SUBSCRIBE {numbers}`.
 - [ ] Add CONFIG_UPDATE handling: either emit server-side diff with auth mode/role labels or adjust UI to new snapshot shape.
 
 ## Auth/session flows
 - [ ] Reconcile login endpoints: UI calls `/auth/simple_signin` and `/auth/domain_signin`; server exposes `/api/v1/auth/login` with `AuthMode` in payload.
+- [x] Added alias endpoints `/api/v1/auth/simple_signin` and `/api/v1/auth/domain_signin`.
 - [ ] Add refresh token/expiry handling consistently (UI assumes `accessToken/refreshToken`; server issues `session_token` only).
 - [ ] Enforce spec hardening: non-default bootstrap admin username, mandatory admin 2FA, password reset endpoints matching UI (UI uses `/auth/password/change` + `/auth/password/reset-request`; server uses `/api/v1/auth/password_reset/*`).
 - [ ] Remove/replace offline-admin bypass in UI; ensure CONFIG_UPDATE can toggle auth modes at runtime.

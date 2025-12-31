@@ -120,6 +120,17 @@ pub async fn update_contacts(
         removed = body.removed.len(),
         "device contacts sync received"
     );
+    // Broadcast contact updates to dashboards (one per contact upsert).
+    for (number, name) in upserts {
+        let _ = state.event_tx.send(ServerMessage::ContactUpdate(
+            crate::ws_types::ContactUpdate {
+                contact_id: number.clone(),
+                name: Some(name),
+                numbers: vec![number.clone()],
+                updated_at: Utc::now(),
+            },
+        ));
+    }
     Ok((
         StatusCode::OK,
         Json(serde_json::json!({ "status": "ok", "contacts": body.contacts.len() })),

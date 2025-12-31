@@ -37,8 +37,16 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/pairing/complete",
             axum::routing::post(pairing::complete_session),
         )
-        .route("/api/v1/auth/login", axum::routing::post(auth::login))
-        .route("/api/v1/auth/logout", axum::routing::post(auth::logout))
+            .route("/api/v1/auth/login", axum::routing::post(auth::login))
+            .route(
+                "/api/v1/auth/simple_signin",
+                axum::routing::post(auth::simple_signin),
+            )
+            .route(
+                "/api/v1/auth/domain_signin",
+                axum::routing::post(auth::domain_signin),
+            )
+            .route("/api/v1/auth/logout", axum::routing::post(auth::logout))
         .route(
             "/api/v1/auth/password_reset/request",
             axum::routing::post(auth::request_password_reset),
