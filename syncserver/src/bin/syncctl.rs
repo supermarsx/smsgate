@@ -27,12 +27,16 @@ enum Commands {
     /// Obtain a session token via auth.login.
     Login(LoginArgs),
     /// Read or patch configuration via admin APIs.
+    #[command(subcommand)]
     Config(ConfigCmd),
     /// Manage users via admin APIs.
+    #[command(subcommand)]
     User(UserCmd),
     /// Manage numbers via admin APIs.
+    #[command(subcommand)]
     Number(NumberCmd),
     /// Manage devices via admin APIs.
+    #[command(subcommand)]
     Device(DeviceCmd),
 }
 
@@ -150,13 +154,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
     let cli = Cli::parse();
     let client = Client::builder().build()?;
+    let base_url = cli.base_url;
+    let token = cli.token;
 
     match cli.command {
-        Commands::Login(args) => login(&client, &cli.base_url, args).await?,
-        Commands::Config(cmd) => config_cmd(&client, &cli, cmd).await?,
-        Commands::User(cmd) => user_cmd(&client, &cli, cmd).await?,
-        Commands::Number(cmd) => number_cmd(&client, &cli, cmd).await?,
-        Commands::Device(cmd) => device_cmd(&client, &cli, cmd).await?,
+        Commands::Login(args) => login(&client, &base_url, args).await?,
+        Commands::Config(cmd) => config_cmd(&client, &base_url, token.as_deref(), cmd).await?,
+        Commands::User(cmd) => user_cmd(&client, &base_url, token.as_deref(), cmd).await?,
+        Commands::Number(cmd) => number_cmd(&client, &base_url, token.as_deref(), cmd).await?,
+        Commands::Device(cmd) => device_cmd(&client, &base_url, token.as_deref(), cmd).await?,
     }
 
     Ok(())
@@ -192,21 +198,21 @@ async fn login(
 
 async fn config_cmd(
     client: &Client,
-    cli: &Cli,
+    base_url: &str,
+    token: Option<&str>,
     cmd: ConfigCmd,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match cmd {
         ConfigCmd::Get => {
-            let url = format!("{}/api/v1/config", cli.base_url);
-            let body = authed_request(client, Method::GET, url, cli.token.as_deref(), None).await?;
+            let url = format!("{}/api/v1/config", base_url);
+            let body = authed_request(client, Method::GET, url, token, None).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         ConfigCmd::Patch { file } => {
             let data = std::fs::read_to_string(&file)?;
             let json: Value = serde_json::from_str(&data)?;
-            let url = format!("{}/api/v1/config", cli.base_url);
-            let body = authed_request(client, Method::PATCH, url, cli.token.as_deref(), Some(json))
-                .await?;
+            let url = format!("{}/api/v1/config", base_url);
+            let body = authed_request(client, Method::PATCH, url, token, Some(json)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
     }
@@ -215,16 +221,17 @@ async fn config_cmd(
 
 async fn user_cmd(
     client: &Client,
-    cli: &Cli,
+    base_url: &str,
+    token: Option<&str>,
     cmd: UserCmd,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match cmd {
         UserCmd::List { page, page_size } => {
             let url = format!(
                 "{}/api/v1/admin/users?page={}&page_size={}",
-                cli.base_url, page, page_size
+                base_url, page, page_size
             );
-            let body = authed_request(client, Method::GET, url, cli.token.as_deref(), None).await?;
+            let body = authed_request(client, Method::GET, url, token, None).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         UserCmd::Create {
@@ -233,53 +240,43 @@ async fn user_cmd(
             role,
             totp_secret,
         } => {
-            let url = format!("{}/api/v1/admin/users", cli.base_url);
+            let url = format!("{}/api/v1/admin/users", base_url);
             let payload = serde_json::json!({
                 "username": username,
                 "password": password,
                 "role": role,
                 "totp_secret": totp_secret
             });
-            let body = authed_request(
-                client,
-                Method::POST,
-                url,
-                cli.token.as_deref(),
-                Some(payload),
-            )
-            .await?;
+            let body = authed_request(client, Method::POST, url, token, Some(payload)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         UserCmd::Unlock { user_id } => {
-            let url = format!("{}/api/v1/admin/users/{}/unlock", cli.base_url, user_id);
+            let url = format!("{}/api/v1/admin/users/{}/unlock", base_url, user_id);
             let body = authed_request(
                 client,
                 Method::POST,
                 url,
-                cli.token.as_deref(),
+                token,
                 Some(serde_json::json!({})),
             )
             .await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         UserCmd::ForceLogout { user_id } => {
-            let url = format!(
-                "{}/api/v1/admin/users/{}/force_logout",
-                cli.base_url, user_id
-            );
+            let url = format!("{}/api/v1/admin/users/{}/force_logout", base_url, user_id);
             let body = authed_request(
                 client,
                 Method::POST,
                 url,
-                cli.token.as_deref(),
+                token,
                 Some(serde_json::json!({})),
             )
             .await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         UserCmd::Delete { user_id } => {
-            let url = format!("{}/api/v1/admin/users/{}", cli.base_url, user_id);
-            authed_request(client, Method::DELETE, url, cli.token.as_deref(), None).await?;
+            let url = format!("{}/api/v1/admin/users/{}", base_url, user_id);
+            authed_request(client, Method::DELETE, url, token, None).await?;
             println!("deleted {}", user_id);
         }
     }
@@ -288,16 +285,17 @@ async fn user_cmd(
 
 async fn number_cmd(
     client: &Client,
-    cli: &Cli,
+    base_url: &str,
+    token: Option<&str>,
     cmd: NumberCmd,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match cmd {
         NumberCmd::List { page, page_size } => {
             let url = format!(
                 "{}/api/v1/admin/numbers?page={}&page_size={}",
-                cli.base_url, page, page_size
+                base_url, page, page_size
             );
-            let body = authed_request(client, Method::GET, url, cli.token.as_deref(), None).await?;
+            let body = authed_request(client, Method::GET, url, token, None).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         NumberCmd::Create {
@@ -306,47 +304,26 @@ async fn number_cmd(
             shared,
             default_device_id,
         } => {
-            let url = format!("{}/api/v1/admin/numbers", cli.base_url);
+            let url = format!("{}/api/v1/admin/numbers", base_url);
             let payload = serde_json::json!({
                 "e164": e164,
                 "label": label,
                 "shared": shared,
                 "default_device_id": default_device_id
             });
-            let body = authed_request(
-                client,
-                Method::POST,
-                url,
-                cli.token.as_deref(),
-                Some(payload),
-            )
-            .await?;
+            let body = authed_request(client, Method::POST, url, token, Some(payload)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         NumberCmd::Assign { e164, device_id } => {
-            let url = format!("{}/api/v1/admin/numbers/{}/assign", cli.base_url, e164);
+            let url = format!("{}/api/v1/admin/numbers/{}/assign", base_url, e164);
             let payload = serde_json::json!({ "device_id": device_id });
-            let body = authed_request(
-                client,
-                Method::POST,
-                url,
-                cli.token.as_deref(),
-                Some(payload),
-            )
-            .await?;
+            let body = authed_request(client, Method::POST, url, token, Some(payload)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         NumberCmd::Unassign { e164, device_id } => {
-            let url = format!("{}/api/v1/admin/numbers/{}/unassign", cli.base_url, e164);
+            let url = format!("{}/api/v1/admin/numbers/{}/unassign", base_url, e164);
             let payload = serde_json::json!({ "device_id": device_id });
-            let body = authed_request(
-                client,
-                Method::POST,
-                url,
-                cli.token.as_deref(),
-                Some(payload),
-            )
-            .await?;
+            let body = authed_request(client, Method::POST, url, token, Some(payload)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
     }
@@ -355,51 +332,38 @@ async fn number_cmd(
 
 async fn device_cmd(
     client: &Client,
-    cli: &Cli,
+    base_url: &str,
+    token: Option<&str>,
     cmd: DeviceCmd,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match cmd {
         DeviceCmd::List => {
-            let url = format!("{}/api/v1/devices", cli.base_url);
-            let body = authed_request(client, Method::GET, url, cli.token.as_deref(), None).await?;
+            let url = format!("{}/api/v1/devices", base_url);
+            let body = authed_request(client, Method::GET, url, token, None).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         DeviceCmd::Rename { device_id, name } => {
-            let url = format!("{}/api/v1/devices/{}/rename", cli.base_url, device_id);
+            let url = format!("{}/api/v1/devices/{}/rename", base_url, device_id);
             let payload = serde_json::json!({ "name": name });
-            let body = authed_request(
-                client,
-                Method::POST,
-                url,
-                cli.token.as_deref(),
-                Some(payload),
-            )
-            .await?;
+            let body = authed_request(client, Method::POST, url, token, Some(payload)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         DeviceCmd::Enable { device_id } => {
-            let url = format!("{}/api/v1/devices/{}/enable", cli.base_url, device_id);
+            let url = format!("{}/api/v1/devices/{}/enable", base_url, device_id);
             let body = authed_request(
                 client,
                 Method::POST,
                 url,
-                cli.token.as_deref(),
+                token,
                 Some(serde_json::json!({})),
             )
             .await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
         DeviceCmd::Disable { device_id, reason } => {
-            let url = format!("{}/api/v1/devices/{}/disable", cli.base_url, device_id);
+            let url = format!("{}/api/v1/devices/{}/disable", base_url, device_id);
             let payload = serde_json::json!({ "reason": reason });
-            let body = authed_request(
-                client,
-                Method::POST,
-                url,
-                cli.token.as_deref(),
-                Some(payload),
-            )
-            .await?;
+            let body = authed_request(client, Method::POST, url, token, Some(payload)).await?;
             println!("{}", serde_json::to_string_pretty(&body)?);
         }
     }
