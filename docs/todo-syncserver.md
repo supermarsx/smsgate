@@ -83,12 +83,12 @@
 - [x] Device diagnostics endpoint for smsgate2 per spec.
 
 ## Testing & quality
-- [ ] Unit tests for config loader, auth hashing/policy, dedup logic, hot store ring buffer.
-- [ ] Integration tests for ingest -> WS fanout, paging, presence transitions, SIM diffing.
-- [ ] End-to-end tests with smsgate2 + smsrelay3 mocks (Wiremock or in-process stubs).
-- [ ] Load tests for WS fanout/pagination + ingest throughput (target p95 < 50ms internal).
-- [ ] Security tests for auth mode toggles, session fixation, CSRF, and rate limiting.
-- [ ] CI pipeline for fmt/clippy/test/build + container image + vulnerability scan.
+- [x] Unit tests for config loader, auth hashing/policy, dedup logic, hot store ring buffer.
+- [x] Integration tests for ingest -> WS fanout, paging, presence transitions, SIM diffing.
+- [x] End-to-end tests with smsgate2 + smsrelay3 mocks (Wiremock or in-process stubs).
+- [x] Load tests for WS fanout/pagination + ingest throughput (target p95 < 50ms internal).
+- [x] Security tests for auth mode toggles, session fixation, CSRF, and rate limiting.
+- [x] CI pipeline for fmt/clippy/test/build + container image + vulnerability scan.
 
 ## Operations & release
 - [x] Build Docker image with minimal base + non-root user; publish compose profile with Redis/DB.
