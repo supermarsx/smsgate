@@ -87,6 +87,9 @@ pub struct HeartbeatSample {
     pub network_type: Option<String>,
     /// Client-side timestamp when heartbeat was generated.
     pub client_time: DateTime<Utc>,
+    /// Optional SIM inventory snapshot.
+    #[serde(default)]
+    pub sims: Vec<SimSnapshot>,
 }
 
 /// SIM snapshot entry for multi-SIM devices.

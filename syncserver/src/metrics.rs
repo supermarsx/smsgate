@@ -8,7 +8,7 @@ use axum::{
 };
 #[cfg(target_os = "linux")]
 use prometheus::process_collector::ProcessCollector;
-use prometheus::{opts, Encoder, IntCounterVec, Registry, TextEncoder};
+use prometheus::{opts, Encoder, Gauge, GaugeVec, Histogram, Registry, TextEncoder};
 
 use crate::{error::AppError, state::AppState};
 
@@ -17,6 +17,10 @@ use crate::{error::AppError, state::AppState};
 pub struct Metrics {
     registry: Registry,
     http_requests_total: IntCounterVec,
+    device_rtt_ms: GaugeVec,
+    device_queue_depth: GaugeVec,
+    ingest_latency_ms: Histogram,
+    ws_connections: Gauge,
 }
 
 impl Metrics {
@@ -32,11 +36,52 @@ impl Metrics {
             &["path", "status"],
         )
         .map_err(|err| AppError::Internal(format!("failed to create counter: {}", err)))?;
+        let device_rtt_ms = GaugeVec::new(
+            opts!(
+                "syncserver_device_rtt_ms",
+                "Latest device-reported RTT per device"
+            ),
+            &["device_id"],
+        )
+        .map_err(|err| AppError::Internal(format!("failed to create gauge: {}", err)))?;
+        let device_queue_depth = GaugeVec::new(
+            opts!(
+                "syncserver_device_queue_depth",
+                "Latest queue depth per device from heartbeat"
+            ),
+            &["device_id"],
+        )
+        .map_err(|err| AppError::Internal(format!("failed to create gauge: {}", err)))?;
+        let ingest_latency_ms = Histogram::with_opts(
+            prometheus::HistogramOpts::new(
+                "syncserver_ingest_latency_ms",
+                "End-to-end latency between device timestamp and server receipt",
+            )
+            .buckets(vec![5.0, 10.0, 25.0, 50.0, 100.0, 250.0, 500.0, 1000.0, 2000.0]),
+        )
+        .map_err(|err| AppError::Internal(format!("failed to create histogram: {}", err)))?;
+        let ws_connections = Gauge::with_opts(opts!(
+            "syncserver_ws_connections",
+            "Active WebSocket connections"
+        ))
+        .map_err(|err| AppError::Internal(format!("failed to create gauge: {}", err)))?;
 
         // Register collectors.
         registry
             .register(Box::new(http_requests_total.clone()))
             .map_err(|err| AppError::Internal(format!("failed to register counter: {}", err)))?;
+        registry
+            .register(Box::new(device_rtt_ms.clone()))
+            .map_err(|err| AppError::Internal(format!("failed to register gauge: {}", err)))?;
+        registry
+            .register(Box::new(device_queue_depth.clone()))
+            .map_err(|err| AppError::Internal(format!("failed to register gauge: {}", err)))?;
+        registry
+            .register(Box::new(ingest_latency_ms.clone()))
+            .map_err(|err| AppError::Internal(format!("failed to register histogram: {}", err)))?;
+        registry
+            .register(Box::new(ws_connections.clone()))
+            .map_err(|err| AppError::Internal(format!("failed to register gauge: {}", err)))?;
         #[cfg(target_os = "linux")]
         registry
             .register(Box::new(ProcessCollector::for_self()))
@@ -47,6 +92,10 @@ impl Metrics {
         Ok(Self {
             registry,
             http_requests_total,
+            device_rtt_ms,
+            device_queue_depth,
+            ingest_latency_ms,
+            ws_connections,
         })
     }
 
@@ -57,6 +106,30 @@ impl Metrics {
         self.http_requests_total
             .with_label_values(&[path_label.as_str(), status_label.as_str()])
             .inc();
+    }
+
+    /// Record the latest device RTT (ms) for a device.
+    pub fn observe_device_rtt(&self, device_id: &str, rtt_ms: u32) {
+        self.device_rtt_ms
+            .with_label_values(&[device_id])
+            .set(rtt_ms as f64);
+    }
+
+    /// Record the latest queue depth for a device.
+    pub fn observe_device_queue_depth(&self, device_id: &str, queue_depth: u32) {
+        self.device_queue_depth
+            .with_label_values(&[device_id])
+            .set(queue_depth as f64);
+    }
+
+    /// Record end-to-end ingest latency in milliseconds.
+    pub fn observe_ingest_latency_ms(&self, latency_ms: f64) {
+        self.ingest_latency_ms.observe(latency_ms);
+    }
+
+    /// Set the current WebSocket connection count.
+    pub fn observe_ws_connections(&self, count: i64) {
+        self.ws_connections.set(count as f64);
     }
 
     /// Render the registry into Prometheus text format.

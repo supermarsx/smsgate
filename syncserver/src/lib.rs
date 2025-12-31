@@ -12,6 +12,7 @@ pub mod metrics;
 pub mod pairing;
 pub mod persistence;
 pub mod presence;
+pub mod sim_inventory;
 pub mod routes;
 pub mod state;
 pub mod telemetry;

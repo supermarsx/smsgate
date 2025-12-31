@@ -3,6 +3,7 @@ use crate::{
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
+    sim_inventory::SimInventoryStore,
     management::NumberStore,
     persistence::{sql::SqlStore, worker::PersistenceWorker, JsonDb, PersistentStore},
     presence::PresenceStore,
@@ -107,6 +108,8 @@ pub struct AppState {
     pub audit: AuditService,
     /// Number registry for admin operations.
     pub numbers: Arc<NumberStore>,
+    /// SIM inventory tracker for devices.
+    pub sim_inventory: Arc<SimInventoryStore>,
 }
 
 impl AppState {
@@ -236,6 +239,7 @@ impl AppState {
         let user_store = Arc::new(crate::auth::users::UserStore::new(&config.auth, &roles));
         let audit = AuditService::new(persistence.clone(), config.database.enable_audit_log);
         let numbers = Arc::new(NumberStore::default());
+        let sim_inventory = Arc::new(SimInventoryStore::default());
 
         Self {
             config: versioned_config,
@@ -256,6 +260,7 @@ impl AppState {
             user_store,
             audit,
             numbers,
+            sim_inventory,
         }
     }
 
@@ -275,12 +280,14 @@ impl AppState {
             self.connection_count.fetch_sub(1, Ordering::SeqCst);
             return false;
         }
+        self.metrics.observe_ws_connections(current as i64);
         true
     }
 
     /// Release a connection slot (called when a client disconnects).
     pub fn release_connection(&self) {
-        self.connection_count.fetch_sub(1, Ordering::SeqCst);
+        let current = self.connection_count.fetch_sub(1, Ordering::SeqCst) - 1;
+        self.metrics.observe_ws_connections(current as i64);
     }
 
     /// Return a cloned config snapshot for use in responses/broadcasts.

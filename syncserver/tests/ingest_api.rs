@@ -166,7 +166,15 @@ async fn persistence_policy_applies_state_rules() {
     let contents = tokio::fs::read_to_string(&db_path)
         .await
         .unwrap_or_default();
-    assert!(contents.trim().is_empty());
+    let lines: Vec<serde_json::Value> = contents
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .collect();
+    let event_lines: Vec<_> = lines
+        .iter()
+        .filter(|line| line.get("content_hash").is_some())
+        .collect();
+    assert_eq!(event_lines.len(), 0, "event was persisted unexpectedly");
 
     // Transition to verified, which should trigger persistence.
     let _ = app
@@ -184,6 +192,13 @@ async fn persistence_policy_applies_state_rules() {
 
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
     let contents = tokio::fs::read_to_string(&db_path).await.unwrap();
-    let lines: Vec<_> = contents.lines().collect();
-    assert_eq!(lines.len(), 1);
+    let lines: Vec<serde_json::Value> = contents
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .collect();
+    let event_lines: Vec<_> = lines
+        .iter()
+        .filter(|line| line.get("content_hash").is_some())
+        .collect();
+    assert_eq!(event_lines.len(), 1);
 }

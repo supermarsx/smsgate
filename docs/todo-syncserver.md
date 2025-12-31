@@ -46,7 +46,7 @@
 - [x] Append events to hot store ring buffer and emit `EVENT_NEW` over WS (WS emit pending).
 - [x] Implement state transitions (`claim/verify/reject`) with validation + broadcast (audit stream pending).
 - [x] Support batch ingest and backpressure hints to devices (batch limit enforced; backpressure signals pending).
-- [ ] Add policy-based persistence enqueue for compliance/retention rules.
+- [x] Add policy-based persistence enqueue for compliance/retention rules.
 
 ## Presence, metrics, SIM inventory
 - [x] Implement `/api/v1/presence/heartbeat` ingestion with RTT + queue depth.
