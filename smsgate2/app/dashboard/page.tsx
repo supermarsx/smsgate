@@ -48,6 +48,7 @@ export default function DashboardPage() {
   const clientRef = useRef<WsClient | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const SNAPSHOT_KEY = "smsgate2_snapshot";
+  const [copyHint, setCopyHint] = useState<string | null>(null);
   const friendlyLastError = useMemo(() => {
     const key = mapWsErrorKey(lastError ?? undefined);
     if (key) return t(key, lastError ?? key);
@@ -163,6 +164,27 @@ export default function DashboardPage() {
     }
   }
 
+  function extractCodes(evt: Event): string[] {
+    const codes: string[] = [];
+    if (evt.parsedCode) codes.push(evt.parsedCode);
+    const numeric = Array.from(evt.content.matchAll(/\b\d{4,10}\b/g)).map((m) => m[0]);
+    const alnum = Array.from(evt.content.matchAll(/\b[A-Za-z0-9]{6,12}\b/g)).map((m) => m[0]);
+    [...numeric, ...alnum].forEach((c) => {
+      if (!codes.includes(c)) codes.push(c);
+    });
+    return codes.slice(0, 5);
+  }
+
+  async function handleCopy(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyHint(`Copied "${code}"`);
+      setTimeout(() => setCopyHint(null), 1500);
+    } catch {
+      setCopyHint(null);
+    }
+  }
+
   if (!session) return null;
 
   return (
@@ -240,6 +262,44 @@ export default function DashboardPage() {
                     </div>
                     <div className="msg-actions">
                       <span className={`msg-pill state-${evt.state}`}>{evt.state}</span>
+                      {evt.claimedBy && evt.state === "claimed" && (
+                        <span className="muted small">
+                          {t("dashboardClaimedBy", "Claimed by")} {evt.claimedBy}
+                          {evt.claimedAt ? ` @ ${new Date(evt.claimedAt).toLocaleTimeString()}` : ""}
+                        </span>
+                      )}
+                      <div className="msg-tags">
+                        <span className="badge neutral">{t("dashboardDevice", "Device")}: {evt.deviceId ?? "-"}</span>
+                        <span className="badge neutral">
+                          {t("dashboardLatency", "Latency")}: {evt.latencyMs !== undefined ? `${evt.latencyMs} ms` : "-"}
+                        </span>
+                      </div>
+                      {(() => {
+                        const codes = extractCodes(evt);
+                        if (!codes.length) return null;
+                        const primary = codes[0];
+                        return (
+                          <div className="code-actions">
+                            <button className="ghost strong" onClick={() => handleCopy(primary)}>
+                              {t("dashboardCopyCode", "Copy")}
+                              {primary ? ` "${primary}"` : ""}
+                            </button>
+                            {codes.length > 1 && (
+                              <select
+                                className="gg-select"
+                                onChange={(e) => handleCopy(e.target.value)}
+                                defaultValue={primary}
+                              >
+                                {codes.map((c) => (
+                                  <option key={c} value={c}>
+                                    {c}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="actions">
                         <button className="ghost" onClick={() => handleStateChange(evt.id, "claimed")}>
                           {t("dashboardClaim", "Claim")}
@@ -259,6 +319,7 @@ export default function DashboardPage() {
                 )}
                 {loadingPage && <div className="muted">{t("dashboardLoadingOlder", "Loading older…")}</div>}
                 {!hasMore && <div className="muted">{t("dashboardEnd", "End of history")}</div>}
+                {copyHint && <div className="muted small">{copyHint}</div>}
               </div>
             </div>
           </div>
