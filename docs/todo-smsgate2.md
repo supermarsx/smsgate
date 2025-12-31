@@ -96,4 +96,3 @@
 - [x] Manual i18n sweep for filters/status/pagination labels across all pages to catch any lingering literals the scanner misses (contact/conflict tooltips, diagnostics labels, pagination labels).
 - [x] Add UI tests covering inline filters (dashboard/logins/audit) and status bar error mapping for offline/network WS cases.
 - [x] Expand e2e to cover light-theme golden palette regressions and account/logout controls.
-- [x] smsrelay3 Android: fix ktlint/lint issues, add missing translations/features/opt-in, stabilize Robolectric DB + tests, and verify assemble/debug/release.
