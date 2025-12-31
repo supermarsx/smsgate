@@ -9,6 +9,7 @@ import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
 import { assignNumber, createNumber, deleteNumber, listNumbers, unassignNumber, updateNumber } from "../../lib/rest";
 import { getTranslations, useLocale } from "../../lib/i18n";
+import { appConfig } from "../../lib/config";
 
 /**
  * Number management page for CRUD and assignment to users/devices.
@@ -31,13 +32,15 @@ export default function NumbersPage() {
   const [edit, setEdit] = useState<Record<string, { label?: string; shared?: boolean; defaultDeviceId?: string }>>({});
   const [ingestDevices, setIngestDevices] = useState<Record<string, string[]>>({});
   const [contactNames, setContactNames] = useState<Record<string, string>>({});
+  const routeAllowed = appConfig.limits?.routes?.numbers ?? false;
+  const numberLimits = appConfig.limits?.actions?.numbers ?? {};
 
   function validateE164(value: string): boolean {
     return /^\+?[1-9]\d{6,15}$/.test(value.trim());
   }
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !routeAllowed) return;
     setLoading(true);
     listNumbers(session)
       .then((rows) => {
@@ -55,9 +58,23 @@ export default function NumbersPage() {
       })
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [routeAllowed, session]);
 
   if (!session) return null;
+
+  if (!routeAllowed) {
+    return (
+      <ProtectedShell>
+        <div className="gg-panel">
+          <div className="gg-panel__header">
+            <div className="gg-pill">{t("numbersTitle", "Numbers")}</div>
+            <h1 className="gg-title">{t("accessBlocked", "Access disabled by configuration.")}</h1>
+          </div>
+          <p className="gg-subtitle">{t("numbersError", "Feature disabled")}</p>
+        </div>
+      </ProtectedShell>
+    );
+  }
 
   return (
     <ProtectedShell>
@@ -76,80 +93,82 @@ export default function NumbersPage() {
         )}
         {loading && <div className="muted">{t("numbersLoading", "Loading...")}</div>}
         <div className="presence-list">
-          {numbers.map((n) => (
-            <div key={n.id ?? n.e164} className="presence-row spaced">
-              <div>
-                <div className="gg-value">{n.e164 ?? n.number}</div>
-                <div className="muted">
-                  {t("numbersAssignedTo", "Assigned to")}: {n.assignedTo ?? "-"}
-                </div>
-                <div className="muted">
-                  {t("numbersContact", "Contact")}: {contactNames[n.e164 ?? n.number] ?? n.contactName ?? "-"}
-                </div>
-                <div className="muted">
-                  {t("numbersIngestDevices", "Ingest devices")}:{" "}
-                  {(ingestDevices[n.e164 ?? n.number] ?? []).join(", ") || "-"}
-                </div>
-                <div className="muted">
-                  {t("numbersShared", "Shared")}: {n.shared ? t("sharedYes", "yes") : t("sharedNo", "no")}
-                </div>
-                <div className="muted">
-                  {t("numbersDefaultDevice", "Default device")}: {n.defaultDeviceId ?? "-"}
-                </div>
-                <div className="filter-row">
-                  <label className="gg-label" htmlFor={`label-${n.e164}`}>
-                    {t("numbersLabelField", "Label")}
-                  </label>
-                  <input
-                    id={`label-${n.e164}`}
-                    className="gg-input"
-                    value={edit[n.e164]?.label ?? n.label ?? ""}
-                    onChange={(e) =>
-                      setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), label: e.target.value } }))
+          <button
+            className="login-submit"
+            disabled={assigning || !numberLimits.assign}
+            onClick={async () => {
+              if (!session || !numberLimits.assign) return;
+              if (!validateE164(assignForm.e164)) {
+                setError(t("numbersInvalidAssign", "Enter a valid E.164 number to assign"));
+                return;
+              }
+              if (!assignForm.userId && !assignForm.deviceId) {
+                setError(t("numbersInvalidAssign", "Enter a valid E.164 number to assign"));
+                return;
+              }
+              setAssigning(true);
+              setError(null);
+              try {
+                await assignNumber(session, assignForm.e164, {
+                  userId: assignForm.userId || undefined,
+                  deviceId: assignForm.deviceId || undefined
+                });
+                const next = await listNumbers(session);
+                setNumbers(next);
+                setAssignForm({ e164: "", userId: "", deviceId: "" });
+              } catch (err) {
+                setError((err as Error).message);
+              } finally {
+                setAssigning(false);
+              }
+            }}
+          >
                     }
                   />
                   <label className="gg-label" htmlFor={`shared-${n.e164}`}>
                     {t("numbersShared", "Shared")}
-                  </label>
-                  <input
-                    id={`shared-${n.e164}`}
-                    type="checkbox"
-                    checked={edit[n.e164]?.shared ?? n.shared ?? false}
-                    onChange={(e) =>
-                      setEdit((prev) => ({ ...prev, [n.e164]: { ...(prev[n.e164] ?? {}), shared: e.target.checked } }))
-                    }
-                  />
-                  <label className="gg-label" htmlFor={`default-device-${n.e164}`}>
-                    {t("numbersDefaultDevice", "Default device")}
-                  </label>
-                  <input
-                    id={`default-device-${n.e164}`}
-                    className="gg-input"
-                    value={edit[n.e164]?.defaultDeviceId ?? n.defaultDeviceId ?? ""}
-                    onChange={(e) =>
-                      setEdit((prev) => ({
-                        ...prev,
-                        [n.e164]: { ...(prev[n.e164] ?? {}), defaultDeviceId: e.target.value }
-                      }))
-                    }
-                    placeholder={t("numbersDeviceIdPlaceholder", "device id")}
-                  />
-                </div>
-              </div>
-              <div className="actions">
-                <button
-                  className="ghost"
-                  onClick={async () => {
-                    if (!session) return;
-                    try {
-                      const payload = edit[n.e164] ?? {};
-                      await updateNumber(session, n.e164 ?? n.number, {
-                        label: payload.label ?? n.label,
-                        shared: payload.shared ?? n.shared,
-                        defaultDeviceId: payload.defaultDeviceId ?? n.defaultDeviceId ?? null
-                      });
-                      const next = await listNumbers(session);
-                      setNumbers(next);
+            disabled={!numberLimits.assign}
+            onClick={async () => {
+              if (!session || !numberLimits.assign) return;
+              if (!validateE164(assignForm.e164)) {
+                setError(t("numbersInvalidAssign", "Enter a valid E.164 number to assign"));
+                return;
+              }
+              setAssigning(true);
+              setError(null);
+              try {
+                await unassignNumber(session, assignForm.e164);
+                const next = await listNumbers(session);
+                setNumbers(next);
+                setAssignForm({ e164: "", userId: "", deviceId: "" });
+              } catch (err) {
+                setError((err as Error).message);
+              } finally {
+                setAssigning(false);
+              }
+            }}
+                          className="login-submit"
+                          disabled={creating || !numberLimits.create}
+                          onClick={async () => {
+                            if (!session || !numberLimits.create) return;
+                            if (!validateE164(form.e164)) {
+                              setError(t("numbersInvalidE164", "Enter a valid E.164 number"));
+                              return;
+                            }
+                            setCreating(true);
+                            setError(null);
+                            try {
+                              await createNumber(session, { e164: form.e164, label: form.label || undefined });
+                              const next = await listNumbers(session);
+                              setNumbers(next);
+                              setForm({ e164: "", label: "" });
+                            } catch (err) {
+                              setError((err as Error).message);
+                            } finally {
+                              setCreating(false);
+                            }
+                          }}
+                        >
                     } catch (err) {
                       setError((err as Error).message);
                     }
@@ -159,8 +178,9 @@ export default function NumbersPage() {
                 </button>
                 <button
                   className="ghost"
+                  disabled={!numberLimits.delete}
                   onClick={async () => {
-                    if (!session) return;
+                    if (!session || !numberLimits.delete) return;
                     try {
                       await deleteNumber(session, n.e164 ?? n.number);
                       const next = await listNumbers(session);
