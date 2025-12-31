@@ -175,6 +175,69 @@ impl Default for AuthConfig {
     }
 }
 
+/// Role definition used in RBAC config.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RoleDefinition {
+    pub name: String,
+    pub precedence: u32,
+    pub permissions: Vec<String>,
+}
+
+/// RBAC configuration including role definitions and group mapping.
+#[derive(Debug, Clone, Deserialize)]
+pub struct RbacConfig {
+    pub roles: Vec<RoleDefinition>,
+    pub group_mapping: std::collections::HashMap<String, String>,
+}
+
+impl Default for RbacConfig {
+    fn default() -> Self {
+        Self {
+            roles: vec![
+                RoleDefinition {
+                    name: "admin".into(),
+                    precedence: 100,
+                    permissions: vec![
+                        "events.read".into(),
+                        "events.claim".into(),
+                        "events.verify".into(),
+                        "events.reject".into(),
+                        "devices.read".into(),
+                        "devices.write".into(),
+                        "devices.disable".into(),
+                        "devices.rotate_token".into(),
+                        "numbers.read".into(),
+                        "numbers.write".into(),
+                        "users.read".into(),
+                        "users.write".into(),
+                        "users.force_logout".into(),
+                        "users.unlock".into(),
+                        "config.read".into(),
+                        "config.write".into(),
+                        "audit.read".into(),
+                        "logins.read".into(),
+                    ],
+                },
+                RoleDefinition {
+                    name: "manager".into(),
+                    precedence: 50,
+                    permissions: vec![
+                        "events.read".into(),
+                        "events.claim".into(),
+                        "events.verify".into(),
+                        "devices.read".into(),
+                        "numbers.read".into(),
+                        "users.read".into(),
+                        "audit.read".into(),
+                        "logins.read".into(),
+                    ],
+                },
+            ],
+            group_mapping: std::collections::HashMap::new(),
+        }
+    }
+}
+
 /// Ingest configuration for deduplication and buffering.
 #[derive(Debug, Clone, Deserialize)]
 pub struct IngestConfig {
@@ -225,6 +288,8 @@ pub struct AppConfig {
     pub ingest: IngestConfig,
     /// Presence evaluation thresholds.
     pub presence: PresenceConfig,
+    /// RBAC roles and group mappings.
+    pub rbac: RbacConfig,
     /// Hot store backend selection.
     pub hot_store: HotStoreConfig,
     /// Durable persistence controls.
@@ -240,6 +305,7 @@ impl Default for AppConfig {
             server: ServerConfig::default(),
             ingest: IngestConfig::default(),
             presence: PresenceConfig::default(),
+            rbac: RbacConfig::default(),
             hot_store: HotStoreConfig::default(),
             database: DatabaseConfig::default(),
             auth: AuthConfig::default(),
@@ -544,6 +610,15 @@ impl AppConfig {
                 self.presence.degraded_threshold_ms = degraded_ms;
             }
         }
+
+        if let Some(rbac) = from.rbac {
+            if let Some(roles) = rbac.roles {
+                self.rbac.roles = roles;
+            }
+            if let Some(mapping) = rbac.group_mapping {
+                self.rbac.group_mapping = mapping;
+            }
+        }
     }
 }
 
@@ -554,6 +629,7 @@ struct PartialConfig {
     pub server: Option<PartialServerConfig>,
     pub ingest: Option<PartialIngestConfig>,
     pub presence: Option<PartialPresenceConfig>,
+    pub rbac: Option<PartialRbacConfig>,
     pub hot_store: Option<PartialHotStoreConfig>,
     pub database: Option<PartialDatabaseConfig>,
     pub auth: Option<PartialAuthConfig>,
@@ -579,6 +655,12 @@ struct PartialIngestConfig {
 struct PartialPresenceConfig {
     pub online_threshold_ms: Option<u64>,
     pub degraded_threshold_ms: Option<u64>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PartialRbacConfig {
+    pub roles: Option<Vec<RoleDefinition>>,
+    pub group_mapping: Option<std::collections::HashMap<String, String>>,
 }
 
 #[derive(Debug, Default, Deserialize)]
