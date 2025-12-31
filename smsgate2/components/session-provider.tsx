@@ -15,6 +15,9 @@ const SessionContext = createContext<SessionContextValue>({
   loading: true
 });
 
+/**
+ * Stores the active session, refreshes tokens, and exposes session state to children.
+ */
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,10 +51,16 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
+/**
+ * Hook to access or mutate the current session.
+ */
 export function useSession(): SessionContextValue {
   return useContext(SessionContext);
 }
 
+/**
+ * Hook that throws when a session is not present (use in server-side boundaries).
+ */
 export function useRequireSession(): Session {
   const { session } = useSession();
   if (!session) {

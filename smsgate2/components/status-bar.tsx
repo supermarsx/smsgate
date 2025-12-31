@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import { useStatus } from "./status-context";
 import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
 
+/**
+ * Compact websocket status indicator with expandable metrics.
+ */
 export function StatusBar() {
   const status = useStatus();
   const [locale] = useState<Locale>(getInitialLocale());

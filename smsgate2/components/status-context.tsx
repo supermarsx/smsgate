@@ -25,6 +25,9 @@ const StatusContext = createContext<StatusContextValue>({
   addLog: () => undefined
 });
 
+/**
+ * Provides realtime status snapshots and telemetry logs to consumers.
+ */
 export function StatusProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatusState] = useState<StatusSnapshot>({ connected: false, logs: [] });
 
@@ -47,6 +50,9 @@ export function StatusProvider({ children }: { children: React.ReactNode }) {
   return <StatusContext.Provider value={value}>{children}</StatusContext.Provider>;
 }
 
+/**
+ * Hook to access websocket status and telemetry.
+ */
 export function useStatus(): StatusContextValue {
   return useContext(StatusContext);
 }
