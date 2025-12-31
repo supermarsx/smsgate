@@ -40,7 +40,7 @@ type DeviceTone = "online" | "degraded" | "offline" | "neutral";
 export default function DevicesPage() {
   const { session } = useSession();
   const { config } = useConfig();
-  const status = useStatus();
+  const { addLog } = useStatus();
   const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
@@ -62,7 +62,7 @@ export default function DevicesPage() {
     if (!session) return;
     const client = new WsClient(session, {
       onConfigUpdate: undefined,
-      log: (type, detail) => status.addLog({ ts: Date.now(), type, detail })
+      log: (type, detail) => addLog({ ts: Date.now(), type, detail })
     });
     wsRef.current = client;
     const unsubscribe = client.subscribe((state) => {
@@ -73,7 +73,7 @@ export default function DevicesPage() {
       unsubscribe();
       client.disconnect();
     };
-  }, [session, status]);
+  }, [session, addLog]);
 
   useEffect(() => {
     if (!session) return;

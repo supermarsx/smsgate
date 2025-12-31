@@ -4,7 +4,7 @@
  * @fileoverview Status context for realtime connection metrics and telemetry logs.
  */
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 export type StatusSnapshot = {
   connected: boolean;
@@ -36,20 +36,24 @@ const StatusContext = createContext<StatusContextValue>({
 export function StatusProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatusState] = useState<StatusSnapshot>({ connected: false, logs: [] });
 
-  const addLog = (entry: TelemetryEvent) => {
+  const addLog = useCallback((entry: TelemetryEvent) => {
     setStatusState((prev) => {
       const nextLogs = [...(prev.logs ?? []), entry].slice(-50);
       return { ...prev, logs: nextLogs };
     });
-  };
+  }, []);
+
+  const setStatus = useCallback((next: Partial<StatusSnapshot>) => {
+    setStatusState((prev) => ({ ...prev, ...next }));
+  }, []);
 
   const value = useMemo(
     () => ({
       ...status,
-      setStatus: (next: Partial<StatusSnapshot>) => setStatusState((prev) => ({ ...prev, ...next })),
+      setStatus,
       addLog
     }),
-    [status]
+    [status, setStatus, addLog]
   );
 
   return <StatusContext.Provider value={value}>{children}</StatusContext.Provider>;
