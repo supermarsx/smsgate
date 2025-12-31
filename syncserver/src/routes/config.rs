@@ -18,6 +18,8 @@ pub struct ConfigSnapshot {
     pub ingest: IngestSnapshot,
     /// Hot store backend.
     pub hot_store: &'static str,
+    /// Role definitions for UI gating.
+    pub roles: Vec<RoleSnapshot>,
 }
 
 /// Presence thresholds exposed to clients.
@@ -33,6 +35,14 @@ pub struct IngestSnapshot {
     pub dedup_ttl_ms: u64,
     pub hot_store_capacity: usize,
     pub max_batch: usize,
+}
+
+/// Role definition payload.
+#[derive(Debug, Serialize)]
+pub struct RoleSnapshot {
+    pub name: String,
+    pub precedence: u32,
+    pub permissions: Vec<String>,
 }
 
 /// GET /api/v1/config
@@ -54,6 +64,16 @@ pub async fn get_config(State(state): State<AppState>) -> Result<impl IntoRespon
             crate::config::HotStoreMode::Redis => "redis",
             crate::config::HotStoreMode::Memory => "memory",
         },
+        roles: config
+            .rbac
+            .roles
+            .iter()
+            .map(|role| RoleSnapshot {
+                name: role.name.clone(),
+                precedence: role.precedence,
+                permissions: role.permissions.clone(),
+            })
+            .collect(),
     };
     Ok((StatusCode::OK, Json(body)))
 }

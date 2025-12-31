@@ -8,6 +8,7 @@ use axum::{
 };
 use headers::{authorization::Bearer, Authorization, Header};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Actor types recognized by the system.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -24,6 +25,12 @@ pub struct Role {
     pub name: String,
     pub precedence: u32,
     pub permissions: Vec<String>,
+}
+
+impl Role {
+    pub fn has_permission(&self, perm: &str) -> bool {
+        self.permissions.iter().any(|p| p == perm)
+    }
 }
 
 /// Context extracted from requests after authentication.
@@ -43,15 +50,35 @@ impl AuthContext {
             _ => None,
         }
     }
+
+    pub fn has_permission(&self, perm: &str) -> bool {
+        match &self.principal {
+            Principal::User { role, .. } => role.has_permission(perm),
+            Principal::Device { .. } => false,
+        }
+    }
 }
 
 /// Device token map used for simple header-based auth (placeholder).
 #[derive(Debug, Clone, Default)]
 pub struct DeviceAuthStore {
-    tokens: std::collections::HashMap<String, String>,
+    tokens: HashMap<String, String>,
 }
 
 impl DeviceAuthStore {
+    pub fn from_rbac_config(roles: &[crate::config::RoleDefinition]) -> Self {
+        let mut store = DeviceAuthStore::default();
+        // Placeholder: seed a demo device token based on role name if provided via env later.
+        for role in roles {
+            if role.name == "device" {
+                store
+                    .tokens
+                    .insert("device-1".into(), "devtoken-placeholder".into());
+            }
+        }
+        store
+    }
+
     pub fn with_token(mut self, device_id: &str, token: &str) -> Self {
         self.tokens.insert(device_id.to_string(), token.to_string());
         self
