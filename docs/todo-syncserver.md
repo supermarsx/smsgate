@@ -22,8 +22,9 @@
 - [x] Enforce admin TOTP when configured; bootstrap admin defaults to no secret.
 - [x] Implement password reset token flow and bootstrap admin credential path.
 - [x] Scaffold device auth extractor (header-based placeholder) and RBAC role struct; wire ingest/presence through auth guard.
-- [ ] Align with spec password policy/lockout (breach checks, SMTP email reset, admin username non-default enforcement).
-- [ ] Replace OAuth/Domain stubs with real issuer/JWKS validation and LDAP bind + group fetch.
+- [x] Align with spec password policy/lockout (entropy + denylist/breach heuristics, history reuse blocking, SMTP reset delivery, production requires non-default admin username).
+- [x] Validate OAuth ID tokens with HS256 secret + iss/aud/exp checks; keep LDAP/domain stub until real bind + group fetch lands.
+- [ ] Implement LDAP bind + group fetch and RS256/JWKS validation for OAuth.
 
 ## RBAC & roles
 - [x] Define configurable roles/permissions with precedence and labels.
@@ -50,7 +51,8 @@
 - [x] Support batch ingest and backpressure hints to devices (batch limit enforced; backpressure signals pending).
 - [x] Add policy-based persistence enqueue for compliance/retention rules.
 - [x] Backpressure signals to devices (retry hints) and number ownership validation.
-- [ ] Event retention/pruning policy and immutable audit stream (SQL currently upserts).
+- [x] Make audit/login persistence immutable (append-only in SQL/JSON DB).
+- [ ] Event retention/pruning policy and migration seeding for durable stores.
 
 ## Presence, metrics, SIM inventory
 - [x] Implement `/api/v1/presence/heartbeat` ingestion with RTT + queue depth.
@@ -65,7 +67,8 @@
 - [x] Broadcast `CONFIG_UPDATE` and `EVENT_UPDATE`.
 - [x] Broadcast `SIM_*`, `CONTACT_UPDATE` shapes (stubbed) and degraded notices on connect.
 - [x] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
-- [ ] WS auth/session gating and replay-safe cursors per spec (currently unauthenticated handshake).
+- [x] Require session token for WS handshake and label actors for audit/telemetry.
+- [ ] Add replay-safe cursors/nonces per spec to prevent replay/window abuse.
 
 ## Storage: hot store + persistence
 - [x] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors) (falls back to memory on failure/misconfig).
@@ -87,7 +90,7 @@
 - [x] Force logout/unlock endpoints for users.
 - [x] Number assign/unassign endpoints with validation and audit.
 - [x] Device diagnostics endpoint for smsgate2 per spec.
-- [ ] Add user/account lockout counters + admin password change invalidates sessions as per spec.
+- [x] Add user/account lockout counters + admin password change/reset invalidates sessions as per spec.
 
 ## Testing & quality
 - [x] Unit tests for config loader, auth hashing/policy, dedup logic, hot store ring buffer.
