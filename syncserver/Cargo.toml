@@ -27,6 +27,7 @@ redis = { version = "0.25", features = ["aio", "tokio-comp", "connection-manager
 argon2 = "0.5"
 rand_core = { version = "0.6", features = ["std"] }
 totp-rs = { version = "5", default-features = true, features = ["otpauth"] }
+sqlx = { version = "0.7", default-features = false, features = ["runtime-tokio", "macros", "any", "sqlite", "postgres", "mysql", "chrono", "uuid", "json", "tls-rustls"] }
 
 [dev-dependencies]
 tempfile = "3"

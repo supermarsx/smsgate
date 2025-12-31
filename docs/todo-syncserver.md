@@ -59,8 +59,8 @@
 - [x] Serve `WELCOME` + initial `SNAPSHOT` with default limit; event/presence broadcasts wired.
 - [x] Implement paging (`PAGE_BEFORE`/`PAGE_AFTER`) with anchors and retention windows.
 - [x] Broadcast `CONFIG_UPDATE` and `EVENT_UPDATE`.
-- [ ] Broadcast `SIM_*`, `CONTACT_UPDATE`.
-- [ ] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
+- [x] Broadcast `SIM_*`, `CONTACT_UPDATE` shapes (stubbed) and degraded notices on connect.
+- [x] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
 
 ## Storage: hot store + persistence
 - [x] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors) (falls back to memory on failure/misconfig).

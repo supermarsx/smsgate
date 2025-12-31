@@ -2,7 +2,7 @@ use crate::{
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
     config::{self, AppConfig, VersionedConfig},
     hot_store::{redis_store::RedisHotStore, HotStore, MemoryHotStore},
-    persistence::{worker::PersistenceWorker, JsonDb, PersistentStore},
+    persistence::{sql::SqlStore, worker::PersistenceWorker, JsonDb, PersistentStore},
     presence::PresenceStore,
     ws_types::ServerMessage,
 };
@@ -154,18 +154,63 @@ impl AppState {
         if let Some(bootstrap) = config.pairing.bootstrap_device.clone() {
             device_auth.register_bootstrap(&bootstrap);
         }
-        let persistence: Arc<dyn PersistentStore> = Arc::new(
-            JsonDb::new(
-                config
-                    .database
-                    .path
-                    .clone()
-                    .unwrap_or_else(|| "data/syncserver.json".to_string())
-                    .into(),
-            )
-            .await
-            .expect("init json db"),
-        );
+        let persistence: Arc<dyn PersistentStore> = match config.database.adapter {
+            config::DatabaseAdapter::JsonDb => Arc::new(
+                JsonDb::new(
+                    config
+                        .database
+                        .path
+                        .clone()
+                        .unwrap_or_else(|| "data/syncserver.json".to_string())
+                        .into(),
+                )
+                .await
+                .expect("init json db"),
+            ),
+            _ => {
+                let url = match config.database.adapter {
+                    config::DatabaseAdapter::Sqlite => config
+                        .database
+                        .url
+                        .clone()
+                        .or_else(|| {
+                            config.database.path.as_ref().map(|p| {
+                                crate::persistence::sql::sqlite_url_from_path(std::path::Path::new(
+                                    p,
+                                ))
+                            })
+                        })
+                        .unwrap_or_else(|| "sqlite://data/syncserver.db".into()),
+                    _ => config
+                        .database
+                        .url
+                        .clone()
+                        .unwrap_or_else(|| "sqlite://data/syncserver.db".into()),
+                };
+                match SqlStore::connect(&url).await {
+                    Ok(store) => {
+                        ready_flags.storage_ready.store(true, Ordering::Relaxed);
+                        Arc::new(store)
+                    }
+                    Err(err) => {
+                        tracing::error!(error = %err, "failed to init sql store, using json fallback");
+                        ready_flags.storage_ready.store(false, Ordering::Relaxed);
+                        Arc::new(
+                            JsonDb::new(
+                                config
+                                    .database
+                                    .path
+                                    .clone()
+                                    .unwrap_or_else(|| "data/syncserver.json".to_string())
+                                    .into(),
+                            )
+                            .await
+                            .expect("init json db"),
+                        )
+                    }
+                }
+            }
+        };
         let rbac = Arc::new(RbacStore::from_config(&config.rbac));
         let persistence_worker = PersistenceWorker::new(persistence.clone());
         let pairing_store = Arc::new(crate::pairing::PairingStore::new(config.pairing.clone()));

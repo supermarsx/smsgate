@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::{
     config::ClientConfigSnapshot,
-    domain::{PresenceState, SmsEvent},
+    domain::{PresenceState, SimSnapshot, SmsEvent},
 };
 
 /// Server -> client messages.
@@ -29,8 +29,14 @@ pub enum ServerMessage {
     EventUpdate { event: SmsEvent },
     /// Presence change or heartbeat update.
     PresenceUpdate(PresenceUpdate),
+    /// SIM inventory update for a device.
+    SimUpdate(SimUpdate),
+    /// Contact update (placeholder shape).
+    ContactUpdate(ContactUpdate),
     /// Config update broadcast after changes.
     ConfigUpdate { config: ClientConfigSnapshot },
+    /// Service degraded notice (e.g., hot-store fallback).
+    Degraded { reason: String },
     /// Pong response to client ping.
     Pong,
     /// Paged events in response to PAGE_BEFORE/PAGE_AFTER.
@@ -45,6 +51,22 @@ pub struct PresenceUpdate {
     pub queue_depth: u32,
     pub last_heartbeat: DateTime<Utc>,
     pub device_rtt_ms: Option<u32>,
+}
+
+/// SIM update payload.
+#[derive(Debug, Clone, Serialize)]
+pub struct SimUpdate {
+    pub device_id: String,
+    pub sims: Vec<SimSnapshot>,
+}
+
+/// Contact update payload (minimal placeholder).
+#[derive(Debug, Clone, Serialize)]
+pub struct ContactUpdate {
+    pub contact_id: String,
+    pub name: Option<String>,
+    pub numbers: Vec<String>,
+    pub updated_at: DateTime<Utc>,
 }
 
 /// Page direction for paging messages.

@@ -39,6 +39,9 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
     if send_config_snapshot(&mut socket, &state).await.is_err() {
         return;
     }
+    if send_degraded_notice(&mut socket, &state).await.is_err() {
+        return;
+    }
     if send_snapshot(&mut socket, &state, snapshot_limit)
         .await
         .is_err()
@@ -94,6 +97,23 @@ async fn send_snapshot(socket: &mut WebSocket, state: &AppState, limit: usize) -
 async fn send_config_snapshot(socket: &mut WebSocket, state: &AppState) -> Result<(), ()> {
     let snapshot = state.config_snapshot().await;
     send_json(socket, &ServerMessage::ConfigSnapshot { config: snapshot }).await
+}
+
+async fn send_degraded_notice(socket: &mut WebSocket, state: &AppState) -> Result<(), ()> {
+    if !state
+        .ready_flags
+        .hot_store_ready
+        .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        send_json(
+            socket,
+            &ServerMessage::Degraded {
+                reason: "hot_store degraded, using in-memory fallback".into(),
+            },
+        )
+        .await?;
+    }
+    Ok(())
 }
 
 async fn handle_client_message(

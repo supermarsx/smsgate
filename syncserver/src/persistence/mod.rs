@@ -10,6 +10,7 @@ use tokio::{
 
 use crate::domain::SmsEvent;
 
+pub mod sql;
 pub mod worker;
 
 /// Interface for durable storage of events (and later audit/login records).
