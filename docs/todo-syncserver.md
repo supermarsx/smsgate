@@ -44,7 +44,7 @@
 - [ ] Compute content hash + optional parsed_code extraction for OTPs.
 - [ ] Append events to hot store ring buffer and emit `EVENT_NEW` over WS.
 - [ ] Implement state transitions (`claim/verify/reject`) with validation + audit + broadcast.
-- [ ] Support batch ingest and backpressure hints to devices.
+- [x] Support batch ingest and backpressure hints to devices.
 - [ ] Add policy-based persistence enqueue for compliance/retention rules.
 
 ## Presence, metrics, SIM inventory
