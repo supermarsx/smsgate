@@ -8,6 +8,7 @@ import { allowedNav, getRoleLabel } from "../lib/roles";
 import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useConfig } from "./config-provider";
+import { getInitialLocale, getTranslations, type Locale } from "../lib/i18n";
 
 type Props = {
   children: React.ReactNode;
@@ -23,6 +24,11 @@ export function ProtectedShell({ children }: Props) {
   const [debugOpen, setDebugOpen] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [locale] = useState<Locale>(getInitialLocale());
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
 
   useEffect(() => {
     if (!session && typeof window !== "undefined") {
@@ -56,7 +62,7 @@ export function ProtectedShell({ children }: Props) {
   if (unauthorized) {
     return (
       <div className="gg-panel">
-        <div className="login-error">Unauthorized for this route; redirecting...</div>
+        <div className="login-error">{t("unauthorized", "Unauthorized for this route; redirecting...")}</div>
       </div>
     );
   }
@@ -65,9 +71,9 @@ export function ProtectedShell({ children }: Props) {
     <div className={`shell ${navOpen ? "nav-open" : ""}`}>
       <aside className="shell-nav">
         <div className="nav-brand-row">
-          <div className="nav-brand small">smsgate2</div>
+          <div className="nav-brand small">{t("brandName", "smsgate2")}</div>
           <button className="ghost nav-toggle" onClick={() => setNavOpen((v) => !v)}>
-            {navOpen ? "Close" : "Menu"}
+            {navOpen ? t("navClose", "Close") : t("navMenu", "Menu")}
           </button>
         </div>
         <nav>
@@ -86,20 +92,23 @@ export function ProtectedShell({ children }: Props) {
       <section className="shell-main">
         {!status.connected && (
           <div className="banner warn">
-            Reconnecting to realtime stream... showing cached data. {status.lastError ? `(${status.lastError})` : ""}
+            {t("reconnectingBanner", "Reconnecting to realtime stream... showing cached data.")}{" "}
+            {status.lastError ? `(${status.lastError})` : ""}
           </div>
         )}
         {session.user.requiresPasswordChange && (
-          <div className="banner warn">Password change required before accessing the console.</div>
+          <div className="banner warn">{t("passwordChangeRequired", "Password change required before accessing the console.")}</div>
         )}
-        {session.user.requires2fa && <div className="banner warn">2FA enrollment required; sign in with MFA to continue.</div>}
+        {session.user.requires2fa && (
+          <div className="banner warn">{t("mfaRequired", "2FA enrollment required; sign in with MFA to continue.")}</div>
+        )}
         {debugOpen && (
           <div className="debug-overlay">
-            <div className="gg-label">Debug snapshot</div>
+            <div className="gg-label">{t("debugSnapshot", "Debug snapshot")}</div>
             <pre className="pairing-pre">{JSON.stringify(status, null, 2)}</pre>
             <div className="actions">
               <button className="ghost" onClick={() => setShowLogs((v) => !v)}>
-                {showLogs ? "Hide logs" : "Show logs"}
+                {showLogs ? t("hideLogs", "Hide logs") : t("showLogs", "Show logs")}
               </button>
             </div>
             {showLogs && status.logs && (
@@ -119,7 +128,10 @@ export function ProtectedShell({ children }: Props) {
           {session.user.requiresPasswordChange || session.user.requires2fa ? (
             <div className="gg-panel">
               <div className="login-error">
-                Account requires password update and/or 2FA enrollment. Please log out and complete the required step.
+                {t(
+                  "accessBlocked",
+                  "Account requires password update and/or 2FA enrollment. Please log out and complete the required step."
+                )}
               </div>
             </div>
           ) : (
@@ -129,21 +141,22 @@ export function ProtectedShell({ children }: Props) {
         <div className="account-float glass">
           <div className="account-row">
             <div>
-              <div className="gg-label">Account</div>
+              <div className="gg-label">{t("account", "Account")}</div>
               <div className="gg-value">{session.user.email ?? session.user.name}</div>
               {session.user.email && <div className="muted small">{session.user.name}</div>}
             </div>
             <div className="account-actions">
-              <button className="ghost icon" onClick={() => setDebugOpen((v) => !v)} title="Debug">
+              <button className="ghost icon" onClick={() => setDebugOpen((v) => !v)} title={t("debugLabel", "Debug")}>
                 🛠
               </button>
-              <button className="ghost icon" onClick={handleLogout} title="Logout">
+              <button className="ghost icon" onClick={handleLogout} title={t("logout", "Logout")}>
                 ⎋
               </button>
             </div>
           </div>
           <div className="muted small">
-            {getRoleLabel(session.user.role, roleLabels)} • {session.user.requires2fa ? "2FA required" : "2FA ready"}
+            {getRoleLabel(session.user.role, roleLabels)} •{" "}
+            {session.user.requires2fa ? t("twoFaRequired", "2FA required") : t("twoFaReady", "2FA ready")}
           </div>
         </div>
       </section>
