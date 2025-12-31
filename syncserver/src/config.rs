@@ -859,8 +859,8 @@ pub struct PartialConfig {
     pub auth: Option<PartialAuthConfig>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialServerConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialServerConfig {
     pub host: Option<String>,
     pub port: Option<u16>,
     pub ws_max_connections: Option<u32>,
@@ -868,45 +868,45 @@ struct PartialServerConfig {
     pub ws_ping_interval_ms: Option<u64>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialIngestConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialIngestConfig {
     pub dedup_ttl_ms: Option<u64>,
     pub hot_store_capacity: Option<usize>,
     pub max_batch: Option<usize>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialPresenceConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialPresenceConfig {
     pub online_threshold_ms: Option<u64>,
     pub degraded_threshold_ms: Option<u64>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialPairingConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialPairingConfig {
     pub session_ttl_secs: Option<u64>,
     pub bootstrap_device: Option<BootstrapDevice>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialRbacConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialRbacConfig {
     pub roles: Option<Vec<RoleDefinition>>,
     pub group_mapping: Option<std::collections::HashMap<String, String>>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialHotStoreConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialHotStoreConfig {
     pub mode: Option<HotStoreMode>,
     pub redis_url: Option<String>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialDatabaseConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialDatabaseConfig {
     pub adapter: Option<DatabaseAdapter>,
     pub url: Option<String>,
     pub path: Option<String>,
 }
 
-#[derive(Debug, Default, Deserialize)]
-struct PartialAuthConfig {
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct PartialAuthConfig {
     pub modes: Option<Vec<AuthMode>>,
 }

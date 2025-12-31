@@ -15,7 +15,6 @@ use std::{
 };
 
 use crate::metrics::Metrics;
-use chrono::Utc;
 use std::path::PathBuf;
 use tokio::sync::broadcast;
 use tokio::sync::RwLock;
