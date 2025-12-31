@@ -41,8 +41,8 @@ export function StatusBar() {
       )}
 
       {status.clientRtt && (
-          <div className="status-pill-mini" data-tip={t("latencyLabel", "Latency") + " (client)"}>
-          <span className="dot" />
+        <div className="status-pill-mini" data-tip={t("latencyLabel", "Latency") + " (client)"}>
+          <span className="dot info" />
           <span>{status.clientRtt}</span>
         </div>
       )}
@@ -51,6 +51,27 @@ export function StatusBar() {
         <div className="status-pill-mini" data-tip={t("devicesLabel", "Devices") + " RTT"}>
           <span className="dot ok" />
           <span>{status.deviceRtt}</span>
+        </div>
+      )}
+
+      {typeof status.wsErrors === "number" && status.wsErrors > 0 && (
+        <div className="status-pill-mini" data-tip={t("wsErrors", "WS errors")}>
+          <span className="dot warn" />
+          <span>{status.wsErrors}</span>
+        </div>
+      )}
+
+      {typeof status.reconnects === "number" && status.reconnects > 0 && (
+        <div className="status-pill-mini" data-tip={t("reconnects", "Reconnects")}>
+          <span className="dot warn" />
+          <span>{status.reconnects}</span>
+        </div>
+      )}
+
+      {status.lastError && (
+        <div className="status-pill-mini" data-tip={t("lastError", "Last error")}> 
+          <span className="dot warn" />
+          <span>{status.lastError}</span>
         </div>
       )}
 
