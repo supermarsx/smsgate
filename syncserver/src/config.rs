@@ -175,12 +175,30 @@ impl Default for DatabaseConfig {
 pub struct AuthConfig {
     /// Enabled auth modes.
     pub modes: Vec<AuthMode>,
+    /// Global pepper used with Argon2 when hashing passwords (optional).
+    pub password_pepper: Option<String>,
+    /// Session TTL seconds for issued user sessions.
+    pub session_ttl_secs: u64,
+    /// Require TOTP for admin users.
+    pub require_admin_totp: bool,
+    /// OAuth issuer expected for ID tokens.
+    pub oauth_issuer: Option<String>,
+    /// OAuth audience/client id expected for ID tokens.
+    pub oauth_audience: Option<String>,
+    /// Domain/LDAP stub shared secret for acceptance (placeholder until real bind).
+    pub domain_shared_secret: Option<String>,
 }
 
 impl Default for AuthConfig {
     fn default() -> Self {
         Self {
             modes: vec![AuthMode::SimpleSignin],
+            password_pepper: None,
+            session_ttl_secs: 86_400,
+            require_admin_totp: true,
+            oauth_issuer: None,
+            oauth_audience: None,
+            domain_shared_secret: None,
         }
     }
 }
@@ -539,6 +557,37 @@ impl AppConfig {
                 self.auth.modes = parsed_modes;
             }
         }
+
+        if let Ok(pepper) = env::var("SYNC_AUTH_PASSWORD_PEPPER") {
+            self.auth.password_pepper = Some(pepper);
+        }
+
+        if let Some(ttl) = env::var("SYNC_SESSION_TTL_SECS")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.auth.session_ttl_secs = ttl;
+        }
+
+        if let Ok(require_admin_totp) = env::var("SYNC_REQUIRE_ADMIN_TOTP") {
+            let parsed = matches!(
+                require_admin_totp.to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes"
+            );
+            self.auth.require_admin_totp = parsed;
+        }
+
+        if let Ok(issuer) = env::var("SYNC_OAUTH_ISSUER") {
+            self.auth.oauth_issuer = Some(issuer);
+        }
+
+        if let Ok(aud) = env::var("SYNC_OAUTH_AUDIENCE") {
+            self.auth.oauth_audience = Some(aud);
+        }
+
+        if let Ok(secret) = env::var("SYNC_DOMAIN_SHARED_SECRET") {
+            self.auth.domain_shared_secret = Some(secret);
+        }
     }
 
     /// Validate the loaded configuration and surface user-friendly errors.
@@ -588,6 +637,12 @@ impl AppConfig {
         if self.auth.modes.is_empty() {
             return Err(AppError::Validation(
                 "at least one auth mode must be enabled".into(),
+            ));
+        }
+
+        if self.auth.session_ttl_secs == 0 {
+            return Err(AppError::Validation(
+                "auth.session_ttl_secs must be greater than zero".into(),
             ));
         }
 
