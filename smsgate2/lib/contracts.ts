@@ -32,6 +32,8 @@ export type PresenceUpdate = {
     msisdn?: string;
     label?: string;
   }>;
+  numbers?: string[];
+  queueDepth?: number;
 };
 
 export type MetricsUpdate = {

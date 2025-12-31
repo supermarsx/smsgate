@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toDataURL } from "qrcode";
 import { ProtectedShell } from "../../components/protected-shell";
 import { useSession } from "../../components/session-provider";
+import { useStatus } from "../../components/status-context";
 import {
   createPairingSession,
   fetchDiagnostics,
@@ -19,6 +20,8 @@ import {
 } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
 import { getTranslations, useLocale } from "../../lib/i18n";
+import { WsClient } from "../../lib/ws";
+import type { PresenceUpdate } from "../../lib/contracts";
 
 type PairingState = {
   state: "pending" | "waiting" | "completed" | "expired" | "error";
@@ -37,6 +40,7 @@ type DeviceTone = "online" | "degraded" | "offline" | "neutral";
 export default function DevicesPage() {
   const { session } = useSession();
   const { config } = useConfig();
+  const status = useStatus();
   const locale = useLocale();
   const t = useMemo(() => {
     const dict = getTranslations(locale);
@@ -51,6 +55,25 @@ export default function DevicesPage() {
   const [qr, setQr] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const pairingTimers = useRef<Record<string, number>>({});
+  const wsRef = useRef<WsClient | null>(null);
+  const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
+
+  useEffect(() => {
+    if (!session) return;
+    const client = new WsClient(session, {
+      onConfigUpdate: undefined,
+      log: (type, detail) => status.addLog({ ts: Date.now(), type, detail })
+    });
+    wsRef.current = client;
+    const unsubscribe = client.subscribe((state) => {
+      if (state.presence) setPresence(state.presence);
+    });
+    client.connect();
+    return () => {
+      unsubscribe();
+      client.disconnect();
+    };
+  }, [session, status]);
 
   useEffect(() => {
     if (!session) return;
@@ -275,6 +298,7 @@ export default function DevicesPage() {
     const val = d.queueDepth ?? d.queue_depth ?? d.queue;
     return val === null || val === undefined ? undefined : val;
   };
+  const mergedPresence = (deviceId: string) => presence[deviceId];
 
   if (!session) return null;
 
@@ -348,6 +372,7 @@ export default function DevicesPage() {
         <div className="presence-list">
           {devices.map((d) => {
             const status = computeDeviceStatus(d);
+            const live = mergedPresence(d.id) ?? {};
             return (
               <div key={d.id} className="device-card">
                 <div className="device-card__head">
@@ -355,12 +380,12 @@ export default function DevicesPage() {
                     <div className="gg-value">{d.name ?? d.id}</div>
                     <div className="muted small">{d.id}</div>
                     <div className="muted small">
-                      {t("devicesLastHeartbeat", "Last heartbeat")}: {formatDate(d.lastHeartbeat ?? d.lastHeartbeatAt)}
+                      {t("devicesLastHeartbeat", "Last heartbeat")}: {formatDate(live.lastHeartbeatAt ?? d.lastHeartbeat ?? d.lastHeartbeatAt)}
                     </div>
                   </div>
                   <div className="actions">
                     <span className={`badge ${status.tone}`}>{status.label}</span>
-                    {queueDepth(d) !== undefined && (
+                    {queueDepth(live) !== undefined && (
                       <span className="badge neutral">
                         {t("queueLabel", "Queue")} {queueDepth(d)}
                       </span>
@@ -370,20 +395,24 @@ export default function DevicesPage() {
                 <div className="device-card__metrics">
                   <div className="kv">
                     <div className="gg-label">{t("rttLabel", "RTT")}</div>
-                    <div className="gg-value">{d.rttMs ?? "-"}</div>
+                    <div className="gg-value">{live.rttMs ?? d.rttMs ?? "-"}</div>
                   </div>
                   <div className="kv">
                     <div className="gg-label">{t("presenceLabel", "Presence")}</div>
-                    <div className="gg-value">{d.state ?? t("statusUnknown", "unknown")}</div>
+                    <div className="gg-value">{live.state ?? d.state ?? t("statusUnknown", "unknown")}</div>
                   </div>
                   <div className="kv">
                     <div className="gg-label">{t("simsLabel", "SIMs")}</div>
-                    <div className="gg-value">{simLabel(d)}</div>
+                    <div className="gg-value">{simLabel(live.simSlots ?? d.simSlots ?? d.sim_slots)}</div>
                   </div>
                   <div className="kv">
                     <div className="gg-label">{t("numbersLabel", "Numbers")}</div>
                     <div className="gg-value">
-                      {Array.isArray(d.numbers) ? d.numbers.join(", ") : (d.assignedNumbers ?? "-")}
+                      {Array.isArray(live.numbers)
+                        ? live.numbers.join(", ")
+                        : Array.isArray(d.numbers)
+                          ? d.numbers.join(", ")
+                          : d.assignedNumbers ?? "-"}
                     </div>
                   </div>
                 </div>

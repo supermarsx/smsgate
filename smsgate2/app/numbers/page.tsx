@@ -29,6 +29,8 @@ export default function NumbersPage() {
   const [form, setForm] = useState({ e164: "", label: "" });
   const [assignForm, setAssignForm] = useState({ e164: "", userId: "", deviceId: "" });
   const [edit, setEdit] = useState<Record<string, { label?: string; shared?: boolean; defaultDeviceId?: string }>>({});
+  const [ingestDevices, setIngestDevices] = useState<Record<string, string[]>>({});
+  const [contactNames, setContactNames] = useState<Record<string, string>>({});
 
   function validateE164(value: string): boolean {
     return /^\+?[1-9]\d{6,15}$/.test(value.trim());
@@ -38,7 +40,19 @@ export default function NumbersPage() {
     if (!session) return;
     setLoading(true);
     listNumbers(session)
-      .then(setNumbers)
+      .then((rows) => {
+        setNumbers(rows);
+        const ingestMap: Record<string, string[]> = {};
+        const contactsMap: Record<string, string> = {};
+        rows.forEach((n: any) => {
+          if (Array.isArray(n.ingestDevices ?? n.ingest_devices)) {
+            ingestMap[n.e164 ?? n.number] = n.ingestDevices ?? n.ingest_devices;
+          }
+          if (typeof n.contactName === "string") contactsMap[n.e164 ?? n.number] = n.contactName;
+        });
+        setIngestDevices(ingestMap);
+        setContactNames(contactsMap);
+      })
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
   }, [session]);
@@ -68,6 +82,12 @@ export default function NumbersPage() {
                 <div className="gg-value">{n.e164 ?? n.number}</div>
                 <div className="muted">
                   {t("numbersAssignedTo", "Assigned to")}: {n.assignedTo ?? "-"}
+                </div>
+                <div className="muted">
+                  {t("numbersContact", "Contact")}: {contactNames[n.e164 ?? n.number] ?? n.contactName ?? "-"}
+                </div>
+                <div className="muted">
+                  {t("numbersIngestDevices", "Ingest devices")}: {(ingestDevices[n.e164 ?? n.number] ?? []).join(", ") || "-"}
                 </div>
                 <div className="muted">
                   {t("numbersShared", "Shared")}: {n.shared ? t("sharedYes", "yes") : t("sharedNo", "no")}
