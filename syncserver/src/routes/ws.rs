@@ -11,10 +11,19 @@ use axum::{
 };
 use tokio::time::timeout;
 
-use crate::{state::AppState, ws_types::ServerMessage};
+use crate::{
+    state::AppState,
+    ws_types::{ClientMessage, PageDirection, PagePayload, ServerMessage},
+};
 
 /// Upgrade HTTP requests to WebSocket and spawn session tasks.
 pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
+    if !state.try_acquire_connection() {
+        return Response::builder()
+            .status(axum::http::StatusCode::TOO_MANY_REQUESTS)
+            .body(axum::body::Body::from("max connections reached"))
+            .unwrap();
+    }
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 
@@ -36,7 +45,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
         tokio::select! {
             msg = socket.recv() => {
                 if let Some(Ok(message)) = msg {
-                    if let Err(_) = handle_client_message(&mut socket, message).await {
+                    if let Err(_) = handle_client_message(&mut socket, &state, message).await {
                         break;
                     }
                 } else {
@@ -56,6 +65,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
             }
         }
     }
+    state.release_connection();
 }
 
 async fn send_welcome(socket: &mut WebSocket) -> Result<(), ()> {
@@ -75,13 +85,26 @@ async fn send_snapshot(socket: &mut WebSocket, state: &AppState, limit: usize) -
     send_json(socket, &message).await
 }
 
-async fn handle_client_message(socket: &mut WebSocket, message: Message) -> Result<(), ()> {
+async fn handle_client_message(
+    socket: &mut WebSocket,
+    state: &AppState,
+    message: Message,
+) -> Result<(), ()> {
     match message {
-        Message::Text(text) => {
-            if text.trim().eq_ignore_ascii_case("ping") {
-                send_json(socket, &ServerMessage::Pong).await?;
+        Message::Text(text) => match serde_json::from_str::<ClientMessage>(&text) {
+            Ok(ClientMessage::Ping) => send_json(socket, &ServerMessage::Pong).await?,
+            Ok(ClientMessage::PageBefore { anchor_id, limit }) => {
+                send_page(socket, state, PageDirection::Before, anchor_id, limit).await?;
             }
-        }
+            Ok(ClientMessage::PageAfter { anchor_id, limit }) => {
+                send_page(socket, state, PageDirection::After, anchor_id, limit).await?;
+            }
+            Err(_) => {
+                if text.trim().eq_ignore_ascii_case("ping") {
+                    send_json(socket, &ServerMessage::Pong).await?;
+                }
+            }
+        },
         Message::Ping(_) => {
             // Respond with Pong to keep connection alive.
             let _ = socket.send(Message::Pong(vec![])).await;
@@ -108,4 +131,35 @@ async fn send_json(socket: &mut WebSocket, msg: &ServerMessage) -> Result<(), ()
             Err(())
         }
     }
+}
+
+async fn send_page(
+    socket: &mut WebSocket,
+    state: &AppState,
+    direction: PageDirection,
+    anchor_id: String,
+    limit: Option<u32>,
+) -> Result<(), ()> {
+    let limit = limit
+        .unwrap_or(state.config.server.ws_snapshot_limit)
+        .min(state.config.server.ws_snapshot_limit);
+    let events = match direction {
+        PageDirection::Before => {
+            state
+                .hot_store
+                .page_before(&anchor_id, limit as usize)
+                .await
+        }
+        PageDirection::After => state.hot_store.page_after(&anchor_id, limit as usize).await,
+    };
+    let oldest_id = events.last().map(|e| e.id.clone());
+    let newest_id = events.first().map(|e| e.id.clone());
+    let payload = PagePayload {
+        direction,
+        anchor_id,
+        events,
+        oldest_id,
+        newest_id,
+    };
+    send_json(socket, &ServerMessage::Page(payload)).await
 }

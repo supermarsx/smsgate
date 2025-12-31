@@ -6,7 +6,7 @@ use crate::{
 };
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
     time::Instant,
@@ -79,6 +79,8 @@ pub struct AppState {
     pub presence: Arc<PresenceStore>,
     /// Broadcast channel for WS fanout.
     pub event_tx: broadcast::Sender<ServerMessage>,
+    /// Current WS connection count.
+    pub connection_count: Arc<AtomicUsize>,
 }
 
 impl AppState {
@@ -104,6 +106,7 @@ impl AppState {
         ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
         let presence = Arc::new(PresenceStore::new(config.presence.clone()));
         let (event_tx, _rx) = broadcast::channel(1024);
+        let connection_count = Arc::new(AtomicUsize::new(0));
 
         Self {
             config,
@@ -113,11 +116,27 @@ impl AppState {
             hot_store,
             presence,
             event_tx,
+            connection_count,
         }
     }
 
     /// Subscribe to WS broadcast channel.
     pub fn subscribe_events(&self) -> broadcast::Receiver<ServerMessage> {
         self.event_tx.subscribe()
+    }
+
+    /// Attempt to acquire a connection slot; returns true if allowed.
+    pub fn try_acquire_connection(&self) -> bool {
+        let current = self.connection_count.fetch_add(1, Ordering::SeqCst) + 1;
+        if current > self.config.server.ws_max_connections as usize {
+            self.connection_count.fetch_sub(1, Ordering::SeqCst);
+            return false;
+        }
+        true
+    }
+
+    /// Release a connection slot (called when a client disconnects).
+    pub fn release_connection(&self) {
+        self.connection_count.fetch_sub(1, Ordering::SeqCst);
     }
 }

@@ -121,6 +121,8 @@ export function setPreferredLocale(locale: Locale): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(locale));
+    const event = new CustomEvent("smsgate2:locale-changed", { detail: locale });
+    window.dispatchEvent(event);
   } catch {
     // ignore storage write errors
   }
