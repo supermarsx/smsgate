@@ -89,7 +89,9 @@ export default function AuditPage() {
         <div className="gg-panel__header">
           <div className="gg-pill">{t("auditTitle", "Audit")}</div>
           <h1 className="gg-title">{t("auditSubtitle", "Audit log")}</h1>
-          <p className="gg-subtitle">{t("auditDescription", "Tables with filters (time, actor, action, device, number) and pagination/export.")}</p>
+          <p className="gg-subtitle">
+            {t("auditDescription", "Tables with filters (time, actor, action, device, number) and pagination/export.")}
+          </p>
         </div>
         {error && (
           <div className="login-error">

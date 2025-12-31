@@ -5,8 +5,9 @@ import { useSession } from "../../components/session-provider";
 import { hasAtLeast } from "../../lib/roles";
 import { useConfig } from "../../components/config-provider";
 import { updateConfig } from "../../lib/rest";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { fetchContacts, exportContacts, toggleContactSync } from "../../lib/rest";
+import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 export default function ConfigPage() {
   const { session } = useSession();
@@ -18,6 +19,11 @@ export default function ConfigPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [diffSummary, setDiffSummary] = useState<string | null>(null);
   const [shapeErrors, setShapeErrors] = useState<string[]>([]);
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   if (!session) return null;
 
   const safeSession = session as NonNullable<typeof session>;
@@ -88,20 +94,24 @@ export default function ConfigPage() {
     <ProtectedShell>
       <div className="gg-panel">
         <div className="gg-panel__header">
-          <div className="gg-pill">Config</div>
-          <h1 className="gg-title">Central configuration</h1>
+          <div className="gg-pill">{t("configTitle", "Config")}</div>
+          <h1 className="gg-title">{t("configSubtitle", "Central configuration")}</h1>
           <p className="gg-subtitle">
             Render syncserver/smsgate2/smsrelay3 config sections with validation; live updates on CONFIG_UPDATE.
           </p>
         </div>
         <section className="gg-section">
-          <div className="gg-label">Access</div>
+          <div className="gg-label">{t("configAccessLabel", "Access")}</div>
           <div className="gg-value">{canEdit ? "Admin edit enabled" : "Read-only for this role"}</div>
         </section>
         <section className="gg-section">
-          <div className="gg-label">Config state</div>
-          <div className="gg-value">{loading ? "Loading..." : (config?.version ?? "—")}</div>
-          {error && <div className="login-error">Config load error: {error}</div>}
+          <div className="gg-label">{t("configStateLabel", "Config state")}</div>
+          <div className="gg-value">{loading ? t("loading", "Loading...") : (config?.version ?? "—")}</div>
+          {error && (
+            <div className="login-error">
+              {t("configLoadError", "Config load error")}: {error}
+            </div>
+          )}
           <textarea
             className="gg-textarea"
             value={jsonPreview}
@@ -109,10 +119,14 @@ export default function ConfigPage() {
             readOnly={!canEdit}
             rows={12}
           />
-          {parseError && <div className="login-error">Draft invalid: {parseError}</div>}
+          {parseError && (
+            <div className="login-error">
+              {t("configDraftInvalid", "Draft invalid")}: {parseError}
+            </div>
+          )}
           {shapeErrors.length > 0 && !parseError && (
             <div className="login-error">
-              Config shape issues:
+              {t("configShapeIssues", "Config shape issues")}:
               <ul>
                 {shapeErrors.map((err) => (
                   <li key={err}>{err}</li>
@@ -123,13 +137,15 @@ export default function ConfigPage() {
           {diffSummary && !parseError && <div className="muted">{diffSummary}</div>}
           <div className="config-grid">
             <div>
-              <div className="gg-label">Auth modes</div>
+              <div className="gg-label">{t("configAuthModesLabel", "Auth modes")}</div>
               <div className="gg-value">{config?.data?.authModes ? JSON.stringify(config.data.authModes) : "—"}</div>
             </div>
             <div>
-              <div className="gg-label">Contact sync</div>
+              <div className="gg-label">{t("configContactSync", "Contact sync")}</div>
               <div className="gg-value">{contactsCfg.enabled ? "Enabled" : "Disabled"}</div>
-              <div className="muted">Last import: {contactsCfg.lastImport ?? contactsCfg.last_import ?? "-"}</div>
+              <div className="muted">
+                {t("configLastImportLabel", "Last import")}: {contactsCfg.lastImport ?? contactsCfg.last_import ?? "-"}
+              </div>
               <div className="actions">
                 <button
                   className="ghost"
@@ -185,17 +201,19 @@ export default function ConfigPage() {
               {contactsError && <div className="login-error">Contacts: {contactsError}</div>}
               {contacts && (
                 <details className="diag-block">
-                  <summary className="gg-label">Contacts preview ({contacts.length})</summary>
+                  <summary className="gg-label">
+                    {t("configContactsPreview", "Contacts preview")} ({contacts.length})
+                  </summary>
                   <pre className="pairing-pre">{JSON.stringify(contacts.slice(0, 5), null, 2)}</pre>
                 </details>
               )}
             </div>
             <div>
-              <div className="gg-label">Presence thresholds</div>
+              <div className="gg-label">{t("configPresence", "Presence thresholds")}</div>
               <div className="gg-value">{config?.data?.presence ? JSON.stringify(config.data.presence) : "—"}</div>
             </div>
             <div>
-              <div className="gg-label">Retention</div>
+              <div className="gg-label">{t("configRetention", "Retention")}</div>
               <div className="gg-value">{config?.data?.retention ? JSON.stringify(config.data.retention) : "—"}</div>
             </div>
           </div>

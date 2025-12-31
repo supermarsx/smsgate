@@ -1,17 +1,33 @@
-/** @type {import('next').NextConfig} */
-const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL
-  ? new URL(process.env.NEXT_PUBLIC_API_BASE_URL).origin
-  : "http://localhost:4000";
-const wsOrigin = process.env.NEXT_PUBLIC_WS_ORIGIN ?? apiOrigin;
-const qrOrigin = process.env.NEXT_PUBLIC_QR_ORIGIN ?? "https://api.qrserver.com";
+let fileConfig = {};
+try {
+  // Prefer dev config when not in production
+  const base = require("./config/app.config.json");
+  const dev = require("./config/app.config.dev.json");
+  fileConfig = { ...base, ...(process.env.NODE_ENV !== "production" ? dev : {}) };
+} catch {
+  fileConfig = {};
+}
+
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? fileConfig.apiBaseUrl ?? "http://localhost:4000/api/v1";
+const apiOrigin = (() => {
+  try {
+    return new URL(apiBase).origin;
+  } catch {
+    return "http://localhost:4000";
+  }
+})();
+const wsOrigin = process.env.NEXT_PUBLIC_WS_ORIGIN ?? fileConfig.wsOrigin ?? apiOrigin;
+const qrOrigin = process.env.NEXT_PUBLIC_QR_ORIGIN ?? fileConfig.qrOrigin ?? "https://api.qrserver.com";
 
 const nextConfig = {
   reactStrictMode: true,
   async headers() {
+    const isDev = process.env.NODE_ENV !== "production";
+    const scriptSrc = isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self'";
     const csp = [
       "default-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "script-src 'self'",
+      scriptSrc,
       `img-src 'self' data: blob: ${qrOrigin}`,
       `connect-src 'self' ${apiOrigin} ${wsOrigin} ws: wss:`,
       "font-src 'self' data:",

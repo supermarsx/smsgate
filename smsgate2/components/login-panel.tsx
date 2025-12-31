@@ -203,18 +203,18 @@ export function LoginPanel({ onLogin }: Props) {
       {passwordChange && (
         <form className="login-form" onSubmit={handlePasswordChange}>
           <div className="form-row">
-            <label htmlFor="new-password">New password</label>
+            <label htmlFor="new-password">{t("loginNewPassword", "New password")}</label>
             <input
               id="new-password"
               required
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Update default/admin password"
+              placeholder={t("loginUpdateDefault", "Update default/admin password")}
             />
           </div>
           <div className="form-row">
-            <label htmlFor="confirm-password">Confirm password</label>
+            <label htmlFor="confirm-password">{t("loginConfirmPassword", "Confirm password")}</label>
             <input
               id="confirm-password"
               required
@@ -226,14 +226,16 @@ export function LoginPanel({ onLogin }: Props) {
           <button type="submit" className="login-submit" disabled={pending}>
             {pending ? "Saving..." : "Save new password"}
           </button>
-          <div className="muted small">Required on first login or when policy forces a reset.</div>
+          <div className="muted small">
+            {t("loginResetNote", "Required on first login or when policy forces a reset.")}
+          </div>
         </form>
       )}
 
       {!passwordChange && mode && mode !== "oauth" && (
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-row">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">{t("loginUsername", "Username")}</label>
             <input
               id="username"
               required
@@ -243,17 +245,17 @@ export function LoginPanel({ onLogin }: Props) {
           </div>
           {mode === "domain_signin" && (
             <div className="form-row">
-              <label htmlFor="domain">Domain (optional)</label>
+              <label htmlFor="domain">{t("loginDomainOptional", "Domain (optional)")}</label>
               <input
                 id="domain"
                 value={form.domain}
                 onChange={(e) => setForm({ ...form, domain: e.target.value })}
-                placeholder="corp.local"
+                placeholder={t("loginDomainPlaceholder", "corp.local")}
               />
             </div>
           )}
           <div className="form-row">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t("loginPassword", "Password")}</label>
             <input
               id="password"
               required
@@ -264,7 +266,7 @@ export function LoginPanel({ onLogin }: Props) {
           </div>
           {requires2fa && (
             <div className="form-row">
-              <label htmlFor="mfa">MFA code</label>
+              <label htmlFor="mfa">{t("loginMfa", "MFA code")}</label>
               <input
                 id="mfa"
                 required
@@ -277,11 +279,11 @@ export function LoginPanel({ onLogin }: Props) {
             {pending ? "Signing in..." : "Sign in"}
           </button>
           <div className="form-row">
-            <label htmlFor="reset-email">Password reset email</label>
+            <label htmlFor="reset-email">{t("loginResetEmail", "Password reset email")}</label>
             <div className="reset-row">
               <input
                 id="reset-email"
-                placeholder="user@example.com"
+                placeholder={t("loginResetPlaceholder", "user@example.com")}
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
               />
@@ -303,22 +305,22 @@ export function LoginPanel({ onLogin }: Props) {
             {resetStatus && <div className="muted small">{resetStatus}</div>}
           </div>
           <div className="form-row">
-            <label htmlFor="offline-reset">Offline reset (token)</label>
+            <label htmlFor="offline-reset">{t("loginOfflineReset", "Offline reset (token)")}</label>
             <input
               id="offline-reset"
-              placeholder="Paste reset token"
+              placeholder={t("loginTokenPlaceholder", "Paste reset token")}
               value={offlineReset.token}
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, token: e.target.value }))}
             />
             <input
               type="password"
-              placeholder="New password"
+              placeholder={t("loginNewPassword", "New password")}
               value={offlineReset.password}
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, password: e.target.value }))}
             />
             <input
               type="password"
-              placeholder="Confirm password"
+              placeholder={t("loginConfirmPassword", "Confirm password")}
               value={offlineReset.confirm}
               onChange={(e) => setOfflineReset((prev) => ({ ...prev, confirm: e.target.value }))}
             />
@@ -340,10 +342,16 @@ export function LoginPanel({ onLogin }: Props) {
       )}
 
       <div className="login-foot">
-        <span>WS Endpoint: {wsUrl()}</span>
-        <span className="muted">Tokens stored locally; logout clears them.</span>
+        <span>
+          {t("loginWsEndpoint", "WS Endpoint")}: {wsUrl()}
+        </span>
+        <span className="muted">{t("loginTokensStored", "Tokens stored locally; logout clears them.")}</span>
       </div>
-      {error && <div className="login-error">Error: {error}</div>}
+      {error && (
+        <div className="login-error">
+          {t("errorPrefix", "Error")}: {error}
+        </div>
+      )}
     </div>
   );
 }

@@ -8,11 +8,17 @@ import type { Event, PresenceUpdate } from "../../lib/contracts";
 import { listEvents, updateEventState } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
 import { useStatus } from "../../components/status-context";
+import { getInitialLocale, getTranslations } from "../../lib/i18n";
 
 export default function DashboardPage() {
   const { session } = useSession();
   const { refresh: refreshConfig } = useConfig();
   const { setStatus, addLog } = useStatus();
+  const locale = getInitialLocale();
+  const t = useMemo(() => {
+    const dict = getTranslations(locale);
+    return (key: string, fallback: string) => dict[key] ?? fallback;
+  }, [locale]);
   const [events, setEvents] = useState<Event[]>([]);
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
   const [latency, setLatency] = useState<string>("—");
@@ -147,21 +153,31 @@ export default function DashboardPage() {
     <ProtectedShell>
       <div className="gg-panel">
         <div className="gg-panel__header">
-          <div className="gg-pill">Dashboard</div>
-          <h1 className="gg-title">Realtime feed</h1>
-          <p className="gg-subtitle">Streaming snapshot + new events with presence/latency chips.</p>
+          <div className="gg-pill">{t("dashboardTitle", "Dashboard")}</div>
+          <h1 className="gg-title">{t("dashboardSubtitle", "Realtime feed")}</h1>
+          <p className="gg-subtitle">
+            {t("dashboardDescription", "Streaming snapshot + new events with presence/latency chips.")}
+          </p>
         </div>
-        {actionError && <div className="login-error">Action failed: {actionError}</div>}
+        {actionError && (
+          <div className="login-error">
+            {t("dashboardActionFailed", "Action failed")}: {actionError}
+          </div>
+        )}
         <section className="gg-section dashboard-grid">
           <div className="feed">
             <div className="feed-head">
               <span className={`status-dot ${connected ? "ok" : "warn"}`} />
-              <span>{connected ? "Connected" : "Reconnecting..."}</span>
-              {lastError && <span className="muted">Last error: {lastError}</span>}
+              <span>{connected ? t("connected", "Connected") : t("reconnecting", "Reconnecting...")}</span>
+              {lastError && (
+                <span className="muted">
+                  {t("dashboardLastError", "Last error")}: {lastError}
+                </span>
+              )}
             </div>
             <div className="filter-row">
               <label htmlFor="number-filter" className="gg-label">
-                Filter by number
+                {t("dashboardFilterNumber", "Filter by number")}
               </label>
               <select
                 id="number-filter"
@@ -169,7 +185,7 @@ export default function DashboardPage() {
                 value={filterNumber}
                 onChange={(e) => setFilterNumber(e.target.value)}
               >
-                <option value="__all__">All numbers</option>
+                <option value="__all__">{t("dashboardAllNumbers", "All numbers")}</option>
                 {(session.user.numbers ?? []).map((num) => (
                   <option key={num} value={num}>
                     {num}
@@ -179,7 +195,7 @@ export default function DashboardPage() {
             </div>
             <div className="filter-row">
               <label htmlFor="time-filter" className="gg-label">
-                Time window
+                {t("timeWindow", "Time window")}
               </label>
               <select
                 id="time-filter"
@@ -187,9 +203,9 @@ export default function DashboardPage() {
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
               >
-                <option value="all">All</option>
-                <option value="1h">Last hour</option>
-                <option value="24h">Last 24h</option>
+                <option value="all">{t("all", "All")}</option>
+                <option value="1h">{t("lastHour", "Last hour")}</option>
+                <option value="24h">{t("last24h", "Last 24h")}</option>
               </select>
             </div>
             <div className="phone-mock">
@@ -220,27 +236,29 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
-                {orderedEvents.length === 0 && <div className="muted">Waiting for snapshot...</div>}
-                {loadingPage && <div className="muted">Loading older…</div>}
-                {!hasMore && <div className="muted">End of history</div>}
+                {orderedEvents.length === 0 && (
+                  <div className="muted">{t("dashboardWaiting", "Waiting for snapshot...")}</div>
+                )}
+                {loadingPage && <div className="muted">{t("dashboardLoadingOlder", "Loading older…")}</div>}
+                {!hasMore && <div className="muted">{t("dashboardEnd", "End of history")}</div>}
               </div>
             </div>
           </div>
           <div className="side">
             <div className="metric-card">
-              <div className="gg-label">Ingest → render</div>
+              <div className="gg-label">{t("dashboardIngest", "Ingest \u2192 render")}</div>
               <div className="gg-value">{latency}</div>
             </div>
             <div className="metric-card">
-              <div className="gg-label">Server RTT</div>
+              <div className="gg-label">{t("dashboardServerRtt", "Server RTT")}</div>
               <div className="gg-value">{clientRtt}</div>
             </div>
             <div className="metric-card">
-              <div className="gg-label">Device RTT (min)</div>
+              <div className="gg-label">{t("dashboardDeviceRtt", "Device RTT (min)")}</div>
               <div className="gg-value">{deviceRtt}</div>
             </div>
             <div className="metric-card">
-              <div className="gg-label">Presence</div>
+              <div className="gg-label">{t("dashboardPresence", "Presence")}</div>
               <div className="presence-list">
                 {Object.values(presence).map((p) => (
                   <div key={p.deviceId} className="presence-row">
@@ -249,7 +267,9 @@ export default function DashboardPage() {
                     {p.rttMs && <span className="muted">{p.rttMs} ms</span>}
                   </div>
                 ))}
-                {Object.keys(presence).length === 0 && <div className="muted">No devices yet</div>}
+                {Object.keys(presence).length === 0 && (
+                  <div className="muted">{t("dashboardNoDevices", "No devices yet")}</div>
+                )}
               </div>
             </div>
           </div>

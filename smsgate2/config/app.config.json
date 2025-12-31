@@ -1,0 +1,26 @@
+{
+  "apiBaseUrl": "https://api.example.com/api/v1",
+  "wsPath": "/api/v1/ws",
+  "wsOrigin": "https://api.example.com",
+  "qrOrigin": "https://api.qrserver.com",
+  "smtp": {
+    "host": "smtp.example.com",
+    "port": 587,
+    "secure": false,
+    "username": "smtp-user",
+    "password": "smtp-pass",
+    "fromEmail": "no-reply@example.com"
+  },
+  "offlineReset": {
+    "enabled": true,
+    "defaultAdminUsername": "admin",
+    "defaultAdminPassword": "changeme"
+  },
+  "authModes": {
+    "oauth": true,
+    "simpleSignin": true,
+    "domainSignin": false
+  },
+  "locales": ["en-US", "pt-PT", "es-ES"],
+  "defaultLocale": "en-US"
+}

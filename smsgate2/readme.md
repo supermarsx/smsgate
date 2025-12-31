@@ -26,7 +26,7 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 
 - `docker build -f Dockerfile -t smsgate2:local .` to build the app image.
 - `docker-compose up` (repo root) brings up smsgate2 + mock syncserver (Wiremock) + Redis + Postgres; drop Wiremock stubs into `docs/mock-syncserver`.
-- Copy `.env.example` to `.env.local` or set `NEXT_PUBLIC_*` env vars for your environment.
+- Copy `.env.example` to `.env.local` or set `NEXT_PUBLIC_*` env vars for your environment. You can also drop a JSON config instead of envs (see below).
 
 ## Notes
 
@@ -34,4 +34,29 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 - Auth entry lives at `/login` with config-driven auth modes (SSO/local/domain), PKCE scaffold, and session persistence; root `/` redirects based on session.
 - Protected shell with role-aware nav/topbar is scaffolded under `/dashboard` and other routes.
 - See `docs/spec-smsgate2.md` and `docs/spec-syncserver.md` for contract details.
-- Copy `.env.example` to `.env.local` and tweak `NEXT_PUBLIC_*` values to match your syncserver endpoint.
+- Configuration:
+  - Default JSON config lives at `config/app.config.json`. It includes `apiBaseUrl`, `wsPath`, `wsOrigin`, `qrOrigin`, `authModes` (oauth/simpleSignin/domainSignin booleans), and locale settings (`locales`, `defaultLocale`).
+  - Optional SMTP/offline reset config lives in the same JSON (`smtp` block for host/port/secure/username/password/fromEmail, `offlineReset` for enabling offline reset and default admin credentials).
+  - Local overrides live in `config/app.config.dev.json` (applied automatically when `NODE_ENV !== "production"`).
+  - Example (see checked-in files):
+    ```json
+    {
+      "apiBaseUrl": "http://localhost:4000/api/v1",
+      "wsPath": "/api/v1/ws",
+      "wsOrigin": "http://localhost:4000",
+      "qrOrigin": "https://api.qrserver.com",
+      "authModes": { "oauth": true, "simpleSignin": true, "domainSignin": false },
+      "smtp": {
+        "host": "localhost",
+        "port": 1025,
+        "secure": false,
+        "username": "",
+        "password": "",
+        "fromEmail": "no-reply@example.com"
+      },
+      "offlineReset": { "enabled": true, "defaultAdminUsername": "admin", "defaultAdminPassword": "changeme" },
+      "locales": ["en-US", "pt-PT", "es-ES"],
+      "defaultLocale": "en-US"
+    }
+    ```
+  - Env vars still override JSON when both are present (`NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_WS_PATH`, `NEXT_PUBLIC_WS_ORIGIN`, `NEXT_PUBLIC_QR_ORIGIN`, `NEXT_PUBLIC_AUTH_*`, `NEXT_PUBLIC_LOCALE_DEFAULT`).
