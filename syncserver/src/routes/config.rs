@@ -1,0 +1,67 @@
+//! Configuration exposure endpoints for smsgate2 and operators.
+
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use serde::Serialize;
+
+use crate::{error::AppError, state::AppState};
+
+/// Public config snapshot returned to clients.
+#[derive(Debug, Serialize)]
+pub struct ConfigSnapshot {
+    /// Environment tag.
+    pub env: &'static str,
+    /// Enabled authentication modes.
+    pub auth_modes: Vec<&'static str>,
+    /// Presence thresholds (ms).
+    pub presence: PresenceSnapshot,
+    /// Ingest limits and dedup TTLs.
+    pub ingest: IngestSnapshot,
+    /// Hot store backend.
+    pub hot_store: &'static str,
+}
+
+/// Presence thresholds exposed to clients.
+#[derive(Debug, Serialize)]
+pub struct PresenceSnapshot {
+    pub online_threshold_ms: u64,
+    pub degraded_threshold_ms: u64,
+}
+
+/// Ingest constraints exposed to clients.
+#[derive(Debug, Serialize)]
+pub struct IngestSnapshot {
+    pub dedup_ttl_ms: u64,
+    pub hot_store_capacity: usize,
+    pub max_batch: usize,
+}
+
+/// GET /api/v1/config
+pub async fn get_config(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+    let config = &state.config;
+    let body = ConfigSnapshot {
+        env: config.env.as_str(),
+        auth_modes: config.auth.modes.iter().map(mode_label).collect(),
+        presence: PresenceSnapshot {
+            online_threshold_ms: config.presence.online_threshold_ms,
+            degraded_threshold_ms: config.presence.degraded_threshold_ms,
+        },
+        ingest: IngestSnapshot {
+            dedup_ttl_ms: config.ingest.dedup_ttl_ms,
+            hot_store_capacity: config.ingest.hot_store_capacity,
+            max_batch: config.ingest.max_batch,
+        },
+        hot_store: match config.hot_store.mode {
+            crate::config::HotStoreMode::Redis => "redis",
+            crate::config::HotStoreMode::Memory => "memory",
+        },
+    };
+    Ok((StatusCode::OK, Json(body)))
+}
+
+fn mode_label(mode: &crate::config::AuthMode) -> &'static str {
+    match mode {
+        crate::config::AuthMode::Oauth => "oauth",
+        crate::config::AuthMode::SimpleSignin => "simple_signin",
+        crate::config::AuthMode::DomainSignin => "domain_signin",
+    }
+}

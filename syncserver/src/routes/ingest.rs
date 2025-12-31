@@ -14,6 +14,7 @@ use crate::{
     domain::{EventSource, EventState, SmsEvent},
     error::AppError,
     state::AppState,
+    ws_types::ServerMessage,
 };
 
 /// Ingest request body supporting batch submission.
@@ -89,8 +90,11 @@ pub async fn ingest(
             continue;
         }
 
-        state.hot_store.append_event(event).await;
+        state.hot_store.append_event(event.clone()).await;
         state.hot_store.set_dedup_key(&dedup_key, dedup_ttl).await;
+        let _ = state.event_tx.send(ServerMessage::EventNew {
+            event: event.clone(),
+        });
         accepted += 1;
     }
 

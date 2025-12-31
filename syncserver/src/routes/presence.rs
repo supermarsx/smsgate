@@ -7,6 +7,7 @@ use crate::{
     domain::{HeartbeatSample, PresenceState},
     error::AppError,
     state::AppState,
+    ws_types::PresenceUpdate,
 };
 
 /// Response shape for heartbeat ingestion.
@@ -28,6 +29,18 @@ pub async fn heartbeat(
         payload.queue_depth,
         payload.device_rtt_ms,
     );
+
+    let _ = state
+        .event_tx
+        .send(crate::ws_types::ServerMessage::PresenceUpdate(
+            PresenceUpdate {
+                device_id: payload.device_id,
+                state: presence.clone(),
+                queue_depth: payload.queue_depth,
+                last_heartbeat: now,
+                device_rtt_ms: payload.device_rtt_ms,
+            },
+        ));
 
     state
         .metrics

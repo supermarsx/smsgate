@@ -2,6 +2,7 @@ use crate::{
     config::AppConfig,
     hot_store::{HotStore, MemoryHotStore},
     presence::PresenceStore,
+    ws_types::ServerMessage,
 };
 use std::{
     sync::{
@@ -12,6 +13,7 @@ use std::{
 };
 
 use crate::{config, metrics::Metrics};
+use tokio::sync::broadcast;
 
 /// Readiness flags to report subsystem health without blocking hot paths.
 #[derive(Debug)]
@@ -75,6 +77,8 @@ pub struct AppState {
     pub hot_store: Arc<dyn HotStore>,
     /// Presence tracker used by heartbeat ingest.
     pub presence: Arc<PresenceStore>,
+    /// Broadcast channel for WS fanout.
+    pub event_tx: broadcast::Sender<ServerMessage>,
 }
 
 impl AppState {
@@ -99,6 +103,7 @@ impl AppState {
             Arc::new(MemoryHotStore::new(config.ingest.hot_store_capacity));
         ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
         let presence = Arc::new(PresenceStore::new(config.presence.clone()));
+        let (event_tx, _rx) = broadcast::channel(1024);
 
         Self {
             config,
@@ -107,6 +112,12 @@ impl AppState {
             metrics,
             hot_store,
             presence,
+            event_tx,
         }
+    }
+
+    /// Subscribe to WS broadcast channel.
+    pub fn subscribe_events(&self) -> broadcast::Receiver<ServerMessage> {
+        self.event_tx.subscribe()
     }
 }

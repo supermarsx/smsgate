@@ -20,5 +20,7 @@ Runtime flags are read from `config/config.json` (see `syncserver/config/config.
 - `SYNC_DB_URL` (required for `postgres`/`mysql`; optional for `sqlite`): database connection string.
 - `SYNC_DB_PATH` (`data/syncserver.json` when using `json_db`; optional for `sqlite`): file path for file-backed adapters.
 - `SYNC_AUTH_MODES` (`simple_signin`): comma-separated list of enabled auth modes (`oauth`, `simple_signin`, `domain_signin`).
+- `SYNC_PRESENCE_ONLINE_MS` (`20000`): heartbeat threshold (ms) for online status.
+- `SYNC_PRESENCE_DEGRADED_MS` (`60000`): heartbeat threshold (ms) for degraded status (above is offline).
 
 Docker Compose defaults set `SYNC_PORT=4000`, point Redis/DB to local compose services, and mount `./syncserver/config` into `/app/config`.
