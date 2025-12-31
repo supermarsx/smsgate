@@ -16,10 +16,25 @@ const apiOrigin = (() => {
     return "http://localhost:4000";
   }
 })();
+const apiPathname = (() => {
+  try {
+    return new URL(apiBase).pathname.replace(/\/$/, "") || "/api/v1";
+  } catch {
+    return "/api/v1";
+  }
+})();
 const wsOrigin = process.env.NEXT_PUBLIC_WS_ORIGIN ?? fileConfig.wsOrigin ?? apiOrigin;
 
 const nextConfig = {
   reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: `${apiPathname}/:path*`,
+        destination: `${apiOrigin}${apiPathname}/:path*`
+      }
+    ];
+  },
   async headers() {
     const isDev = process.env.NODE_ENV !== "production";
     const scriptSrc = isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'";

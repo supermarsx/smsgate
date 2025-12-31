@@ -70,6 +70,12 @@ export class WsClient {
   }
 
   connect(): void {
+    const offlineToken = this.session.accessToken.startsWith("offline-");
+    if (offlineToken) {
+      this.emit({ connected: false, lastError: "Offline mode: realtime disabled", wsErrors: this.wsErrors });
+      this.log?.("ws_skip_offline");
+      return;
+    }
     if (this.visibilityPaused) return;
     if (this.ws) this.ws.close();
     const url = new URL(wsUrl());
@@ -206,6 +212,10 @@ export class WsClient {
   }
 
   private scheduleReconnect() {
+    if (this.session.accessToken.startsWith("offline-")) {
+      this.log?.("ws_skip_offline_reconnect");
+      return;
+    }
     if (this.visibilityPaused) return;
     this.reconnectAttempts += 1;
     const backoff = Math.min(30_000, 1000 * 2 ** this.reconnectAttempts);

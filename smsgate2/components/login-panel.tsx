@@ -99,12 +99,7 @@ export function LoginPanel({ onLogin }: Props) {
     const offlineAdminPass = appConfig.offlineReset?.defaultAdminPassword;
     const isDefaultAdminCreds =
       allowOfflineAdmin && offlineAdminPass && form.username === offlineAdminUser && form.password === offlineAdminPass;
-    if (
-      mode === "simple_signin" &&
-      isDefaultAdminCreds &&
-      typeof navigator !== "undefined" &&
-      navigator.onLine === false
-    ) {
+    if (mode === "simple_signin" && isDefaultAdminCreds) {
       const now = Date.now();
       onLogin({
         accessToken: "offline-admin",
