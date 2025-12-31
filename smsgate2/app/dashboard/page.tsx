@@ -9,6 +9,7 @@ import { listEvents, updateEventState } from "../../lib/rest";
 import { useConfig } from "../../components/config-provider";
 import { useStatus } from "../../components/status-context";
 import { getInitialLocale, getTranslations } from "../../lib/i18n";
+import { mapWsErrorKey } from "../../lib/status";
 
 export default function DashboardPage() {
   const { session } = useSession();
@@ -29,9 +30,6 @@ export default function DashboardPage() {
   }, [locale]);
   const [events, setEvents] = useState<Event[]>([]);
   const [presence, setPresence] = useState<Record<string, PresenceUpdate>>({});
-  const [latency, setLatency] = useState<string>("—");
-  const [clientRtt, setClientRtt] = useState<string>("—");
-  const [deviceRtt, setDeviceRtt] = useState<string>("—");
   const [connected, setConnected] = useState(false);
   const [lastError, setLastError] = useState<string | undefined>();
   const [loadingPage, setLoadingPage] = useState(false);
@@ -43,12 +41,8 @@ export default function DashboardPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const SNAPSHOT_KEY = "smsgate2_snapshot";
   const friendlyLastError = useMemo(() => {
-    if (!lastError) return null;
-    const lower = lastError.toLowerCase();
-    if (lower.includes("offline mode")) return t("wsOfflineMode", "Offline mode: realtime disabled");
-    if (lower.includes("websocket error")) return t("wsErrorGeneric", "WebSocket error");
-    if (lower.includes("failed to fetch") || lower.includes("network"))
-      return t("wsNetworkError", "Network error or server unreachable");
+    const key = mapWsErrorKey(lastError ?? undefined);
+    if (key) return t(key, lastError ?? key);
     return lastError;
   }, [lastError, t]);
 
@@ -71,12 +65,9 @@ export default function DashboardPage() {
     const unsubscribe = client.subscribe((state) => {
       setEvents(state.events);
       setPresence(state.presence);
-      setLatency(formatLatency(state.metrics));
-      setClientRtt(state.clientRttMs ? `${state.clientRttMs} ms` : "—");
       const deviceRtts = Object.values(state.presence)
         .map((p) => p.rttMs)
         .filter((rtt): rtt is number => typeof rtt === "number");
-      setDeviceRtt(deviceRtts.length ? `${Math.min(...deviceRtts)} ms` : "-");
       setConnected(state.connected);
       setLastError(state.lastError);
       setHasMore(true);
