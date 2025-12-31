@@ -64,13 +64,12 @@ impl HotStore for RedisHotStore {
     }
 
     async fn page_before(&self, anchor_id: &str, limit: usize) -> Vec<SmsEvent> {
-        // For simplicity, reuse latest to fetch more entries and filter client-side.
         let entries = self.latest(self.capacity).await;
         let mut collected = Vec::new();
         let mut found = false;
-        for event in entries {
+        for event in entries.iter() {
             if found && collected.len() < limit {
-                collected.push(event);
+                collected.push(event.clone());
             }
             if event.id == anchor_id {
                 found = true;
@@ -86,7 +85,7 @@ impl HotStore for RedisHotStore {
         let entries = self.latest(self.capacity).await;
         let mut collected = Vec::new();
         let mut found = false;
-        for event in entries.into_iter().rev() {
+        for event in entries.iter().rev() {
             if found && collected.len() < limit {
                 collected.push(event.clone());
             }
@@ -104,7 +103,7 @@ impl HotStore for RedisHotStore {
     async fn set_dedup_key(&self, key: &str, ttl: Duration) {
         let mut conn = self.client.clone();
         let _: () = conn
-            .set_ex(self.dedup_key(key), "1", ttl.as_secs() as usize)
+            .set_ex(self.dedup_key(key), "1", ttl.as_secs())
             .await
             .unwrap_or_default();
     }
