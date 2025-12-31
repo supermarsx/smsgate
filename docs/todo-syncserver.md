@@ -22,6 +22,8 @@
 - [x] Enforce admin TOTP when configured; bootstrap admin defaults to no secret.
 - [x] Implement password reset token flow and bootstrap admin credential path.
 - [x] Scaffold device auth extractor (header-based placeholder) and RBAC role struct; wire ingest/presence through auth guard.
+- [ ] Align with spec password policy/lockout (min entropy, history, breach checks, configurable admin username, session invalidation on password change, SMTP email reset).
+- [ ] Replace OAuth/Domain stubs with real issuer/JWKS validation and LDAP bind + group fetch.
 
 ## RBAC & roles
 - [x] Define configurable roles/permissions with precedence and labels.
@@ -47,6 +49,8 @@
 - [x] Implement state transitions (`claim/verify/reject`) with validation + broadcast (audit stream pending).
 - [x] Support batch ingest and backpressure hints to devices (batch limit enforced; backpressure signals pending).
 - [x] Add policy-based persistence enqueue for compliance/retention rules.
+- [ ] Backpressure signals to devices (queue depth thresholds, retry hints) and number ownership validation per spec.
+- [ ] Event retention/pruning policy and immutable audit stream (SQL currently upserts).
 
 ## Presence, metrics, SIM inventory
 - [x] Implement `/api/v1/presence/heartbeat` ingestion with RTT + queue depth.
@@ -61,6 +65,7 @@
 - [x] Broadcast `CONFIG_UPDATE` and `EVENT_UPDATE`.
 - [x] Broadcast `SIM_*`, `CONTACT_UPDATE` shapes (stubbed) and degraded notices on connect.
 - [x] Handle degraded modes (Redis down) with fallback notices + WS downgrade behavior.
+- [ ] WS auth/session gating and replay-safe cursors per spec (currently unauthenticated handshake).
 
 ## Storage: hot store + persistence
 - [x] Implement Redis-backed hot store (ring buffers, presence TTLs, dedup keys, cursors) (falls back to memory on failure/misconfig).
@@ -68,6 +73,7 @@
 - [x] Implement JSON DB adapter (append-only logs) for small installs.
 - [x] Implement SQL adapters (SQLite/Postgres/MySQL) with migrations for events/audit/login/users/devices/numbers/config (events table bootstrap included).
 - [x] Wire persistence worker respecting policy, retention, and pruning tasks (baseline enqueue to JSON DB).
+- [ ] Implement real retention/pruning scheduler and config migration seeding beyond events/audit/login.
 
 ## Audit, logging, observability
 - [x] Implement structured audit log (actor/action/target/result/details/correlation id).
@@ -81,14 +87,15 @@
 - [x] Force logout/unlock endpoints for users.
 - [x] Number assign/unassign endpoints with validation and audit.
 - [x] Device diagnostics endpoint for smsgate2 per spec.
+- [ ] Add user/account lockout counters + admin password change invalidates sessions as per spec.
 
 ## Testing & quality
 - [x] Unit tests for config loader, auth hashing/policy, dedup logic, hot store ring buffer.
 - [x] Integration tests for ingest -> WS fanout, paging, presence transitions, SIM diffing.
-- [x] End-to-end tests with smsgate2 + smsrelay3 mocks (Wiremock or in-process stubs).
-- [x] Load tests for WS fanout/pagination + ingest throughput (target p95 < 50ms internal).
-- [x] Security tests for auth mode toggles, session fixation, CSRF, and rate limiting.
-- [x] CI pipeline for fmt/clippy/test/build + container image + vulnerability scan.
+- [ ] End-to-end tests with smsgate2 + smsrelay3 mocks (Wiremock or in-process stubs).
+- [ ] Load tests for WS fanout/pagination + ingest throughput (target p95 < 50ms internal).
+- [ ] Security tests for auth mode toggles, session fixation, CSRF, and rate limiting.
+- [ ] CI pipeline should add container build + vulnerability scan (current workflow only fmt/clippy/test).
 
 ## Operations & release
 - [x] Build Docker image with minimal base + non-root user; publish compose profile with Redis/DB.
