@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Authentication helpers for smsgate2 UI (sessions, OAuth, PKCE, storage).
+ */
+
 import { appConfig, wsUrl } from "./config";
 import { enqueueSmtpJob, smtpEnabled } from "./smtp-service";
 import type { Locale } from "./i18n";
@@ -45,6 +49,7 @@ type PasswordChangeResult = {
 
 /**
  * Internal helper for JSON API calls with common headers.
+ * @returns Parsed JSON response.
  * @throws Error when the response is not ok.
  */
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -67,6 +72,7 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
  * Persist a session to storage or clear it when null.
  * @param session Session to save; null clears both storage scopes.
  * @param persistent When true use localStorage, else sessionStorage.
+ * @returns void
  */
 export function saveSession(session: Session | null, persistent = true): void {
   if (typeof window === "undefined") return;
@@ -80,6 +86,7 @@ export function saveSession(session: Session | null, persistent = true): void {
 
 /**
  * Load a session from sessionStorage or localStorage.
+ * @returns Session when present; null otherwise.
  */
 export function loadSession(): Session | null {
   if (typeof window === "undefined") return null;
@@ -94,6 +101,7 @@ export function loadSession(): Session | null {
 
 /**
  * Remove any stored session data from both storage scopes.
+ * @returns void
  */
 export function clearSession(): void {
   if (typeof window === "undefined") return;
@@ -103,6 +111,7 @@ export function clearSession(): void {
 
 /**
  * Ask the backend to send a password reset email when SMTP is enabled.
+ * @returns Result indicating whether the request was accepted.
  */
 export async function requestPasswordReset(email: string): Promise<{ ok: boolean; message?: string }> {
   if (!smtpEnabled()) {
@@ -120,6 +129,7 @@ export async function requestPasswordReset(email: string): Promise<{ ok: boolean
 
 /**
  * Update a password using a reset token or the current password.
+ * @returns Result of the password change attempt.
  */
 export async function changePassword(payload: {
   token?: string;
@@ -142,6 +152,7 @@ export async function changePassword(payload: {
 
 /**
  * Username/password login flow.
+ * @returns Sign-in result including session or required actions.
  */
 export async function loginSimple(
   username: string,
@@ -168,6 +179,7 @@ export async function loginSimple(
 
 /**
  * Domain login flow for AD/LDAP style auth.
+ * @returns Sign-in result including session or required actions.
  */
 export async function loginDomain(
   username: string,
@@ -195,6 +207,7 @@ export async function loginDomain(
 
 /**
  * Refresh an expiring session using a refresh token.
+ * @returns Fresh session or null when refresh fails.
  */
 export async function refreshSession(refreshToken: string): Promise<Session | null> {
   try {
@@ -212,6 +225,7 @@ export async function refreshSession(refreshToken: string): Promise<Session | nu
 
 /**
  * Clear local state and best-effort notify the backend of logout.
+ * @returns void
  */
 export async function logout(): Promise<void> {
   try {
@@ -226,6 +240,7 @@ export async function logout(): Promise<void> {
  * Build the OAuth authorization URL with PKCE challenge and persisted verifier.
  * @param redirectUri Where the IdP should return the user.
  * @param clientId OAuth client identifier (defaults to smsgate2-ui).
+ * @returns Fully-qualified authorization URL.
  */
 export async function buildOAuthAuthorizeUrl(redirectUri: string, clientId = "smsgate2-ui"): Promise<string> {
   const state = crypto.randomUUID();
@@ -246,6 +261,7 @@ export async function buildOAuthAuthorizeUrl(redirectUri: string, clientId = "sm
 
 /**
  * Exchange an OAuth code for a session using the stored PKCE verifier.
+ * @returns Session when exchange succeeds, otherwise null/throws.
  */
 export async function exchangeOAuthCode(code: string, redirectUri: string): Promise<Session | null> {
   const verifier = window.localStorage.getItem(CODE_VERIFIER_KEY);
@@ -265,6 +281,7 @@ export async function exchangeOAuthCode(code: string, redirectUri: string): Prom
 
 /**
  * Create a random hex PKCE verifier.
+ * @returns PKCE verifier string.
  */
 function generateCodeVerifier(): string {
   const array = crypto.getRandomValues(new Uint8Array(32));
@@ -273,6 +290,7 @@ function generateCodeVerifier(): string {
 
 /**
  * Compute the PKCE S256 challenge for a verifier.
+ * @returns URL-safe base64 encoded SHA-256 hash.
  */
 async function generateCodeChallenge(verifier: string): Promise<string> {
   const data = new TextEncoder().encode(verifier);
@@ -285,6 +303,7 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
 
 /**
  * Convert bytes to URL-safe base64 string.
+ * @returns URL-safe base64.
  */
 function base64UrlEncode(bytes: Uint8Array): string {
   let str = "";
@@ -296,6 +315,7 @@ function base64UrlEncode(bytes: Uint8Array): string {
 
 /**
  * True when a session is within the expiration threshold.
+ * @returns Whether the session expires within the threshold.
  */
 export function sessionExpiresSoon(session: Session, thresholdMs = 60_000): boolean {
   return session.expiresAt - Date.now() < thresholdMs;
@@ -303,6 +323,7 @@ export function sessionExpiresSoon(session: Session, thresholdMs = 60_000): bool
 
 /**
  * Compose headers for websocket auth handshakes.
+ * @returns Header map including Authorization and role metadata.
  */
 export function wsAuthHeaders(session: Session | null): Record<string, string> {
   if (!session) return {};

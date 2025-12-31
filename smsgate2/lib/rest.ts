@@ -1,3 +1,7 @@
+/**
+ * @fileoverview REST client helpers for smsgate2 backend endpoints.
+ */
+
 import { appConfig } from "./config";
 import { http } from "./http";
 import type { Event } from "./contracts";
@@ -13,6 +17,7 @@ type ListEventsParams = {
 
 /**
  * Fetch events with optional cursor and limit.
+ * @returns Array of events (empty when none returned).
  */
 export async function listEvents(session: Session, params: ListEventsParams = {}): Promise<Event[]> {
   const url = new URL(`${appConfig.apiBaseUrl}/events`);
@@ -28,6 +33,7 @@ export async function listEvents(session: Session, params: ListEventsParams = {}
 
 /**
  * Update the state of an event (claimed/verified/rejected).
+ * @returns Updated event payload.
  */
 export async function updateEventState(
   session: Session,
@@ -42,6 +48,7 @@ export async function updateEventState(
 
 /**
  * Retrieve devices for the authenticated user.
+ * @returns Array of device records.
  */
 export async function listDevices(session: Session): Promise<any[]> {
   return http<any[]>(session, "/devices", { method: "GET" });
@@ -49,6 +56,7 @@ export async function listDevices(session: Session): Promise<any[]> {
 
 /**
  * Update a device friendly name.
+ * @returns void
  */
 export async function updateDeviceName(session: Session, id: string, name: string): Promise<void> {
   await http<void>(session, `/devices/${id}`, {
@@ -59,6 +67,7 @@ export async function updateDeviceName(session: Session, id: string, name: strin
 
 /**
  * Retrieve provisioned numbers.
+ * @returns Array of numbers.
  */
 export async function listNumbers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/numbers", { method: "GET" });
@@ -66,6 +75,7 @@ export async function listNumbers(session: Session): Promise<any[]> {
 
 /**
  * Create a new number entry with optional label.
+ * @returns Created number payload.
  */
 export async function createNumber(session: Session, payload: { e164: string; label?: string }): Promise<any> {
   return http(session, "/numbers", { method: "POST", body: JSON.stringify(payload) });
@@ -73,6 +83,7 @@ export async function createNumber(session: Session, payload: { e164: string; la
 
 /**
  * Assign a number to a user or device.
+ * @returns void
  */
 export async function assignNumber(
   session: Session,
@@ -87,6 +98,7 @@ export async function assignNumber(
 
 /**
  * Remove number assignment.
+ * @returns void
  */
 export async function unassignNumber(session: Session, e164: string): Promise<void> {
   await http<void>(session, `/numbers/${encodeURIComponent(e164)}/assign`, { method: "DELETE" });
@@ -94,6 +106,7 @@ export async function unassignNumber(session: Session, e164: string): Promise<vo
 
 /**
  * Update number metadata.
+ * @returns void
  */
 export async function updateNumber(
   session: Session,
@@ -108,6 +121,7 @@ export async function updateNumber(
 
 /**
  * Delete a number entry.
+ * @returns void
  */
 export async function deleteNumber(session: Session, e164: string): Promise<void> {
   await http<void>(session, `/numbers/${encodeURIComponent(e164)}`, { method: "DELETE" });
@@ -115,6 +129,7 @@ export async function deleteNumber(session: Session, e164: string): Promise<void
 
 /**
  * Fetch users list.
+ * @returns Array of user records.
  */
 export async function listUsers(session: Session): Promise<any[]> {
   return http<any[]>(session, "/users", { method: "GET" });
@@ -122,6 +137,7 @@ export async function listUsers(session: Session): Promise<any[]> {
 
 /**
  * Change a user's role.
+ * @returns void
  */
 export async function updateUserRole(session: Session, id: string, role: string): Promise<void> {
   await http<void>(session, `/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) });
@@ -129,6 +145,7 @@ export async function updateUserRole(session: Session, id: string, role: string)
 
 /**
  * Force a user session logout.
+ * @returns void
  */
 export async function forceLogoutUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/force-logout`, { method: "POST" });
@@ -136,6 +153,7 @@ export async function forceLogoutUser(session: Session, id: string): Promise<voi
 
 /**
  * Unlock a user account.
+ * @returns void
  */
 export async function unlockUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/unlock`, { method: "POST" });
@@ -143,6 +161,7 @@ export async function unlockUser(session: Session, id: string): Promise<void> {
 
 /**
  * Disable a user account.
+ * @returns void
  */
 export async function disableUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/disable`, { method: "POST" });
@@ -150,6 +169,7 @@ export async function disableUser(session: Session, id: string): Promise<void> {
 
 /**
  * Enable a previously disabled user account.
+ * @returns void
  */
 export async function enableUser(session: Session, id: string): Promise<void> {
   await http<void>(session, `/users/${id}/enable`, { method: "POST" });
@@ -157,6 +177,7 @@ export async function enableUser(session: Session, id: string): Promise<void> {
 
 /**
  * Reset a user's password to a provided value.
+ * @returns void
  */
 export async function resetUserPassword(session: Session, id: string, password: string): Promise<void> {
   await http<void>(session, `/users/${id}/reset-password`, {
@@ -167,6 +188,7 @@ export async function resetUserPassword(session: Session, id: string, password: 
 
 /**
  * Map a device phone number for a user.
+ * @returns void
  */
 export async function mapDevicePhone(session: Session, id: string, devicePhone: string): Promise<void> {
   await http<void>(session, `/users/${id}/device-phone`, { method: "POST", body: JSON.stringify({ devicePhone }) });
@@ -174,6 +196,7 @@ export async function mapDevicePhone(session: Session, id: string, devicePhone: 
 
 /**
  * Fetch diagnostics for a device.
+ * @returns Diagnostic payload for the device.
  */
 export async function fetchDiagnostics(session: Session, deviceId: string): Promise<any> {
   return http<any>(session, `/devices/${deviceId}/diagnostics`, { method: "GET" });
@@ -181,6 +204,7 @@ export async function fetchDiagnostics(session: Session, deviceId: string): Prom
 
 /**
  * Retrieve contact list.
+ * @returns Array of contacts.
  */
 export async function fetchContacts(session: Session): Promise<any[]> {
   return http<any[]>(session, "/contacts", { method: "GET" });
@@ -188,6 +212,7 @@ export async function fetchContacts(session: Session): Promise<any[]> {
 
 /**
  * Toggle contact sync on or off.
+ * @returns void
  */
 export async function toggleContactSync(session: Session, enabled: boolean): Promise<void> {
   await http<void>(session, "/contacts/toggle", { method: "POST", body: JSON.stringify({ enabled }) });
@@ -195,6 +220,7 @@ export async function toggleContactSync(session: Session, enabled: boolean): Pro
 
 /**
  * Resolve a contact conflict with a given resolution.
+ * @returns void
  */
 export async function resolveContactConflict(session: Session, conflictId: string, resolution: string): Promise<void> {
   await http<void>(session, `/contacts/conflicts/${conflictId}/resolve`, {
@@ -205,6 +231,7 @@ export async function resolveContactConflict(session: Session, conflictId: strin
 
 /**
  * Export contacts as a binary blob.
+ * @returns Blob containing exported contacts.
  */
 export async function exportContacts(session: Session): Promise<Blob> {
   const res = await fetch(`${appConfig.apiBaseUrl}/contacts/export`, {
@@ -220,6 +247,7 @@ export async function exportContacts(session: Session): Promise<Blob> {
 
 /**
  * Fetch audit events.
+ * @returns Array of audit events.
  */
 export async function getAudit(session: Session): Promise<any[]> {
   return http<any[]>(session, "/audit", { method: "GET" });
@@ -227,6 +255,7 @@ export async function getAudit(session: Session): Promise<any[]> {
 
 /**
  * Fetch login events.
+ * @returns Array of login events.
  */
 export async function getLoginEvents(session: Session): Promise<any[]> {
   return http<any[]>(session, "/login-events", { method: "GET" });
@@ -234,6 +263,7 @@ export async function getLoginEvents(session: Session): Promise<any[]> {
 
 /**
  * Create a pairing session for device onboarding.
+ * @returns Newly created pairing session.
  */
 export async function createPairingSession(session: Session): Promise<any> {
   return http(session, "/pairing/session", { method: "POST", body: JSON.stringify({}) });
@@ -241,6 +271,7 @@ export async function createPairingSession(session: Session): Promise<any> {
 
 /**
  * Retrieve a pairing session by id.
+ * @returns Pairing session payload.
  */
 export async function getPairingSession(session: Session, id: string): Promise<any> {
   return http<any>(session, `/pairing/session/${id}`, { method: "GET" });
@@ -248,6 +279,7 @@ export async function getPairingSession(session: Session, id: string): Promise<a
 
 /**
  * Toggle a device state (enable/disable/rotate-token).
+ * @returns void
  */
 export async function toggleDevice(
   session: Session,
@@ -264,6 +296,7 @@ export type ConfigPayload = {
 
 /**
  * Fetch the merged configuration with optional ETag caching.
+ * @returns Config payload plus etag and notModified flag.
  */
 export async function fetchConfig(
   session: Session,
@@ -289,6 +322,7 @@ export async function fetchConfig(
 
 /**
  * Update configuration with optional ETag precondition.
+ * @returns Updated configuration payload.
  */
 export async function updateConfig(session: Session, payload: ConfigPayload, etag?: string): Promise<ConfigPayload> {
   return http<ConfigPayload>(session, "/config", {

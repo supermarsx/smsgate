@@ -1,3 +1,7 @@
+/**
+ * @fileoverview HTTP utility for authenticated API requests.
+ */
+
 import { appConfig } from "./config";
 import type { Session } from "./auth";
 
@@ -12,6 +16,7 @@ export type HttpError = {
 
 /**
  * Fetch wrapper that injects auth headers and normalizes error responses.
+ * @returns Parsed JSON response or undefined for 204 responses.
  * @throws HttpError when the response is not ok.
  */
 export async function http<T>(session: Session, path: string, init: RequestInit = {}): Promise<T> {
