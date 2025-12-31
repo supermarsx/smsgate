@@ -1,5 +1,10 @@
 /**
+ * @fileoverview Status helpers for mapping websocket errors to translation keys.
+ */
+
+/**
  * Map low-level websocket errors to translation keys.
+ * @returns i18n key or undefined when no match.
  */
 export function mapWsErrorKey(error?: string): string | undefined {
   if (!error) return undefined;
