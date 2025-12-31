@@ -1192,6 +1192,17 @@ a {
   z-index: 30;
 }
 
+.fab-bar .fab,
+.fab-bar .fab-trigger {
+  color: var(--primary);
+  border-color: rgba(76, 201, 255, 0.4);
+}
+
+.fab-bar .fab:hover,
+.fab-bar .fab:focus-visible {
+  box-shadow: 0 12px 30px rgba(76, 201, 255, 0.25);
+}
+
 .fab {
   width: 42px;
   height: 42px;
@@ -1295,6 +1306,10 @@ a {
   padding: 10px 12px;
   min-width: 0;
   font-size: 16px;
+}
+
+.ghost.icon.icon-themed {
+  padding: 0;
 }
 
 .icon-themed {
