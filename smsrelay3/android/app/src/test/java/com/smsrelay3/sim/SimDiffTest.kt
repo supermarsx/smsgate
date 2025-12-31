@@ -1,5 +1,6 @@
 package com.smsrelay3.sim
 
+import com.smsrelay3.data.SimInventoryRepository
 import com.smsrelay3.data.entity.SimSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -13,7 +14,7 @@ class SimDiffTest {
         )
         val newer = listOf(
             snapshot("b", slot = 0), // moved slot
-            snapshot("c", slot = 1)  // new
+            snapshot("c", slot = 1) // new
         )
         val diff = SimInventoryRepository.diff(old, newer)
         assertEquals(listOf("c"), diff.added.map { it.iccid })

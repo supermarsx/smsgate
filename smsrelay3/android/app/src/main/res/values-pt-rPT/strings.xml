@@ -163,4 +163,7 @@
   <string name="permissions_missing">Faltam permissões obrigatórias.</string>
   <string name="scan_error_no_camera">Não existe câmara disponível neste dispositivo.</string>
   <string name="scan_error_start_failed">Não foi possível iniciar a câmara.</string>
+  <string name="diag_sim_summary">Resumo SIM</string>
+  <string name="diag_sim_summary_value">Operadoras: %1$s\nSlots: %2$s\nEstado: %3$s</string>
+  <string name="splash_loading">Iniciando servi‡os.</string>
 </resources>

@@ -2,22 +2,23 @@ package com.smsrelay3
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import com.google.mlkit.vision.barcode.BarcodeScanning
+import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ScanQrActivity : AppCompatActivity() {
     private lateinit var previewView: PreviewView
@@ -62,32 +63,39 @@ class ScanQrActivity : AppCompatActivity() {
 
     private fun startCamera(errorText: android.widget.TextView, scanner: BarcodeScanner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener({
-            try {
-                val cameraProvider = cameraProviderFuture.get()
-                val preview = androidx.camera.core.Preview.Builder().build().apply {
-                    setSurfaceProvider(previewView.surfaceProvider)
-                }
-                val analysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                analysis.setAnalyzer(cameraExecutor, QrAnalyzer(scanner) { text ->
-                    if (isHandled.compareAndSet(false, true)) {
-                        val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
-                        setResult(RESULT_OK, data)
-                        finish()
+        cameraProviderFuture.addListener(
+            {
+                try {
+                    val cameraProvider = cameraProviderFuture.get()
+                    val preview = androidx.camera.core.Preview.Builder().build().apply {
+                        setSurfaceProvider(previewView.surfaceProvider)
                     }
-                })
-                val selector = CameraSelector.DEFAULT_BACK_CAMERA
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, selector, preview, analysis)
-            } catch (_: Exception) {
-                errorText.text = getString(R.string.scan_error_start_failed)
-                errorText.visibility = android.view.View.VISIBLE
-            }
-        }, ContextCompat.getMainExecutor(this))
+                    val analysis = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                    analysis.setAnalyzer(
+                        cameraExecutor,
+                        QrAnalyzer(scanner) { text ->
+                            if (isHandled.compareAndSet(false, true)) {
+                                val data = android.content.Intent().putExtra(EXTRA_QR_TEXT, text)
+                                setResult(RESULT_OK, data)
+                                finish()
+                            }
+                        }
+                    )
+                    val selector = CameraSelector.DEFAULT_BACK_CAMERA
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(this, selector, preview, analysis)
+                } catch (_: Exception) {
+                    errorText.text = getString(R.string.scan_error_start_failed)
+                    errorText.visibility = android.view.View.VISIBLE
+                }
+            },
+            ContextCompat.getMainExecutor(this)
+        )
     }
 
+    @OptIn(ExperimentalGetImage::class)
     private class QrAnalyzer(
         private val scanner: BarcodeScanner,
         private val onResult: (String) -> Unit

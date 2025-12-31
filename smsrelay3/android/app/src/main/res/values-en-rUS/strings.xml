@@ -143,9 +143,12 @@
     <string name="permissions_required_label">Required</string>
     <string name="permissions_optional_label">Optional</string>
     <string name="permissions_grant">Grant permissions</string>
-    <string name="permissions_continue">Continue</string>
-    <string name="permissions_ready">All required permissions granted.</string>
+  <string name="permissions_continue">Continue</string>
+  <string name="permissions_ready">All required permissions granted.</string>
 <string name="permissions_missing">Missing required permissions.</string>
     <string name="scan_error_no_camera">No camera available on this device.</string>
     <string name="scan_error_start_failed">Unable to start camera.</string>
+    <string name="diag_sim_summary">SIM summary</string>
+    <string name="diag_sim_summary_value">Carriers: %1$s\nSlots: %2$s\nStatus: %3$s</string>
+    <string name="splash_loading">Warming up services.</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.smsrelay3.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.telephony.SubscriptionInfo
@@ -14,13 +15,18 @@ data class SimInfo(
 )
 
 object SimInfoResolver {
+    @SuppressLint("MissingPermission")
     fun resolve(context: Context, subscriptionId: Int?): SimInfo {
         if (!hasPermission(context)) {
             return SimInfo(null, subscriptionId, null, null)
         }
         val manager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
-        val info = manager?.activeSubscriptionInfoList
-            ?.firstOrNull { it.subscriptionId == subscriptionId }
+        val info = try {
+            manager?.activeSubscriptionInfoList
+                ?.firstOrNull { it.subscriptionId == subscriptionId }
+        } catch (_: SecurityException) {
+            null
+        }
         return SimInfo(
             slotIndex = info?.simSlotIndex,
             subscriptionId = subscriptionId,

@@ -1,5 +1,6 @@
 package com.smsrelay3.sim
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.telephony.SubscriptionInfo
@@ -9,10 +10,15 @@ import com.smsrelay3.data.entity.SimSnapshot
 import java.util.UUID
 
 object SimInventoryReader {
+    @SuppressLint("MissingPermission")
     fun readSnapshots(context: Context): List<SimSnapshot> {
         if (!hasPermission(context)) return emptyList()
         val manager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
-        val subs = manager?.activeSubscriptionInfoList ?: emptyList()
+        val subs = try {
+            manager?.activeSubscriptionInfoList ?: emptyList()
+        } catch (_: SecurityException) {
+            emptyList()
+        }
         val now = System.currentTimeMillis()
         return subs.map { info -> buildSnapshot(info, now) }
     }

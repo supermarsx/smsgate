@@ -3,12 +3,11 @@ package com.smsrelay3
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Data
 import androidx.work.testing.TestListenableWorkerBuilder
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import okhttp3.WebSocketListener
-import okhttp3.WebSocket
-import okhttp3.Response
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
