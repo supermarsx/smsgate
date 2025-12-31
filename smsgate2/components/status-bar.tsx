@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from "react";
 import { useStatus } from "./status-context";
-import { getTranslations, type Locale, useLocale } from "../lib/i18n";
+import { getTranslations, useLocale } from "../lib/i18n";
 
 /**
  * Compact websocket status indicator with expandable metrics.

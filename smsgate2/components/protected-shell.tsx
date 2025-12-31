@@ -13,7 +13,7 @@ import { useSession } from "./session-provider";
 import { useStatus } from "./status-context";
 import { useConfig } from "./config-provider";
 import { mapWsErrorKey } from "../lib/status";
-import { getTranslations, type Locale, useLocale } from "../lib/i18n";
+import { getTranslations, useLocale } from "../lib/i18n";
 import { StatusBar } from "./status-bar";
 
 type Props = {
