@@ -1,9 +1,11 @@
 package com.smsrelay3.data.db
 
 import android.content.Context
+import android.os.Build
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import java.util.concurrent.Executors
 
 object DatabaseProvider {
     @Volatile
@@ -11,12 +13,22 @@ object DatabaseProvider {
 
     fun get(context: Context): AppDatabase {
         return instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(
-                context.applicationContext,
-                AppDatabase::class.java,
-                "smsrelay3.db"
-            ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+            instance ?: buildDatabase(context).also { instance = it }
         }
+    }
+
+    private fun buildDatabase(context: Context): AppDatabase {
+        val appContext = context.applicationContext
+        val builder = if (Build.FINGERPRINT == "robolectric") {
+            val singleThread = Executors.newSingleThreadExecutor()
+            Room.inMemoryDatabaseBuilder(appContext, AppDatabase::class.java)
+                .allowMainThreadQueries()
+                .setQueryExecutor(singleThread)
+                .setTransactionExecutor(singleThread)
+        } else {
+            Room.databaseBuilder(appContext, AppDatabase::class.java, "smsrelay3.db")
+        }
+        return builder.addMigrations(MIGRATION_1_2).build()
     }
 
     private val MIGRATION_1_2 = object : Migration(1, 2) {

@@ -10,8 +10,8 @@ import org.robolectric.RobolectricTestRunner
 class ConfigStoreTest {
     @Test
     fun defaults_areStable() {
-        assertEquals("http://#SERVER:#PORT", ConfigStore.defaultString(ConfigStore.KEY_SERVER_URL))
-        assertEquals("/api/push/message", ConfigStore.defaultString(ConfigStore.KEY_API_PATH))
+        assertEquals("https://syncserver.local", ConfigStore.defaultString(ConfigStore.KEY_SERVER_URL))
+        assertEquals("/api/v1/ingest", ConfigStore.defaultString(ConfigStore.KEY_API_PATH))
         assertEquals("POST", ConfigStore.defaultString(ConfigStore.KEY_HTTP_METHOD))
         assertEquals("x-clientid", ConfigStore.defaultString(ConfigStore.KEY_CLIENT_ID_HEADER))
         assertEquals("Authorization", ConfigStore.defaultString(ConfigStore.KEY_AUTH_HEADER))

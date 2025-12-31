@@ -7,8 +7,11 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.io.File
 
+@RunWith(RobolectricTestRunner::class)
 class ConfigRepositoryTest {
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
 

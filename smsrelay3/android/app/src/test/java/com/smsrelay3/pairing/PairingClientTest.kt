@@ -3,7 +3,10 @@ package com.smsrelay3.pairing
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PairingClientTest {
     @Test
     fun `parseErrorMessage returns error field when present`() {

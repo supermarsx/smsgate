@@ -90,10 +90,16 @@ object PairingClient {
     }
 
     internal fun parseErrorMessage(body: String): String? {
-        if (body.isBlank()) return null
+        val trimmed = body.trim()
+        if (trimmed.isBlank()) return null
         return try {
-            val json = JSONObject(body)
-            json.optString("error").ifBlank { json.optString("message") }.ifBlank { null }
+            val json = JSONObject(trimmed)
+            val error = json.optString("error")
+            if (error.isNotBlank()) {
+                error
+            } else {
+                json.optString("message").takeIf { it.isNotBlank() }
+            }
         } catch (_: Exception) {
             null
         }

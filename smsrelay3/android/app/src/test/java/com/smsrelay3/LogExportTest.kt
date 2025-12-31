@@ -9,9 +9,12 @@ import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.io.File
 import java.util.UUID
 
+@RunWith(RobolectricTestRunner::class)
 class LogExportTest {
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
 

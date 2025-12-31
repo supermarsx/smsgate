@@ -3,6 +3,7 @@ package com.smsrelay3
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Data
 import androidx.work.testing.TestListenableWorkerBuilder
+import com.smsrelay3.data.DeviceAuthStore
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okhttp3.mockwebserver.MockResponse
@@ -14,6 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class SmsUploadWorkerTest {
@@ -54,6 +56,7 @@ class SmsUploadWorkerTest {
         ConfigStore.setString(context, ConfigStore.KEY_CONTENT_TYPE_VALUE, "application/json")
         ConfigStore.setString(context, ConfigStore.KEY_PIN, "1234")
         ConfigStore.setString(context, ConfigStore.KEY_SALT, "SALT")
+        DeviceAuthStore.setDeviceToken(context, "token-abc")
 
         val pending = PendingMessageStore.create("+123456789", "hello", 1700000000000L)
         PendingMessageStore.add(context, pending)
@@ -80,6 +83,10 @@ class SmsUploadWorkerTest {
         assertEquals("hello", payload.getString("message"))
         assertEquals(1700000000000L, payload.getLong("receivedAtEpochMs"))
         assertTrue(PendingMessageStore.list(context).isEmpty())
-        server.shutdown()
+        try {
+            server.shutdown()
+        } catch (_: IOException) {
+            // Ignore shutdown races in tests.
+        }
     }
 }
