@@ -9,6 +9,7 @@ pub mod hot_store;
 pub mod metrics;
 pub mod persistence;
 pub mod presence;
+pub mod pairing;
 pub mod routes;
 pub mod state;
 pub mod telemetry;
