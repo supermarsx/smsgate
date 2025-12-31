@@ -75,3 +75,8 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
       "defaultLocale": "en-US"
     }
     ```
+
+  ### Email templates
+
+  - templates/email/password-reset.html: password reset with gradient header and plaintext fallback URL placeholder `{{reset_link}}`.
+  - templates/email/device-alert.html: new-device alert with metadata placeholders (`{{event_time}}`, `{{event_ip}}`, `{{user_agent}}`).
