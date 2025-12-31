@@ -89,6 +89,8 @@ body {
   font-family: var(--font);
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body::before {
@@ -111,9 +113,10 @@ a {
 }
 
 .gg-shell {
-  padding: 52px 22px 42px;
+  padding: 36px 18px 28px;
   max-width: 1100px;
   margin: 0 auto;
+  min-height: auto;
 }
 
 @keyframes fadeIn {
@@ -144,6 +147,7 @@ a {
     opacity: 0;
   }
 }
+
 
 .page-transition {
   animation: fadeIn 220ms ease-in;
@@ -913,6 +917,9 @@ a {
   display: inline-flex;
   gap: 6px;
   padding: 5px 9px;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
+  white-space: nowrap;
   background: var(--panel-2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1009,6 +1016,8 @@ a {
   gap: 8px;
   z-index: 22;
   min-width: 240px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
 }
 
 .status-row {
