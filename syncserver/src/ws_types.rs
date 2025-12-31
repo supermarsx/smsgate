@@ -6,6 +6,7 @@ use serde::Serialize;
 use crate::{
     config::ClientConfigSnapshot,
     domain::{PresenceState, SimSnapshot, SmsEvent},
+    metrics::Snapshot as MetricsSnapshot,
 };
 
 /// Server -> client messages.
@@ -20,6 +21,8 @@ pub enum ServerMessage {
         newest_id: Option<String>,
         oldest_id: Option<String>,
         limit: u32,
+        presence: Vec<PresenceUpdate>,
+        metrics: Option<MetricsSnapshot>,
     },
     /// Initial configuration snapshot to seed UI gating.
     ConfigSnapshot { config: ClientConfigSnapshot },

@@ -31,6 +31,7 @@ class ConfigSyncWorker(appContext: Context, params: WorkerParameters) : Coroutin
         val requestBuilder = Request.Builder()
             .url("$baseUrl/api/v1/device/config")
             .addHeader("Authorization", "Bearer $deviceToken")
+            .addHeader("x-device-id", DeviceAuthStore.getDeviceId(applicationContext) ?: "")
         current?.etag?.let { requestBuilder.addHeader("If-None-Match", it) }
 
         val response = try {

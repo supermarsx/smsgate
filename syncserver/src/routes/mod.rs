@@ -14,6 +14,7 @@ mod health;
 pub mod ingest;
 pub mod pairing;
 pub mod presence;
+pub mod device;
 pub mod ws;
 
 /// Build the Axum router with health, readiness, and metrics endpoints.
@@ -71,17 +72,26 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/events/:event_id/verify",
             axum::routing::post(events::verify_event),
         )
-        .route(
-            "/api/v1/events/:event_id/reject",
-            axum::routing::post(events::reject_event),
-        )
-        .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
-        .route(
-            "/api/v1/presence/heartbeat",
-            axum::routing::post(presence::heartbeat),
-        )
-        .route("/api/v1/ws", axum::routing::get(ws::ws_handler))
-        .route("/api/v1/audit", axum::routing::get(audit::list_audit))
+            .route(
+                "/api/v1/events/:event_id/reject",
+                axum::routing::post(events::reject_event),
+            )
+            .route("/api/v1/events", get(events::list_events))
+            .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
+            .route(
+                "/api/v1/presence/heartbeat",
+                axum::routing::post(presence::heartbeat),
+            )
+            .route("/api/v1/ws", axum::routing::get(ws::ws_handler))
+            .route(
+                "/api/v1/device/config",
+                axum::routing::get(device::get_device_config),
+            )
+            .route(
+                "/api/v1/device/sims",
+                axum::routing::post(device::update_sims),
+            )
+            .route("/api/v1/audit", axum::routing::get(audit::list_audit))
         .route(
             "/api/v1/login-events",
             axum::routing::get(audit::list_login_events),

@@ -27,10 +27,10 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [ ] Implement real LDAP bind + RS256/JWKS OAuth validation on server (spec gap).
 
 ## Ingest, presence, device config
-- [ ] Align ingest payload: server expects `{ events:[{id?,device_id,number_e164,sender,content,device_received_at,source}] }` with `x-device-id` header; smsrelay3 sends single message bodies with `device_seq`, `received_at_device_ms`, metadata, and no header. Choose one shape and update both sides.
-- [ ] Heartbeat alignment: server requires `device_id` + bearer + optional SIM snapshots; smsrelay3 sends different field names and lacks `x-device-id`. Add SIM payload and RTT fields per spec and broadcast presence updates.
-- [x] smsrelay3 heartbeat now sends ISO timestamps, battery level, and `x-device-id`; still needs SIM payload per spec.
-- [ ] Add `/api/v1/device/config`, `/api/v1/device/sims`, and `/api/v1/device/contacts` on server, or repoint smsrelay3 to existing routes; include ETag and config versioning.
+- [ ] Align ingest payload: server expects `{ events:[{id?,device_id,number_e164,sender,content,device_received_at,source}] }` with `x-device-id` header; smsrelay3 now wraps events + headers but still needs full SIM/metadata per spec.
+- [x] Heartbeat alignment: smsrelay3 now sends ISO timestamps, battery level, and `x-device-id`; SIM payload still pending on device side.
+- [x] Add `/api/v1/device/config` (ETag/version) and `/api/v1/device/sims` on server; smsrelay3 now sends headers. Device contacts endpoint still missing.
+- [ ] Add `/api/v1/device/contacts` on server, or repoint smsrelay3 to existing routes; include ETag and config versioning.
 - [ ] Pairing response should return config snapshot/version for device bootstrap (currently only id/token).
 - [ ] Implement SIM events (`SIM_*`) and presence broadcast with multi-SIM numbers for UI Devices page.
 

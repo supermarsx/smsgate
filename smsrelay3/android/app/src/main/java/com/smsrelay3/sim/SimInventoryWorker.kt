@@ -75,6 +75,7 @@ class SimInventoryWorker(appContext: Context, params: WorkerParameters) : Corout
         val request = Request.Builder()
             .url("$baseUrl/api/v1/device/sims")
             .addHeader("Authorization", "Bearer $deviceToken")
+            .addHeader("x-device-id", deviceId)
             .post(body)
             .build()
 

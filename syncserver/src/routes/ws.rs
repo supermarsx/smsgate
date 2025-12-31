@@ -14,6 +14,8 @@ use tokio::time::timeout;
 
 use crate::{
     auth::{AuthContext, Principal},
+    metrics::Snapshot as MetricsSnapshot,
+    presence::PresenceEntry,
     state::AppState,
     ws_types::{ClientMessage, PageDirection, PagePayload, ServerMessage},
 };
@@ -137,11 +139,15 @@ async fn send_snapshot(socket: &mut WebSocket, state: &AppState, limit: usize) -
     let newest_id = events.first().map(|e| e.id.clone());
     let oldest_id = events.last().map(|e| e.id.clone());
     let cfg = state.config.read().await;
+    let presence = presence_snapshot(state);
+    let metrics = Some(MetricsSnapshot::default());
     let message = ServerMessage::Snapshot {
         events,
         newest_id,
         oldest_id,
         limit: cfg.config.server.ws_snapshot_limit,
+        presence,
+        metrics,
     };
     send_json(socket, &message).await
 }
@@ -274,6 +280,29 @@ fn auth_label(ctx: &AuthContext) -> String {
     match &ctx.principal {
         Principal::User { id, .. } => format!("user:{id}"),
         Principal::Device { id } => format!("device:{id}"),
+    }
+}
+
+fn presence_snapshot(state: &AppState) -> Vec<crate::ws_types::PresenceUpdate> {
+    state
+        .presence
+        .all()
+        .into_iter()
+        .map(|(device_id, entry, state)| map_presence(&device_id, entry, state))
+        .collect()
+}
+
+fn map_presence(
+    device_id: &str,
+    entry: PresenceEntry,
+    state: crate::domain::PresenceState,
+) -> crate::ws_types::PresenceUpdate {
+    crate::ws_types::PresenceUpdate {
+        device_id: device_id.to_string(),
+        state,
+        queue_depth: entry.queue_depth,
+        last_heartbeat: entry.last_heartbeat,
+        device_rtt_ms: entry.device_rtt_ms,
     }
 }
 

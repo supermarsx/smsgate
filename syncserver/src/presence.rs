@@ -81,4 +81,18 @@ impl PresenceStore {
             .get(device_id)
             .map(|entry| (entry.clone(), self.evaluate(now, device_id)))
     }
+
+    /// Return all presence entries with computed state.
+    pub fn all(&self) -> Vec<(String, PresenceEntry, PresenceState)> {
+        let now = Utc::now();
+        self.entries
+            .iter()
+            .map(|entry| {
+                let device_id = entry.key().clone();
+                let entry_val = entry.value().clone();
+                let state = self.evaluate(now, &device_id);
+                (device_id, entry_val, state)
+            })
+            .collect()
+    }
 }

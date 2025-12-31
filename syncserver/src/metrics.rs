@@ -11,6 +11,21 @@ use prometheus::process_collector::ProcessCollector;
 use prometheus::{opts, Encoder, Gauge, GaugeVec, Histogram, IntCounterVec, Registry, TextEncoder};
 
 use crate::{error::AppError, state::AppState};
+use serde::Serialize;
+
+/// Lightweight metrics snapshot for WS/dashboard payloads.
+#[derive(Debug, Clone, Serialize, Default)]
+pub struct Snapshot {
+    /// Placeholder for ingest latency percentiles (p50/p95).
+    pub ingest_to_dashboard_ms: Option<LatencySummary>,
+}
+
+/// Latency percentiles for dashboard display.
+#[derive(Debug, Clone, Serialize)]
+pub struct LatencySummary {
+    pub p50: Option<f64>,
+    pub p95: Option<f64>,
+}
 
 /// Shared metrics registry and counters.
 #[derive(Clone)]
