@@ -175,6 +175,27 @@ impl Default for AuthConfig {
     }
 }
 
+/// Ingest configuration for deduplication and buffering.
+#[derive(Debug, Clone, Deserialize)]
+pub struct IngestConfig {
+    /// TTL in milliseconds for deduplication keys.
+    pub dedup_ttl_ms: u64,
+    /// Maximum events retained in the hot store ring buffer.
+    pub hot_store_capacity: usize,
+    /// Maximum events accepted per ingest request.
+    pub max_batch: usize,
+}
+
+impl Default for IngestConfig {
+    fn default() -> Self {
+        Self {
+            dedup_ttl_ms: 60_000,
+            hot_store_capacity: 1_000,
+            max_batch: 100,
+        }
+    }
+}
+
 /// Top-level application configuration shared across the server.
 #[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig {
@@ -182,6 +203,8 @@ pub struct AppConfig {
     pub env: RunEnvironment,
     /// Listener and WebSocket controls.
     pub server: ServerConfig,
+    /// Ingest controls.
+    pub ingest: IngestConfig,
     /// Hot store backend selection.
     pub hot_store: HotStoreConfig,
     /// Durable persistence controls.
@@ -195,6 +218,7 @@ impl Default for AppConfig {
         Self {
             env: RunEnvironment::default(),
             server: ServerConfig::default(),
+            ingest: IngestConfig::default(),
             hot_store: HotStoreConfig::default(),
             database: DatabaseConfig::default(),
             auth: AuthConfig::default(),
@@ -273,6 +297,27 @@ impl AppConfig {
             .and_then(|p| p.parse().ok())
         {
             self.server.ws_ping_interval_ms = interval;
+        }
+
+        if let Some(ttl) = env::var("SYNC_INGEST_DEDUP_TTL_MS")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.ingest.dedup_ttl_ms = ttl;
+        }
+
+        if let Some(capacity) = env::var("SYNC_HOTSTORE_CAPACITY")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.ingest.hot_store_capacity = capacity;
+        }
+
+        if let Some(max_batch) = env::var("SYNC_INGEST_MAX_BATCH")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.ingest.max_batch = max_batch;
         }
 
         if let Ok(mode) = env::var("SYNC_HOTSTORE") {
