@@ -1,5 +1,6 @@
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Registry};
 
+/// Initialize tracing subscriber with env-driven filter and formatted output.
 pub fn init_tracing() {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("syncserver=debug,axum=info"));

@@ -1,4 +1,5 @@
 mod config;
+mod error;
 mod routes;
 mod state;
 mod telemetry;
@@ -6,22 +7,30 @@ mod telemetry;
 use crate::{config::AppConfig, routes::router, state::AppState};
 use tokio::net::TcpListener;
 
+/// Entrypoint: load configuration, start telemetry, and run the Axum server.
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
     telemetry::init_tracing();
 
-    let config = AppConfig::from_env();
+    let config = AppConfig::load()?;
     let state = AppState::new(config.clone());
-    let app = router(state);
+    let app_state = state.clone();
+    let app = router(app_state);
 
     let listener = TcpListener::bind(config.socket_addr()).await?;
     tracing::info!(
-        host = %config.host,
-        port = config.port,
+        host = %config.server.host,
+        port = config.server.port,
         env = config.env.as_str(),
         "syncserver listening"
     );
+
+    // Mark HTTP as ready once the listener is bound.
+    state
+        .ready_flags
+        .http_ready
+        .store(true, std::sync::atomic::Ordering::Relaxed);
 
     axum::serve(listener, app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())

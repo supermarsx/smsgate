@@ -4,6 +4,7 @@ use crate::state::AppState;
 
 mod health;
 
+/// Build the Axum router with health and readiness endpoints.
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/healthz", get(health::health))

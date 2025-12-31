@@ -7,8 +7,8 @@
 
 ## Foundations & scaffolding
 - [ ] Set up lint/format/test baseline (`cargo fmt`, `clippy`, unit/integration test harness) and CI hooks.
-- [ ] Add shared error type (thiserror/anyhow) and response mapping for HTTP/WS.
-- [ ] Implement configuration loader (config.json + env overrides + secrets) with validation and defaults.
+- [x] Add shared error type (thiserror/anyhow) and response mapping for HTTP/WS.
+- [x] Implement configuration loader (config.json + env overrides + secrets) with validation and defaults.
 - [ ] Define shared domain models and typed contracts (events, presence, config, pairing, users, numbers, audit, login events).
 - [x] Add structured logging/tracing bootstrap with env-based filter.
 - [ ] Wire metrics exporter (Prometheus/OpenTelemetry) and `/metrics` endpoint.
