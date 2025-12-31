@@ -18,7 +18,9 @@
     "secure": false,
     "username": "smtp-user",
     "password": "smtp-pass",
-    "fromEmail": "no-reply@example.com"
+    "fromEmail": "no-reply@example.com",
+    "replyTo": "support@example.com",
+    "rateLimitPerHour": 200
   },
   "offlineReset": {
     "enabled": true
@@ -36,5 +38,31 @@
   "localization": {
     "locales": ["en-US", "pt-PT", "es-ES"],
     "defaultLocale": "en-US"
+  },
+  "ui": {
+    "pageSize": 20,
+    "dateFormat": "YYYY-MM-DD",
+    "showDebug": false
+  },
+  "featureFlags": {
+    "newDashboard": false,
+    "betaRealtime": false
+  },
+  "realtime": {
+    "pingMs": 15000,
+    "reconnectCapMs": 30000
+  },
+  "contacts": {
+    "syncIntervalMinutes": 30,
+    "conflictStrategy": "prompt"
+  },
+  "logging": {
+    "level": "info",
+    "console": true
+  },
+  "telemetry": {
+    "enabled": false,
+    "sampleRate": 1,
+    "endpoint": ""
   }
 }
