@@ -409,6 +409,8 @@ a {
   max-width: 1040px;
   margin: 0 auto;
   width: 100%;
+  align-items: stretch;
+  min-height: calc(100vh - 60px);
 }
 
 .shell.nav-open {
@@ -425,7 +427,10 @@ a {
   box-shadow: var(--shadow-2);
   backdrop-filter: blur(calc(var(--blur) + 4px));
   -webkit-backdrop-filter: blur(calc(var(--blur) + 4px));
-  min-height: auto;
+  min-height: fit-content;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .nav-brand-row {
@@ -737,8 +742,25 @@ a {
 
 .filter-row {
   display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.filters-inline {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  align-items: flex-end;
+  margin: 8px 0 10px;
+}
+
+.filter-group {
+  display: grid;
   gap: 6px;
-  margin: 10px 0;
+  min-width: 180px;
+  flex: 1;
 }
 
 .pagination {

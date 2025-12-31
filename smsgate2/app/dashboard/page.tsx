@@ -183,38 +183,40 @@ export default function DashboardPage() {
                 </span>
               )}
             </div>
-            <div className="filter-row">
-              <label htmlFor="number-filter" className="gg-label">
-                {t("dashboardFilterNumber", "Filter by number")}
-              </label>
-              <select
-                id="number-filter"
-                className="gg-select"
-                value={filterNumber}
-                onChange={(e) => setFilterNumber(e.target.value)}
-              >
-                <option value="__all__">{t("dashboardAllNumbers", "All numbers")}</option>
-                {(session.user.numbers ?? []).map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="filter-row">
-              <label htmlFor="time-filter" className="gg-label">
-                {t("timeWindow", "Time window")}
-              </label>
-              <select
-                id="time-filter"
-                className="gg-select"
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
-              >
-                <option value="all">{t("all", "All")}</option>
-                <option value="1h">{t("lastHour", "Last hour")}</option>
-                <option value="24h">{t("last24h", "Last 24h")}</option>
-              </select>
+            <div className="filters-inline">
+              <div className="filter-group">
+                <label htmlFor="number-filter" className="gg-label">
+                  {t("dashboardFilterNumber", "Filter by number")}
+                </label>
+                <select
+                  id="number-filter"
+                  className="gg-select"
+                  value={filterNumber}
+                  onChange={(e) => setFilterNumber(e.target.value)}
+                >
+                  <option value="__all__">{t("dashboardAllNumbers", "All numbers")}</option>
+                  {(session.user.numbers ?? []).map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label htmlFor="time-filter" className="gg-label">
+                  {t("timeWindow", "Time window")}
+                </label>
+                <select
+                  id="time-filter"
+                  className="gg-select"
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value as "all" | "1h" | "24h")}
+                >
+                  <option value="all">{t("all", "All")}</option>
+                  <option value="1h">{t("lastHour", "Last hour")}</option>
+                  <option value="24h">{t("last24h", "Last 24h")}</option>
+                </select>
+              </div>
             </div>
             <div className="phone-mock">
               <div className="phone-mock__screen" ref={scrollRef}>
