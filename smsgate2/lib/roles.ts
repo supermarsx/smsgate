@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Role helpers for navigation gating and labels.
+ */
+
 import type { Role } from "./auth";
 
 export const DEFAULT_ROLE_ORDER: Role[] = ["viewer", "verifier", "manager", "admin"];
@@ -5,6 +9,10 @@ export const DEFAULT_ROLE_ORDER: Role[] = ["viewer", "verifier", "manager", "adm
 let runtimeRoleOrder: Role[] = DEFAULT_ROLE_ORDER;
 let runtimeRoleLabels: Record<string, string> = {};
 
+/**
+ * Configure role order and labels at runtime.
+ * @returns void
+ */
 export function configureRoles(opts?: { order?: Role[]; labels?: Record<string, string> }) {
   runtimeRoleOrder = Array.isArray(opts?.order) && opts?.order.length ? opts.order : DEFAULT_ROLE_ORDER;
   runtimeRoleLabels = opts?.labels ?? {};
@@ -12,6 +20,7 @@ export function configureRoles(opts?: { order?: Role[]; labels?: Record<string, 
 
 /**
  * Return the rank index for a role within an order.
+ * @returns Zero-based rank within the order, or 0 when missing.
  */
 export function roleRank(role: Role, order?: Role[]): number {
   const effectiveOrder = order?.length ? order : runtimeRoleOrder;
@@ -21,6 +30,7 @@ export function roleRank(role: Role, order?: Role[]): number {
 
 /**
  * True when `role` is at or above `minimum` in the ordering.
+ * @returns Whether the role meets or exceeds the minimum.
  */
 export function hasAtLeast(role: Role, minimum: Role, order?: Role[]): boolean {
   const effectiveOrder = order?.length ? order : runtimeRoleOrder;
@@ -29,6 +39,7 @@ export function hasAtLeast(role: Role, minimum: Role, order?: Role[]): boolean {
 
 /**
  * Filter navigation entries allowed for a role.
+ * @returns Allowed navigation items for the role.
  */
 export function allowedNav(role: Role, order?: Role[]): Array<{ label: string; path: string; minRole: Role }> {
   const effectiveOrder = order?.length ? order : runtimeRoleOrder;
@@ -47,6 +58,7 @@ export function allowedNav(role: Role, order?: Role[]): Array<{ label: string; p
 
 /**
  * Resolve a display label for a role using provided labels or runtime defaults.
+ * @returns Display label for the role.
  */
 export function getRoleLabel(role: Role, labels?: Record<string, string>): string {
   if (labels && labels[role]) return labels[role];
