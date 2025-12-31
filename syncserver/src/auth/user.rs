@@ -6,13 +6,24 @@ use axum::{
     http::{request::Parts, StatusCode},
 };
 
-use crate::auth::{rbac::RbacStore, Role};
+use crate::auth::{rbac::RbacStore, session::SessionStore, Role};
 use crate::auth::{AuthContext, Principal};
 
 /// Extractor that reads `x-user-id`, optional `x-user-role`, and optional `x-user-groups`.
 pub struct UserAuth(pub AuthContext);
 
 impl UserAuth {
+    fn session_from_headers(headers: &axum::http::HeaderMap, sessions: &SessionStore) -> Option<AuthContext> {
+        let token = headers
+            .get(axum::http::header::AUTHORIZATION)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .map(|s| s.trim().to_string())?;
+        sessions.validate(&token).map(|sess| AuthContext {
+            principal: sess.principal,
+        })
+    }
+
     fn role_from_headers(headers: &axum::http::HeaderMap, rbac: &RbacStore) -> Option<Role> {
         if let Some(role_name) = headers.get("x-user-role").and_then(|v| v.to_str().ok()) {
             if let Some(role) = rbac.role_by_name(role_name) {
@@ -41,12 +52,18 @@ impl UserAuth {
 impl<S> FromRequestParts<S> for UserAuth
 where
     RbacStore: FromRef<S>,
+    SessionStore: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let rbac = RbacStore::from_ref(state);
+        let sessions = SessionStore::from_ref(state);
+
+        if let Some(ctx) = Self::session_from_headers(&parts.headers, &sessions) {
+            return Ok(UserAuth(ctx));
+        }
 
         let user_id = parts
             .headers

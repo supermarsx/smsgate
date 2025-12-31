@@ -324,4 +324,28 @@ pub mod permissions {
     pub const CONFIG_WRITE: &str = "config.write";
     pub const AUDIT_READ: &str = "audit.read";
     pub const LOGINS_READ: &str = "logins.read";
+
+    /// Return all permissions for bootstrap/admin roles.
+    pub fn all_permissions() -> Vec<String> {
+        vec![
+            EVENTS_READ.into(),
+            EVENTS_CLAIM.into(),
+            EVENTS_VERIFY.into(),
+            EVENTS_REJECT.into(),
+            DEVICES_READ.into(),
+            DEVICES_WRITE.into(),
+            DEVICES_DISABLE.into(),
+            DEVICES_ROTATE_TOKEN.into(),
+            NUMBERS_READ.into(),
+            NUMBERS_WRITE.into(),
+            USERS_READ.into(),
+            USERS_WRITE.into(),
+            USERS_FORCE_LOGOUT.into(),
+            USERS_UNLOCK.into(),
+            CONFIG_READ.into(),
+            CONFIG_WRITE.into(),
+            AUDIT_READ.into(),
+            LOGINS_READ.into(),
+        ]
+    }
 }
