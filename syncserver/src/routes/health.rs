@@ -1,4 +1,4 @@
-use axum::{extract::State, Json};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 
 use crate::{config::AppConfig, state::AppState};
@@ -48,6 +48,10 @@ pub(crate) struct Backends {
 
 /// Liveness probe handler.
 pub async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
+    state
+        .metrics
+        .observe_http("/healthz", axum::http::StatusCode::OK);
+
     Json(HealthResponse {
         status: "ok",
         service: "syncserver",
@@ -58,15 +62,20 @@ pub async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
 }
 
 /// Readiness probe handler with backend summaries.
-pub async fn ready(State(state): State<AppState>) -> Json<ReadyResponse> {
+pub async fn ready(State(state): State<AppState>) -> impl IntoResponse {
     let snapshot = state.ready_flags.snapshot();
     let status = if snapshot.http_ready && snapshot.hot_store_ready && snapshot.storage_ready {
         "ready"
     } else {
         "initializing"
     };
+    let status_code = if snapshot.http_ready {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
 
-    Json(ReadyResponse {
+    let payload = ReadyResponse {
         status,
         env: state.config.env.as_str(),
         backends: Backends {
@@ -78,7 +87,11 @@ pub async fn ready(State(state): State<AppState>) -> Json<ReadyResponse> {
             storage: readiness_label(snapshot.storage_ready),
             hot_store: readiness_label(snapshot.hot_store_ready),
         },
-    })
+    };
+
+    state.metrics.observe_http("/readyz", status_code);
+
+    (status_code, Json(payload))
 }
 
 fn readiness_label(ready: bool) -> &'static str {

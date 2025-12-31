@@ -2,14 +2,15 @@
 //! This module owns the registry and provides helpers to render `/metrics`.
 
 use axum::{
+    extract::State,
     http::{header::CONTENT_TYPE, StatusCode},
     response::{IntoResponse, Response},
 };
-use prometheus::{
-    opts, process_collector::ProcessCollector, Encoder, IntCounterVec, Registry, TextEncoder,
-};
+#[cfg(target_os = "linux")]
+use prometheus::process_collector::ProcessCollector;
+use prometheus::{opts, Encoder, IntCounterVec, Registry, TextEncoder};
 
-use crate::error::AppError;
+use crate::{error::AppError, state::AppState};
 
 /// Shared metrics registry and counters.
 #[derive(Clone)]
@@ -36,9 +37,12 @@ impl Metrics {
         registry
             .register(Box::new(http_requests_total.clone()))
             .map_err(|err| AppError::Internal(format!("failed to register counter: {}", err)))?;
+        #[cfg(target_os = "linux")]
         registry
             .register(Box::new(ProcessCollector::for_self()))
-            .map_err(|err| AppError::Internal(format!("failed to register process collector: {}", err)))?;
+            .map_err(|err| {
+                AppError::Internal(format!("failed to register process collector: {}", err))
+            })?;
 
         Ok(Self {
             registry,
@@ -78,19 +82,17 @@ fn normalize_path(path: &str) -> String {
 }
 
 /// Metrics handler returning Prometheus exposition format.
-pub async fn metrics_handler(state: crate::state::AppState) -> Response {
+pub async fn metrics_handler(State(state): State<AppState>) -> Response {
     match state.metrics.render() {
         Ok(body) => {
             state.metrics.observe_http("/metrics", StatusCode::OK);
-            (
-                [(CONTENT_TYPE, TextEncoder::default().format_type())],
-                body,
-            )
-                .into_response()
+            ([(CONTENT_TYPE, TextEncoder::default().format_type())], body).into_response()
         }
         Err(err) => {
             tracing::error!(error = %err, "failed to render metrics");
-            state.metrics.observe_http("/metrics", StatusCode::INTERNAL_SERVER_ERROR);
+            state
+                .metrics
+                .observe_http("/metrics", StatusCode::INTERNAL_SERVER_ERROR);
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

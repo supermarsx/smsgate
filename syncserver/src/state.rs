@@ -67,17 +67,13 @@ impl AppState {
         let ready_flags = ReadyFlags::new();
         // In-memory hot store and json_db/sqlite adapters do not require external connectivity.
         if matches!(config.hot_store.mode, config::HotStoreMode::Memory) {
-            ready_flags
-                .hot_store_ready
-                .store(true, Ordering::Relaxed);
+            ready_flags.hot_store_ready.store(true, Ordering::Relaxed);
         }
         if matches!(
             config.database.adapter,
             config::DatabaseAdapter::JsonDb | config::DatabaseAdapter::Sqlite
         ) {
-            ready_flags
-                .storage_ready
-                .store(true, Ordering::Relaxed);
+            ready_flags.storage_ready.store(true, Ordering::Relaxed);
         }
 
         let metrics = Metrics::new().expect("failed to initialize metrics");

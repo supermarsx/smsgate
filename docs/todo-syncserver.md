@@ -11,7 +11,7 @@
 - [x] Implement configuration loader (config.json + env overrides + secrets) with validation and defaults.
 - [x] Define shared domain models and typed contracts (events, presence, config, pairing, users, numbers, audit, login events).
 - [x] Add structured logging/tracing bootstrap with env-based filter.
-- [ ] Wire metrics exporter (Prometheus/OpenTelemetry) and `/metrics` endpoint.
+- [x] Wire metrics exporter (Prometheus) and `/metrics` endpoint.
 - [ ] Containerize server (Dockerfile + compose service alongside Redis/DB) and document env vars.
 
 ## Auth & identity
