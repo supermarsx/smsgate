@@ -16,8 +16,8 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="gg-body">
+    <html lang="en" suppressHydrationWarning>
+      <body className="gg-body" suppressHydrationWarning>
         <SessionProvider>
           <ConfigProvider>
             <ThemeProvider>

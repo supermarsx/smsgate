@@ -39,13 +39,10 @@ export const DEFAULT_LOCALE: Locale = CONFIG_DEFAULT_LOCALE ?? "en-US";
  * Resolve locale in a hydration-safe way and react to changes (storage/custom events).
  */
 export function useLocale(): Locale {
-  // Start with server-safe default to avoid hydration mismatches; update on client after mount.
-  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
+  // Prefer the user's stored/browser locale immediately to avoid visible flicker.
+  const [locale, setLocale] = useState<Locale>(() => getInitialLocale());
 
   useEffect(() => {
-    const initial = getInitialLocale();
-    setLocale((prev) => (prev === initial ? prev : initial));
-
     // Listen for explicit locale changes dispatched by setPreferredLocale
     const onLocaleEvent = (event: Event) => {
       if (event instanceof CustomEvent && event.detail) {
