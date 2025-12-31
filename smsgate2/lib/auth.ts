@@ -1,4 +1,5 @@
 import { appConfig, wsUrl } from "./config";
+import { enqueueSmtpJob, smtpEnabled } from "./smtp-service";
 import type { Locale } from "./i18n";
 
 export type Role = string;
@@ -77,8 +78,13 @@ export function clearSession(): void {
 }
 
 export async function requestPasswordReset(email: string): Promise<{ ok: boolean; message?: string }> {
+  if (!smtpEnabled()) {
+    return { ok: false, message: "SMTP disabled in configuration" };
+  }
   try {
-    await apiFetch<void>("/auth/password/reset-request", { method: "POST", body: JSON.stringify({ email }) });
+    await enqueueSmtpJob(() =>
+      apiFetch<void>("/auth/password/reset-request", { method: "POST", body: JSON.stringify({ email }) })
+    );
     return { ok: true };
   } catch (err) {
     return { ok: false, message: (err as Error).message };

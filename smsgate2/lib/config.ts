@@ -12,6 +12,7 @@ export type AppConfig = {
   allowOfflineAdmin?: boolean;
   primaryAuthMode?: "oauth" | "simple_signin" | "domain_signin";
   smtp?: {
+    enabled?: boolean;
     host: string;
     port: number;
     secure: boolean;
@@ -92,6 +93,14 @@ function buildConfig(): AppConfig {
     ? (primaryAuthModeEnv as AppConfig["primaryAuthMode"])
     : undefined;
 
+  const smtpEnabled = boolEnv("NEXT_PUBLIC_SMTP_ENABLED", mergedFileConfig.smtp?.enabled ?? true);
+  const smtp = mergedFileConfig.smtp
+    ? {
+        ...mergedFileConfig.smtp,
+        enabled: smtpEnabled
+      }
+    : undefined;
+
   return {
     apiBaseUrl,
     wsPath,
@@ -99,7 +108,7 @@ function buildConfig(): AppConfig {
     qrOrigin: qrOrigin || undefined,
     allowOfflineAdmin,
     primaryAuthMode,
-    smtp: mergedFileConfig.smtp,
+    smtp,
     offlineReset: mergedFileConfig.offlineReset,
     authModes,
     locales,

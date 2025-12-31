@@ -66,6 +66,7 @@ export function LoginPanel({ onLogin }: Props) {
   const [resetOpen, setResetOpen] = useState(false);
   const [offlineReset, setOfflineReset] = useState({ token: "", password: "", confirm: "" });
   const offlineResetEnabled = appConfig.offlineReset?.enabled ?? false;
+  const smtpEnabled = !!appConfig.smtp && (appConfig.smtp.enabled ?? true);
   const allowOfflineAdmin = (appConfig.allowOfflineAdmin ?? false) || process.env.NODE_ENV !== "production";
   const networkErrorHint = t("loginNetworkHint", "Server unreachable. Verify API base URL and network.");
   const genericErrorHint = t("loginErrorHelp", "If this keeps happening, check your connection or contact an admin.");
@@ -400,7 +401,7 @@ export function LoginPanel({ onLogin }: Props) {
                 <button
                   type="button"
                   className="ghost"
-                  disabled={resetPending}
+                  disabled={resetPending || !smtpEnabled}
                   onClick={async () => {
                     setResetStatus(null);
                     setResetPending(true);
@@ -414,6 +415,14 @@ export function LoginPanel({ onLogin }: Props) {
                   {resetPending ? t("saving", "Saving...") : t("sendResetLink", "Send reset link")}
                 </button>
               </div>
+              {!smtpEnabled && (
+                <div className="muted small warning">
+                  {t(
+                    "smtpDisabled",
+                    "SMTP is disabled in configuration; use offline reset or contact an administrator."
+                  )}
+                </div>
+              )}
               {resetStatus && <div className="muted small">{resetStatus}</div>}
             </div>
             {offlineResetEnabled && (
