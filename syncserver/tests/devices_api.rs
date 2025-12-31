@@ -155,7 +155,11 @@ async fn device_disable_and_enable_controls_ingest() {
         .unwrap();
     assert_eq!(list_res.status(), StatusCode::OK);
     let list_body: serde_json::Value =
-        serde_json::from_slice(&body::to_bytes(list_res.into_body()).await.unwrap())
+        serde_json::from_slice(
+            &body::to_bytes(list_res.into_body(), usize::MAX)
+                .await
+                .unwrap(),
+        )
             .unwrap();
     assert_eq!(
         list_body["devices"][0]["name"].as_str().unwrap(),
@@ -177,7 +181,11 @@ async fn device_disable_and_enable_controls_ingest() {
         .unwrap();
     assert_eq!(diag_res.status(), StatusCode::OK);
     let diag_body: serde_json::Value =
-        serde_json::from_slice(&body::to_bytes(diag_res.into_body()).await.unwrap())
+        serde_json::from_slice(
+            &body::to_bytes(diag_res.into_body(), usize::MAX)
+                .await
+                .unwrap(),
+        )
             .unwrap();
     assert_eq!(diag_body["device"]["id"], "dev-1");
     assert_eq!(diag_body["presence"]["state"], "offline");
