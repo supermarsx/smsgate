@@ -1,9 +1,9 @@
 use crate::error::AppError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{env, fs, net::SocketAddr, path::PathBuf};
 
 /// Execution environment to allow different defaults and logging levels.
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum RunEnvironment {
     /// Development mode with relaxed defaults.
@@ -41,7 +41,7 @@ impl RunEnvironment {
 }
 
 /// Hot store backing mode selection.
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum HotStoreMode {
     /// Use Redis for fanout + dedup TTL keys.
@@ -57,7 +57,7 @@ impl Default for HotStoreMode {
 }
 
 /// Storage adapter choices for durable persistence.
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum DatabaseAdapter {
     /// JSON DB append-only log for small installs.
@@ -77,7 +77,7 @@ impl Default for DatabaseAdapter {
 }
 
 /// Supported authentication modes for the server.
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AuthMode {
     /// OAuth / OIDC.
