@@ -180,7 +180,9 @@ export function LoginPanel({ onLogin }: Props) {
         setPending(false);
         return;
       }
-      setError(message);
+      setError(
+        isNetworkError ? t("networkFetchError", "Network error when attempting to fetch resource.") : message
+      );
     } finally {
       setPending(false);
     }

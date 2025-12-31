@@ -469,7 +469,10 @@ a {
   font-weight: 100;
   letter-spacing: 0.02em;
   background: transparent;
-  box-shadow: 0 0 18px rgba(217, 164, 65, 0.28);
+  color: var(--text);
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 0.2),
+    0 0 8px rgba(232, 195, 114, 0.25);
 }
 
 .nav-link {

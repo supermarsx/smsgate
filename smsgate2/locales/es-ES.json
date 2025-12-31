@@ -303,6 +303,7 @@
   "loginResetHide": "Hide password reset",
   "loginSsoReady": "Continue to your identity provider to sign in.",
   "loginNetworkHint": "Server unreachable. Verify API base URL and network.",
+  "networkFetchError": "Error de red al intentar obtener el recurso.",
   "loginErrorHelp": "If this keeps happening, check your connection or contact an admin.",
   "localeSelect": "Cambiar idioma"
 }
