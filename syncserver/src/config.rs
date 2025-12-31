@@ -196,6 +196,24 @@ impl Default for IngestConfig {
     }
 }
 
+/// Presence thresholds for online/degraded evaluations.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PresenceConfig {
+    /// Milliseconds since last heartbeat to consider online.
+    pub online_threshold_ms: u64,
+    /// Milliseconds since last heartbeat to consider degraded (beyond this is offline).
+    pub degraded_threshold_ms: u64,
+}
+
+impl Default for PresenceConfig {
+    fn default() -> Self {
+        Self {
+            online_threshold_ms: 20_000,
+            degraded_threshold_ms: 60_000,
+        }
+    }
+}
+
 /// Top-level application configuration shared across the server.
 #[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig {
@@ -205,6 +223,8 @@ pub struct AppConfig {
     pub server: ServerConfig,
     /// Ingest controls.
     pub ingest: IngestConfig,
+    /// Presence evaluation thresholds.
+    pub presence: PresenceConfig,
     /// Hot store backend selection.
     pub hot_store: HotStoreConfig,
     /// Durable persistence controls.
@@ -219,6 +239,7 @@ impl Default for AppConfig {
             env: RunEnvironment::default(),
             server: ServerConfig::default(),
             ingest: IngestConfig::default(),
+            presence: PresenceConfig::default(),
             hot_store: HotStoreConfig::default(),
             database: DatabaseConfig::default(),
             auth: AuthConfig::default(),
@@ -320,6 +341,20 @@ impl AppConfig {
             self.ingest.max_batch = max_batch;
         }
 
+        if let Some(online_ms) = env::var("SYNC_PRESENCE_ONLINE_MS")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.presence.online_threshold_ms = online_ms;
+        }
+
+        if let Some(degraded_ms) = env::var("SYNC_PRESENCE_DEGRADED_MS")
+            .ok()
+            .and_then(|p| p.parse().ok())
+        {
+            self.presence.degraded_threshold_ms = degraded_ms;
+        }
+
         if let Ok(mode) = env::var("SYNC_HOTSTORE") {
             self.hot_store.mode = match mode.to_ascii_lowercase().as_str() {
                 "redis" => HotStoreMode::Redis,
@@ -385,6 +420,19 @@ impl AppConfig {
         if self.ingest.max_batch == 0 {
             return Err(AppError::Validation(
                 "ingest.max_batch must be greater than zero".into(),
+            ));
+        }
+
+        if self.presence.online_threshold_ms == 0 || self.presence.degraded_threshold_ms == 0 {
+            return Err(AppError::Validation(
+                "presence thresholds must be greater than zero".into(),
+            ));
+        }
+
+        if self.presence.online_threshold_ms >= self.presence.degraded_threshold_ms {
+            return Err(AppError::Validation(
+                "presence.online_threshold_ms must be less than presence.degraded_threshold_ms"
+                    .into(),
             ));
         }
 
@@ -487,6 +535,15 @@ impl AppConfig {
                 self.auth.modes = modes;
             }
         }
+
+        if let Some(presence) = from.presence {
+            if let Some(online_ms) = presence.online_threshold_ms {
+                self.presence.online_threshold_ms = online_ms;
+            }
+            if let Some(degraded_ms) = presence.degraded_threshold_ms {
+                self.presence.degraded_threshold_ms = degraded_ms;
+            }
+        }
     }
 }
 
@@ -496,6 +553,7 @@ struct PartialConfig {
     pub env: Option<RunEnvironment>,
     pub server: Option<PartialServerConfig>,
     pub ingest: Option<PartialIngestConfig>,
+    pub presence: Option<PartialPresenceConfig>,
     pub hot_store: Option<PartialHotStoreConfig>,
     pub database: Option<PartialDatabaseConfig>,
     pub auth: Option<PartialAuthConfig>,
@@ -515,6 +573,12 @@ struct PartialIngestConfig {
     pub dedup_ttl_ms: Option<u64>,
     pub hot_store_capacity: Option<usize>,
     pub max_batch: Option<usize>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PartialPresenceConfig {
+    pub online_threshold_ms: Option<u64>,
+    pub degraded_threshold_ms: Option<u64>,
 }
 
 #[derive(Debug, Default, Deserialize)]
