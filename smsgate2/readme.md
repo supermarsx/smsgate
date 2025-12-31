@@ -38,10 +38,18 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
 - i18n dictionaries live in `locales/*.json`; `lib/i18n` loads them and `bun run scan:i18n` flags hardcoded UI strings.
 - Pairing QR codes are rendered locally (no external QR server); CSP allows inline scripts for Next runtime while keeping other sources tight.
 - Configuration:
-  - Default JSON config lives at `config/app.config.json`. It includes `apiBaseUrl`, `wsPath`, `wsOrigin`, `qrOrigin`, `authModes` (oauth/simpleSignin/domainSignin booleans), and locale settings (`locales`, `defaultLocale`).
-  - Optional `primaryAuthMode` picks the default login method (`oauth` / `simple_signin` / `domain_signin`); falls back to the first enabled mode.
-  - Optional SMTP/offline reset config lives in the same JSON (`smtp` block for host/port/secure/username/password/fromEmail, `offlineReset` for enabling offline reset and default admin credentials).
-  - Local overrides live in `config/app.config.dev.json` (applied automatically when `NODE_ENV !== "production"`).
+  - Default JSON config lives at `config/app.config.json` (overridden by `config/app.config.dev.json` in non-prod). Env vars still win (`NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_WS_PATH`, `NEXT_PUBLIC_WS_ORIGIN`, `NEXT_PUBLIC_QR_ORIGIN`, `NEXT_PUBLIC_AUTH_*`, `NEXT_PUBLIC_AUTH_PRIMARY`, `NEXT_PUBLIC_LOCALE_DEFAULT`).
+  - JSON keys:
+    - `apiBaseUrl` (string): REST base, e.g. `https://api.example.com/api/v1`.
+    - `wsPath` (string): WS path appended to `wsOrigin`.
+    - `wsOrigin` (string): WS base (http/https, converted to ws/wss in client).
+    - `qrOrigin` (string): kept for compatibility; QR is rendered locally.
+    - `authModes` (object): booleans `oauth`, `simpleSignin`, `domainSignin` to gate UI flows.
+    - `primaryAuthMode` (string): preferred default mode (`oauth` | `simple_signin` | `domain_signin`); falls back to first enabled.
+    - `smtp` (object, optional): `host`, `port`, `secure`, `username`, `password`, `fromEmail` for email-based reset.
+    - `offlineReset` (object, optional): `enabled` (bool) plus `defaultAdminUsername`/`defaultAdminPassword` for offline token resets.
+    - `locales` (array): allowed locale codes.
+    - `defaultLocale` (string): default locale (must exist in `locales`).
   - Example (see checked-in files):
     ```json
     {
@@ -64,4 +72,3 @@ Security headers: `next.config.js` sets a conservative CSP, HSTS, X-Frame-Option
       "defaultLocale": "en-US"
     }
     ```
-  - Env vars still override JSON when both are present (`NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_WS_PATH`, `NEXT_PUBLIC_WS_ORIGIN`, `NEXT_PUBLIC_QR_ORIGIN`, `NEXT_PUBLIC_AUTH_*`, `NEXT_PUBLIC_LOCALE_DEFAULT`).
