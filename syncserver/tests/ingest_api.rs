@@ -5,7 +5,7 @@ use axum::{
     Router,
 };
 use serde_json::json;
-use syncserver::{config::AppConfig, routes::ingest, state::AppState};
+use syncserver::{auth::DeviceAuthStore, config::AppConfig, routes::ingest, state::AppState};
 use tower::ServiceExt;
 
 fn app_with_state(state: AppState) -> Router {
@@ -17,7 +17,8 @@ fn app_with_state(state: AppState) -> Router {
 #[tokio::test]
 async fn ingests_event_and_sets_parsed_code() {
     let config = AppConfig::default();
-    let state = AppState::new(config);
+    let mut state = AppState::new(config);
+    state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
     let app = app_with_state(state.clone());
 
     let payload = json!({
@@ -39,6 +40,8 @@ async fn ingests_event_and_sets_parsed_code() {
                 .uri("/api/v1/ingest")
                 .method("POST")
                 .header("content-type", "application/json")
+                .header("x-device-id", "dev-1")
+                .header("authorization", "Bearer t0k3n")
                 .body(Body::from(payload.to_string()))
                 .unwrap(),
         )
@@ -56,7 +59,8 @@ async fn ingests_event_and_sets_parsed_code() {
 #[tokio::test]
 async fn deduplicates_by_content_hash() {
     let config = AppConfig::default();
-    let state = AppState::new(config);
+    let mut state = AppState::new(config);
+    state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
     let app = app_with_state(state.clone());
 
     let payload = json!({
@@ -80,6 +84,8 @@ async fn deduplicates_by_content_hash() {
                 .uri("/api/v1/ingest")
                 .method("POST")
                 .header("content-type", "application/json")
+                .header("x-device-id", "dev-1")
+                .header("authorization", "Bearer t0k3n")
                 .body(Body::from(payload.to_string()))
                 .unwrap(),
         )
@@ -93,6 +99,8 @@ async fn deduplicates_by_content_hash() {
                 .uri("/api/v1/ingest")
                 .method("POST")
                 .header("content-type", "application/json")
+                .header("x-device-id", "dev-1")
+                .header("authorization", "Bearer t0k3n")
                 .body(Body::from(payload.to_string()))
                 .unwrap(),
         )

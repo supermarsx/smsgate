@@ -5,7 +5,7 @@ use axum::{
     Router,
 };
 use serde_json::json;
-use syncserver::{config::AppConfig, routes::presence, state::AppState};
+use syncserver::{auth::DeviceAuthStore, config::AppConfig, routes::presence, state::AppState};
 use tower::ServiceExt;
 
 fn app_with_state(state: AppState) -> Router {
@@ -19,7 +19,8 @@ async fn returns_presence_online_then_degraded() {
     let mut config = AppConfig::default();
     config.presence.online_threshold_ms = 100;
     config.presence.degraded_threshold_ms = 500;
-    let state = AppState::new(config);
+    let mut state = AppState::new(config);
+    state.device_auth = DeviceAuthStore::default().with_token("dev-1", "t0k3n");
     let app = app_with_state(state.clone());
 
     let payload = json!({
@@ -39,6 +40,8 @@ async fn returns_presence_online_then_degraded() {
                 .uri("/api/v1/presence/heartbeat")
                 .method("POST")
                 .header("content-type", "application/json")
+                .header("x-device-id", "dev-1")
+                .header("authorization", "Bearer t0k3n")
                 .body(Body::from(payload.to_string()))
                 .unwrap(),
         )
