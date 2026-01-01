@@ -174,8 +174,10 @@ jobs:
       - name: Gather release assets
         run: |
           mkdir -p release-assets
-          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.apk" \) -exec cp {} release-assets/ \;
-          ls -l release-assets
+          # Copy all files from all artifact subfolders
+          find artifacts -type f -exec cp {} release-assets/ \;
+          echo "All files in release-assets:" && ls -lh release-assets
+          echo "Files by type:" && find release-assets -type f | xargs -n1 file
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
