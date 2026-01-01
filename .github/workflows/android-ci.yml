@@ -3,11 +3,11 @@ name: Android CI
 on:
   push:
     paths:
-      - "smsrelay2/android/**"
+      - "smsrelay3/android/**"
       - ".github/workflows/android-ci.yml"
   pull_request:
     paths:
-      - "smsrelay2/android/**"
+      - "smsrelay3/android/**"
       - ".github/workflows/android-ci.yml"
 
 permissions:
@@ -21,16 +21,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "11"
+          java-version: "21"
           cache: "gradle"
       - name: Make Gradle executable
-        run: chmod +x smsrelay2/android/gradlew
+        run: chmod +x smsrelay3/android/gradlew
       - name: Lint
-        working-directory: smsrelay2/android
+        working-directory: smsrelay3/android
         run: ./gradlew :app:lintDebug
 
   format:
@@ -40,16 +40,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "11"
+          java-version: "21"
           cache: "gradle"
       - name: Make Gradle executable
-        run: chmod +x smsrelay2/android/gradlew
+        run: chmod +x smsrelay3/android/gradlew
       - name: Format check
-        working-directory: smsrelay2/android
+        working-directory: smsrelay3/android
         run: ./gradlew :app:ktlintCheck
 
   test:
@@ -59,16 +59,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "11"
+          java-version: "21"
           cache: "gradle"
       - name: Make Gradle executable
-        run: chmod +x smsrelay2/android/gradlew
+        run: chmod +x smsrelay3/android/gradlew
       - name: Unit tests
-        working-directory: smsrelay2/android
+        working-directory: smsrelay3/android
         run: ./gradlew :app:testDebugUnitTest
 
   build:
@@ -79,22 +79,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "11"
+          java-version: "21"
           cache: "gradle"
       - name: Make Gradle executable
-        run: chmod +x smsrelay2/android/gradlew
+        run: chmod +x smsrelay3/android/gradlew
       - name: Build
-        working-directory: smsrelay2/android
+        working-directory: smsrelay3/android
         run: ./gradlew :app:assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: smsrelay2-debug-apk
-          path: smsrelay2/android/app/build/outputs/apk/debug/app-debug.apk
+          name: smsrelay3-debug-apk
+          path: smsrelay3/android/app/build/outputs/apk/debug/app-debug.apk
 
   release:
     runs-on: ubuntu-latest
@@ -108,7 +108,7 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: smsrelay2-debug-apk
+          name: smsrelay3-debug-apk
           path: release
       - name: Compute release tag
         id: version

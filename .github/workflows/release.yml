@@ -1,0 +1,155 @@
+name: Release Stack
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute release tag (YY.N)
+        id: version
+        run: |
+          YEAR=$(date +%y)
+          COUNT=$(git tag -l "${YEAR}.*" | wc -l)
+          N=$((COUNT + 1))
+          TAG="${YEAR}.${N}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+  syncserver-build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: cargo build --release --target x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            build: |
+              sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+              cargo build --release --target aarch64-unknown-linux-gnu
+          - os: macos-13
+            target: x86_64-apple-darwin
+            build: cargo build --release --target x86_64-apple-darwin
+          - os: macos-14
+            target: aarch64-apple-darwin
+            build: cargo build --release --target aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            build: cargo build --release --target x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+      - name: Build syncserver
+        working-directory: syncserver
+        run: ${{ matrix.build }}
+      - name: Package artifact
+        if: startsWith(matrix.os, 'windows') == false
+        run: |
+          mkdir -p artifact
+          cp syncserver/target/${{ matrix.target }}/release/syncserver artifact/
+          tar -czf syncserver-${{ matrix.target }}.tar.gz -C artifact syncserver
+      - name: Package artifact (windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifact | Out-Null
+          Copy-Item syncserver/target/${{ matrix.target }}/release/syncserver.exe artifact/
+          Compress-Archive -Path artifact/* -DestinationPath syncserver-${{ matrix.target }}.zip
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: syncserver-${{ matrix.target }}
+          path: |
+            syncserver-*.tar.gz
+            syncserver-*.zip
+
+  smsgate2-build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-14
+          - os: windows-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: smsgate2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: Package bundle
+        shell: bash
+        run: |
+          mkdir -p dist-bundle
+          cp -r .next dist-bundle/
+          cp package.json dist-bundle/
+          tar -czf smsgate2-${{ matrix.os }}.tar.gz -C dist-bundle .
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smsgate2-${{ matrix.os }}
+          path: smsgate2-*.tar.gz
+
+  smsrelay3-build:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+      - name: Make Gradle executable
+        run: chmod +x smsrelay3/android/gradlew
+      - name: Assemble release APK
+        working-directory: smsrelay3/android
+        run: ./gradlew :app:assembleRelease
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: smsrelay3-apk
+          path: smsrelay3/android/app/build/outputs/apk/release/app-release.apk
+
+  publish:
+    needs: [version, syncserver-build, smsgate2-build, smsrelay3-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: Release ${{ needs.version.outputs.tag }}
+          generate_release_notes: true
+          files: artifacts/**/*.*

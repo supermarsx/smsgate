@@ -133,3 +133,49 @@ jobs:
           image-ref: syncserver:ci
           format: table
           exit-code: 0
+
+  smsrelay3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+      - name: Make Gradle executable
+        run: chmod +x smsrelay3/android/gradlew
+      - name: ktlint
+        working-directory: smsrelay3/android
+        run: ./gradlew ktlintCheck
+      - name: lint
+        working-directory: smsrelay3/android
+        run: ./gradlew lintDebug
+      - name: unit tests
+        working-directory: smsrelay3/android
+        run: ./gradlew testDebugUnitTest
+      - name: assemble
+        working-directory: smsrelay3/android
+        run: ./gradlew assembleDebug
+
+  stack:
+    runs-on: ubuntu-latest
+    needs: [build, syncserver, smsrelay3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+      - name: Make scripts executable
+        run: chmod +x scripts/ci-all.sh smsrelay3/android/gradlew
+      - name: Run full stack checks
+        run: ./scripts/ci-all.sh

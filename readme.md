@@ -164,6 +164,12 @@ bun install
 bun dev
 ```
 
+### CI/QA shortcuts
+
+- Full stack check (smsgate2 + syncserver + smsrelay3):
+  - macOS/Linux: `./scripts/ci-all.sh`
+  - Windows: `powershell -File scripts/ci-all.ps1`
+
 ## Considerations / Security
 
 This application authentication only makes sense if used under TLS, it uses a salt and strong hashing algorithm to harden against potential rainbow tables against access codes. Using this over plain HTTP defeats the purpose of using a token as it can be easily obtained from raw network traffic.
