@@ -15,7 +15,6 @@ ENV NODE_ENV=production
 
 COPY --from=deps /app/package.json /app/package-lock.json ./
 COPY --from=deps /app/next.config.js /app/tsconfig.json ./
-COPY --from=deps /app/public ./public
 COPY --from=deps /app/styles ./styles
 COPY --from=deps /app/components ./components
 COPY --from=deps /app/lib ./lib
