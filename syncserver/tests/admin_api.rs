@@ -27,7 +27,7 @@ async fn admin_user_crud_and_force_logout() {
 
     let create_payload = json!({
         "username": "alice",
-        "password": "supersecret",
+        "password": "Sup3rStr0ngP@ssw0rd!",
         "role": "admin"
     });
 
