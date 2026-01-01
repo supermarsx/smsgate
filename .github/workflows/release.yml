@@ -111,9 +111,11 @@ jobs:
         working-directory: smsgate2
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
-      - run: bun install --frozen-lockfile
-      - run: bun run build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
       - name: Package bundle (unix)
         if: startsWith(matrix.os, 'windows') == false
         shell: bash
