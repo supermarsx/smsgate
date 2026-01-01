@@ -91,7 +91,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-          - os: macos-14
+          - os: macos-latest
           - os: windows-latest
     runs-on: ${{ matrix.os }}
     defaults:
