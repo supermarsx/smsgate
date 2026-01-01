@@ -28,7 +28,6 @@ pub struct AuditService {
     tx: mpsc::Sender<AuditTask>,
     audits: std::sync::Arc<tokio::sync::Mutex<VecDeque<AuditEntry>>>,
     logins: std::sync::Arc<tokio::sync::Mutex<VecDeque<LoginEvent>>>,
-    capacity: usize,
 }
 
 impl AuditService {
@@ -99,7 +98,6 @@ impl AuditService {
             tx,
             audits,
             logins,
-            capacity,
         }
     }
 

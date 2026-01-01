@@ -17,8 +17,8 @@ use crate::{
 #[derive(Debug, serde::Deserialize)]
 #[serde(untagged)]
 pub enum ConfigPatchEnvelope {
-    Partial(PartialConfig),
-    Ui(UiConfigPatch),
+    Partial(Box<PartialConfig>),
+    Ui(Box<UiConfigPatch>),
 }
 
 /// GET /api/v1/config
@@ -67,8 +67,8 @@ pub async fn patch_config(
     }
 
     let partial: PartialConfig = match patch {
-        ConfigPatchEnvelope::Partial(p) => p,
-        ConfigPatchEnvelope::Ui(p) => p.into_partial(),
+        ConfigPatchEnvelope::Partial(p) => *p,
+        ConfigPatchEnvelope::Ui(p) => (*p).into_partial(),
     };
 
     let mut guard = state.config.write().await;

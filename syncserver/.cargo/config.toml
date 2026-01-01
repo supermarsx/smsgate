@@ -9,6 +9,5 @@ test-all = "test --all-targets"
 [build]
 rustflags = [
     "-C", "debuginfo=0",
-    "-C", "incremental=false",
-    "-C", "link-arg=/DEBUG:FASTLINK"
+    "-C", "incremental=false"
 ]

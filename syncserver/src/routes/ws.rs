@@ -328,14 +328,13 @@ async fn config_update(state: &AppState) -> ConfigUpdate {
 fn token_from_query(uri: &axum::http::Uri) -> Option<String> {
     uri.query().and_then(|query| {
         query.split('&').find_map(|pair| {
-            let mut parts = pair.splitn(2, '=');
-            let key = parts.next()?;
-            let value = parts.next()?;
-            if key == "token" {
-                Some(value.to_string())
-            } else {
-                None
-            }
+            pair.split_once('=').and_then(|(key, value)| {
+                if key == "token" {
+                    Some(value.to_string())
+                } else {
+                    None
+                }
+            })
         })
     })
 }
