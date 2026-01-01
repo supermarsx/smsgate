@@ -39,6 +39,94 @@ export type Session = {
 const STORAGE_KEY = "smsgate2_session_v1";
 const CODE_VERIFIER_KEY = "smsgate2_pkce_verifier";
 
+// NOTE: Client-side session encryption key. In a real deployment this should
+// be configured per-environment rather than hardcoded.
+const SESSION_CRYPT_SECRET = "smsgate2_ui_session_secret_v1";
+const SESSION_CRYPT_SALT = new TextEncoder().encode("smsgate2_session_salt_v1");
+
+async function getSessionCryptoKey(): Promise<CryptoKey> {
+  if (typeof window === "undefined" || !window.crypto || !window.crypto.subtle) {
+    throw new Error("Web Crypto not available");
+  }
+  const enc = new TextEncoder();
+  const secretKeyMaterial = await window.crypto.subtle.importKey(
+    "raw",
+    enc.encode(SESSION_CRYPT_SECRET),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  );
+  return window.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: SESSION_CRYPT_SALT,
+      iterations: 100_000,
+      hash: "SHA-256"
+    },
+    secretKeyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  if (typeof window === "undefined") {
+    return new Uint8Array();
+  }
+  const binary = window.atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function encryptSession(session: Session): Promise<string> {
+  const key = await getSessionCryptoKey();
+  const enc = new TextEncoder();
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const plaintext = enc.encode(JSON.stringify(session));
+  const ciphertext = new Uint8Array(
+    await window.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext)
+  );
+  const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(ciphertext, iv.byteLength);
+  return bytesToBase64(combined);
+}
+
+async function decryptSession(stored: string): Promise<Session | null> {
+  try {
+    const key = await getSessionCryptoKey();
+    const combined = base64ToBytes(stored);
+    if (combined.byteLength <= 12) return null;
+    const iv = combined.slice(0, 12);
+    const ciphertext = combined.slice(12);
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ciphertext
+    );
+    const dec = new TextDecoder();
+    const json = dec.decode(new Uint8Array(decrypted));
+    return JSON.parse(json) as Session;
+  } catch {
+    return null;
+  }
+}
+
 type SignInResult = { session?: Session; requires2fa?: boolean; error?: string };
 type PasswordChangeResult = {
   session?: Session;
@@ -72,31 +160,29 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
  * Persist a session to storage or clear it when null.
  * @param session Session to save; null clears both storage scopes.
  * @param persistent When true use localStorage, else sessionStorage.
- * @returns void
+ * @returns Promise<void>
  */
-export function saveSession(session: Session | null, persistent = true): void {
+export async function saveSession(session: Session | null, persistent = true): Promise<void> {
   if (typeof window === "undefined") return;
   if (!session) {
     window.localStorage.removeItem(STORAGE_KEY);
+    window.sessionStorage.removeItem(STORAGE_KEY);
     return;
   }
   const target = persistent ? window.localStorage : window.sessionStorage;
-  target.setItem(STORAGE_KEY, JSON.stringify(session));
+  const encrypted = await encryptSession(session);
+  target.setItem(STORAGE_KEY, encrypted);
 }
 
 /**
  * Load a session from sessionStorage or localStorage.
  * @returns Session when present; null otherwise.
  */
-export function loadSession(): Session | null {
+export async function loadSession(): Promise<Session | null> {
   if (typeof window === "undefined") return null;
   const raw = window.sessionStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
-  try {
-    return JSON.parse(raw) as Session;
-  } catch {
-    return null;
-  }
+  return decryptSession(raw);
 }
 
 /**

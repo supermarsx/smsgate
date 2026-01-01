@@ -23,11 +23,17 @@ function LoginBody() {
   const t = (key: string, fallback?: string) => getTranslations(locale)[key] ?? fallback ?? key;
 
   useEffect(() => {
-    const existing = session ?? loadSession();
-    if (existing) {
-      setSession(existing);
-      router.replace("/dashboard");
-    }
+    let cancelled = false;
+    (async () => {
+      const existing = session ?? (await loadSession());
+      if (!cancelled && existing) {
+        setSession(existing);
+        router.replace("/dashboard");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [session, setSession, router]);
 
   useEffect(() => {
@@ -37,19 +43,19 @@ function LoginBody() {
     if (error) return;
     const redirectUri = window.location.origin + "/login/oauth/callback";
     exchangeOAuthCode(code as string, redirectUri)
-      .then((s) => {
+      .then(async (s) => {
         if (s) {
           setSession(s);
-          saveSession(s, true);
+          await saveSession(s, true);
           router.replace("/dashboard");
         }
       })
       .catch(() => undefined);
   }, [search, setSession, router]);
 
-  function handleLogin(s: Session) {
+  async function handleLogin(s: Session) {
     setSession(s);
-    saveSession(s, true);
+    await saveSession(s, true);
     router.replace("/dashboard");
   }
 
