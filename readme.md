@@ -1,4 +1,4 @@
-# smsgate2 / syncserver /smsrelay3
+# smsgate2 / syncserver / smsrelay3
 
 This monorepo contains the **new three-part stack** for realtime SMS verification streaming:
 
