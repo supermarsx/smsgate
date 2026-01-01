@@ -461,7 +461,7 @@ A background worker writes persisted events to DB.
 - `EVENT_UPDATE { id, patch }`
 - `PRESENCE_UPDATE { devices[] }`
 - `SIM_UPDATE { device_id, sims[] }` (replaces SIM_ADDED/REMOVED/CHANGED for simplicity)
-- `CONTACT_UPDATE { contact_id, numbers[], name, updated_at }` (optional)
+- `CONTACT_UPDATE { number, contactName, updated_at }` (optional)
 - `CONFIG_UPDATE { version, patch }`
 - `PAGE { direction, anchor_id, events[], oldest_id, newest_id }`
 - `ERROR`
@@ -531,6 +531,13 @@ A background worker writes persisted events to DB.
 - `GET /api/v1/config`
 - `PATCH /api/v1/config` (ETag support recommended)
 - `GET /api/v1/device/config` (ETag/versioned snapshot for devices)
+  - Responses use `{ version, auth_modes, roles, data { authModes, presence, retention, roles, contacts } }` for UI compatibility.
+
+### 13.7 Events
+
+- `GET /api/v1/events?before=<id>&limit=...`
+- `POST /api/v1/events/{id}/state` (claimed/verified/rejected)
+- `DELETE /api/v1/events/{id}/state` (undo to `new`)
 
 ---
 

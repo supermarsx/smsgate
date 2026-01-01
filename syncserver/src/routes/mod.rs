@@ -81,6 +81,10 @@ pub fn router(state: AppState) -> Router {
             axum::routing::post(devices::enable_device),
         )
         .route(
+            "/api/v1/devices/:device_id/rotate-token",
+            axum::routing::post(devices::rotate_token),
+        )
+        .route(
             "/api/v1/devices/:device_id/diagnostics",
             axum::routing::get(devices::diagnostics),
         )
@@ -99,6 +103,10 @@ pub fn router(state: AppState) -> Router {
         .route(
             "/api/v1/events/:event_id/state",
             axum::routing::post(events::update_event_state),
+        )
+        .route(
+            "/api/v1/events/:event_id/state",
+            axum::routing::delete(events::reset_event_state),
         )
         .route("/api/v1/events", get(events::list_events))
             .route("/api/v1/ingest", axum::routing::post(ingest::ingest))

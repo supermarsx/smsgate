@@ -46,6 +46,7 @@ pub async fn heartbeat(
             queue_depth: payload.queue_depth,
             last_heartbeat: now,
             device_rtt_ms: payload.device_rtt_ms,
+            sims: Vec::new(),
         }));
 
     if !payload.sims.is_empty() {

@@ -1175,6 +1175,108 @@ pub struct RoleSnapshot {
     pub permissions: Vec<String>,
 }
 
+/// UI-facing auth mode toggles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiAuthModes {
+    pub oauth: bool,
+    pub simple_signin: bool,
+    pub domain_signin: bool,
+}
+
+/// UI-facing presence and realtime settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiPresenceConfig {
+    pub snapshot_size: u32,
+    pub ping_ms: u64,
+    pub page_size: u32,
+    pub max_connections: u32,
+    pub max_stale_ms: u64,
+    pub degraded_ms: u64,
+    pub queue_warn: u32,
+    pub queue_crit: u32,
+}
+
+/// UI-facing retention knobs.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UiRetentionConfig {
+    pub dedup_ttl_ms: Option<u64>,
+    pub persist_states: Option<Vec<String>>,
+    pub persist_new: Option<bool>,
+}
+
+/// UI-facing role ordering and labels.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UiRolesConfig {
+    pub order: Option<Vec<String>>,
+    pub labels: Option<std::collections::HashMap<String, String>>,
+}
+
+/// UI-facing contacts config stub.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UiContactsConfig {
+    pub enabled: Option<bool>,
+    pub last_import: Option<String>,
+}
+
+/// Config data payload consumed by smsgate2.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiConfigData {
+    pub auth_modes: UiAuthModes,
+    pub presence: UiPresenceConfig,
+    pub retention: UiRetentionConfig,
+    #[serde(default)]
+    pub roles: UiRolesConfig,
+    #[serde(default = "empty_object")]
+    pub relay: serde_json::Value,
+    #[serde(default)]
+    pub contacts: UiContactsConfig,
+}
+
+/// Role descriptor exposed to UI clients.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UiRoleSnapshot {
+    pub name: String,
+    pub precedence: u32,
+    pub permissions: Vec<String>,
+}
+
+/// Envelope returned to UI and devices for config fetches.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiConfigEnvelope {
+    pub version: u64,
+    pub last_updated_at: DateTime<Utc>,
+    pub env: String,
+    pub auth_modes: Vec<String>,
+    pub roles: Vec<UiRoleSnapshot>,
+    pub data: UiConfigData,
+}
+
+/// Patch shape used by UI config editor.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiConfigPatch {
+    pub data: Option<UiConfigDataPatch>,
+}
+
+/// Partial patch document for UI config fields.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiConfigDataPatch {
+    pub auth_modes: Option<UiAuthModes>,
+    pub presence: Option<UiPresenceConfig>,
+    pub retention: Option<UiRetentionConfig>,
+    pub roles: Option<UiRolesConfig>,
+    pub relay: Option<serde_json::Value>,
+    pub contacts: Option<UiContactsConfig>,
+}
+
 impl ClientConfigSnapshot {
     /// Build a client-facing snapshot from the versioned config.
     pub fn from_versioned(versioned: &VersionedConfig) -> Self {
@@ -1207,10 +1309,124 @@ impl ClientConfigSnapshot {
                     name: role.name.clone(),
                     precedence: role.precedence,
                     permissions: role.permissions.clone(),
-                })
-                .collect(),
+            })
+            .collect(),
         }
     }
+}
+
+impl UiConfigEnvelope {
+    /// Build a UI-friendly config envelope from the versioned config.
+    pub fn from_versioned(versioned: &VersionedConfig) -> Self {
+        let cfg = &versioned.config;
+        Self {
+            version: versioned.version,
+            last_updated_at: versioned.last_updated_at,
+            env: cfg.env.as_str().to_string(),
+            auth_modes: cfg.auth.modes.iter().map(mode_label).collect(),
+            roles: cfg
+                .rbac
+                .roles
+                .iter()
+                .map(|role| UiRoleSnapshot {
+                    name: role.name.clone(),
+                    precedence: role.precedence,
+                    permissions: role.permissions.clone(),
+                })
+                .collect(),
+            data: UiConfigData {
+                auth_modes: UiAuthModes {
+                    oauth: cfg.auth.modes.contains(&AuthMode::Oauth),
+                    simple_signin: cfg.auth.modes.contains(&AuthMode::SimpleSignin),
+                    domain_signin: cfg.auth.modes.contains(&AuthMode::DomainSignin),
+                },
+                presence: UiPresenceConfig {
+                    snapshot_size: cfg.server.ws_snapshot_limit,
+                    ping_ms: cfg.server.ws_ping_interval_ms,
+                    page_size: cfg.server.ws_snapshot_limit.max(25),
+                    max_connections: cfg.server.ws_max_connections,
+                    max_stale_ms: cfg.presence.degraded_threshold_ms,
+                    degraded_ms: cfg.presence.online_threshold_ms,
+                    queue_warn: 50,
+                    queue_crit: 100,
+                },
+                retention: UiRetentionConfig {
+                    dedup_ttl_ms: Some(cfg.ingest.dedup_ttl_ms),
+                    persist_states: Some(cfg.ingest.persist_states.clone()),
+                    persist_new: Some(cfg.ingest.persist_new),
+                },
+                roles: UiRolesConfig {
+                    order: Some({
+                        let mut names: Vec<_> = cfg.rbac.roles.iter().collect();
+                        names.sort_by_key(|r| std::cmp::Reverse(r.precedence));
+                        names.into_iter().map(|r| r.name.clone()).collect()
+                    }),
+                    labels: Some(
+                        cfg.rbac
+                            .roles
+                            .iter()
+                            .map(|r| (r.name.clone(), r.name.clone()))
+                            .collect(),
+                    ),
+                },
+                relay: empty_object(),
+                contacts: UiContactsConfig {
+                    enabled: Some(true),
+                    last_import: Some(versioned.last_updated_at.to_rfc3339()),
+                },
+            },
+        }
+    }
+}
+
+impl UiConfigPatch {
+    /// Convert a UI patch into a PartialConfig for application to the runtime config.
+    pub fn into_partial(self) -> PartialConfig {
+        let mut partial = PartialConfig::default();
+        if let Some(data) = self.data {
+            if let Some(auth_modes) = data.auth_modes {
+                let mut modes = Vec::new();
+                if auth_modes.oauth {
+                    modes.push(AuthMode::Oauth);
+                }
+                if auth_modes.simple_signin {
+                    modes.push(AuthMode::SimpleSignin);
+                }
+                if auth_modes.domain_signin {
+                    modes.push(AuthMode::DomainSignin);
+                }
+                partial.auth = Some(PartialAuthConfig {
+                    modes: Some(modes),
+                    ..Default::default()
+                });
+            }
+            if let Some(presence) = data.presence {
+                partial.server = Some(PartialServerConfig {
+                    ws_snapshot_limit: Some(presence.snapshot_size),
+                    ws_max_connections: Some(presence.max_connections),
+                    ws_ping_interval_ms: Some(presence.ping_ms),
+                    ..Default::default()
+                });
+                partial.presence = Some(PartialPresenceConfig {
+                    online_threshold_ms: Some(presence.degraded_ms),
+                    degraded_threshold_ms: Some(presence.max_stale_ms),
+                });
+            }
+            if let Some(retention) = data.retention {
+                partial.ingest = Some(PartialIngestConfig {
+                    dedup_ttl_ms: retention.dedup_ttl_ms,
+                    persist_states: retention.persist_states,
+                    persist_new: retention.persist_new,
+                    ..Default::default()
+                });
+            }
+        }
+        partial
+    }
+}
+
+fn empty_object() -> serde_json::Value {
+    serde_json::json!({})
 }
 
 fn mode_label(mode: &AuthMode) -> String {

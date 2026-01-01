@@ -1,23 +1,32 @@
 //! Configuration exposure and mutation endpoints for smsgate2 and operators.
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::http::HeaderValue;
 use chrono::Utc;
 
 use crate::{
     auth::{permissions, user::UserAuth},
-    config::{ClientConfigSnapshot, PartialConfig, VersionedConfig},
+    config::{PartialConfig, UiConfigEnvelope, UiConfigPatch, VersionedConfig},
     error::AppError,
     routes::context::RequestContext,
     state::AppState,
     ws_types::ServerMessage,
 };
 
+/// Accept either the raw PartialConfig shape or the UI-friendly patch document.
+#[derive(Debug, serde::Deserialize)]
+#[serde(untagged)]
+pub enum ConfigPatchEnvelope {
+    Partial(PartialConfig),
+    Ui(UiConfigPatch),
+}
+
 /// GET /api/v1/config
 pub async fn get_config(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<axum::response::Response, AppError> {
     if !user.has_permission(permissions::CONFIG_READ) {
         return Err(AppError::Validation("forbidden".into()));
     }
@@ -28,7 +37,7 @@ pub async fn get_config(
         .and_then(|v| v.to_str().ok())
     {
         if if_none == etag {
-            return Ok((StatusCode::NOT_MODIFIED, ()));
+            return Ok(StatusCode::NOT_MODIFIED.into_response());
         }
     }
     tracing::debug!(
@@ -36,11 +45,14 @@ pub async fn get_config(
         actor = %user.actor_label(),
         "config snapshot served"
     );
-    Ok((
-        StatusCode::OK,
-        [(axum::http::header::ETAG, etag)],
-        Json(snapshot),
-    ))
+    let etag_header =
+        HeaderValue::from_str(&etag).unwrap_or_else(|_| HeaderValue::from_static("\"0\""));
+    let mut response = Json(snapshot).into_response();
+    response
+        .headers_mut()
+        .insert(axum::http::header::ETAG, etag_header);
+    *response.status_mut() = StatusCode::OK;
+    Ok(response)
 }
 
 /// PATCH /api/v1/config
@@ -48,14 +60,19 @@ pub async fn patch_config(
     UserAuth(user): UserAuth,
     State(state): State<AppState>,
     ctx: RequestContext,
-    Json(patch): Json<PartialConfig>,
+    Json(patch): Json<ConfigPatchEnvelope>,
 ) -> Result<impl IntoResponse, AppError> {
     if !user.has_permission(permissions::CONFIG_WRITE) {
         return Err(AppError::Validation("forbidden".into()));
     }
 
+    let partial: PartialConfig = match patch {
+        ConfigPatchEnvelope::Partial(p) => p,
+        ConfigPatchEnvelope::Ui(p) => p.into_partial(),
+    };
+
     let mut guard = state.config.write().await;
-    let merged = guard.config.merged(patch)?;
+    let merged = guard.config.merged(partial)?;
     let updated = VersionedConfig {
         config: merged,
         version: guard.version + 1,
@@ -66,9 +83,9 @@ pub async fn patch_config(
 
     state.persist_config(&updated).await?;
 
-    let snapshot = ClientConfigSnapshot::from_versioned(&updated);
+    let snapshot = UiConfigEnvelope::from_versioned(&updated);
     let _ = state.event_tx.send(ServerMessage::ConfigUpdate {
-        config: snapshot.clone(),
+        config: snapshot.clone().into(),
     });
 
     tracing::info!(
@@ -92,9 +109,12 @@ pub async fn patch_config(
         .await;
 
     let etag = format!("\"{}\"", snapshot.version);
-    Ok((
-        StatusCode::OK,
-        [(axum::http::header::ETAG, etag)],
-        Json(snapshot),
-    ))
+    let etag_header =
+        HeaderValue::from_str(&etag).unwrap_or_else(|_| HeaderValue::from_static("\"0\""));
+    let mut response = Json(snapshot).into_response();
+    response
+        .headers_mut()
+        .insert(axum::http::header::ETAG, etag_header);
+    *response.status_mut() = StatusCode::OK;
+    Ok(response)
 }

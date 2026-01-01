@@ -8,6 +8,7 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     auth::{permissions, user::UserAuth, AuthContext, DeviceRecord},
@@ -93,6 +94,14 @@ pub struct PresenceProbe {
     pub device_rtt_ms: Option<u32>,
 }
 
+/// Response containing a rotated device token (raw).
+#[derive(Debug, Serialize)]
+pub struct RotateTokenResponse {
+    pub device_id: String,
+    pub token: String,
+    pub rotated_at: DateTime<Utc>,
+}
+
 /// GET /api/v1/devices
 pub async fn list_devices(
     UserAuth(user): UserAuth,
@@ -151,12 +160,13 @@ pub async fn disable_device(
     State(state): State<AppState>,
     Path(device_id): Path<String>,
     ctx: RequestContext,
-    Json(payload): Json<DisableDeviceRequest>,
+    payload: Option<Json<DisableDeviceRequest>>,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::DEVICES_DISABLE)?;
+    let body = payload.map(|Json(p)| p).unwrap_or(DisableDeviceRequest { reason: None });
     let updated = state
         .device_auth
-        .set_enabled(&device_id, false, payload.reason)
+        .set_enabled(&device_id, false, body.reason)
         .map_err(AppError::Validation)?;
     tracing::info!(
         target: "sim",
@@ -212,6 +222,48 @@ pub async fn enable_device(
         )
         .await;
     Ok((StatusCode::OK, Json(DeviceResponse::from(updated))))
+}
+
+/// POST /api/v1/devices/:device_id/rotate-token
+pub async fn rotate_token(
+    UserAuth(user): UserAuth,
+    State(state): State<AppState>,
+    Path(device_id): Path<String>,
+    ctx: RequestContext,
+) -> Result<impl IntoResponse, AppError> {
+    require_permission(&user, permissions::DEVICES_ROTATE_TOKEN)?;
+    let raw_token = Uuid::new_v4().to_string();
+    let updated = state.device_auth.set_token(&device_id, &raw_token);
+    let rotated_at = updated
+        .last_token_rotated_at
+        .unwrap_or_else(Utc::now);
+    tracing::info!(
+        target: "sim",
+        actor = %user.actor_label(),
+        device_id = %device_id,
+        "device token rotated"
+    );
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "device.rotate_token".into(),
+            Some(device_id.clone()),
+            "success".into(),
+            serde_json::json!({ "rotated_at": rotated_at }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
+    Ok((
+        StatusCode::OK,
+        Json(RotateTokenResponse {
+            device_id: updated.id,
+            token: raw_token,
+            rotated_at,
+        }),
+    ))
 }
 
 /// GET /api/v1/devices/:device_id/diagnostics

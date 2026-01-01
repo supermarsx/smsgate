@@ -62,6 +62,16 @@ impl NumberStore {
         Err(AppError::Validation("number not found".into()))
     }
 
+    /// Unassign all devices from the number (used by DELETE alias without payload).
+    pub fn unassign_all(&self, e164: &str) -> Result<NumberRecord, AppError> {
+        if let Some(mut entry) = self.numbers.get_mut(e164) {
+            entry.assigned_device_ids.clear();
+            entry.default_device_id = None;
+            return Ok(entry.clone());
+        }
+        Err(AppError::Validation("number not found".into()))
+    }
+
     /// Update metadata for a number.
     pub fn update(&self, e164: &str, patch: NumberPatch) -> Result<NumberRecord, AppError> {
         if let Some(mut entry) = self.numbers.get_mut(e164) {

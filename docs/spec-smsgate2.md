@@ -547,9 +547,11 @@ Use REST for:
 - Events
   - `GET /api/v1/events?after=...&limit=...&filters...`
   - `GET /api/v1/events?before=...&limit=...&filters...`
+  - `POST /api/v1/events/{id}/state` (claimed/verified/rejected)
+  - `DELETE /api/v1/events/{id}/state` (undo back to `new`)
 - Config
-  - `GET /api/v1/config`
-  - `PATCH /api/v1/config` (admin)
+  - `GET /api/v1/config` (ETag supported; returns `{ version, auth_modes, roles, data { authModes, presence, retention, roles, contacts } }`)
+  - `PATCH /api/v1/config` (admin; accepts same envelope or partial patches)
 
 ### 9.2 WebSocket
 
@@ -564,7 +566,7 @@ Server → client:
 - `EVENT_UPDATE`
 - `PRESENCE_UPDATE` (includes SIM/number changes so multi-SIM devices stay in sync)
 - `METRICS_UPDATE`
-- `CONTACT_UPDATE`
+- `CONTACT_UPDATE { number, contactName, updated_at }`
 - `CONFIG_UPDATE`
 - `ERROR`
 

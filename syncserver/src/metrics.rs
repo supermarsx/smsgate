@@ -6,10 +6,10 @@ use axum::{
     http::{header::CONTENT_TYPE, StatusCode},
     response::{IntoResponse, Response},
 };
-use parking_lot::Mutex;
 #[cfg(target_os = "linux")]
 use prometheus::process_collector::ProcessCollector;
 use prometheus::{opts, Encoder, Gauge, GaugeVec, Histogram, IntCounterVec, Registry, TextEncoder};
+use std::sync::{Arc, Mutex};
 
 use crate::{error::AppError, state::AppState};
 use serde::Serialize;
@@ -38,7 +38,7 @@ pub struct Metrics {
     ingest_latency_ms: Histogram,
     ws_connections: Gauge,
     /// Ring buffer of recent ingest latencies for percentile snapshots.
-    recent_ingest_latencies: Mutex<Vec<f64>>,
+    recent_ingest_latencies: Arc<Mutex<Vec<f64>>>,
     recent_capacity: usize,
 }
 
@@ -117,7 +117,7 @@ impl Metrics {
             device_queue_depth,
             ingest_latency_ms,
             ws_connections,
-            recent_ingest_latencies: Mutex::new(Vec::with_capacity(512)),
+            recent_ingest_latencies: Arc::new(Mutex::new(Vec::with_capacity(512))),
             recent_capacity: 512,
         })
     }
@@ -148,7 +148,10 @@ impl Metrics {
     /// Record end-to-end ingest latency in milliseconds.
     pub fn observe_ingest_latency_ms(&self, latency_ms: f64) {
         self.ingest_latency_ms.observe(latency_ms);
-        let mut guard = self.recent_ingest_latencies.lock();
+        let mut guard = self
+            .recent_ingest_latencies
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         if guard.len() >= self.recent_capacity {
             guard.remove(0);
         }
@@ -162,7 +165,10 @@ impl Metrics {
 
     /// Produce a lightweight snapshot for WS payloads.
     pub fn snapshot(&self) -> Snapshot {
-        let guard = self.recent_ingest_latencies.lock();
+        let guard = self
+            .recent_ingest_latencies
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let p50 = percentile(&guard, 0.50);
         let p95 = percentile(&guard, 0.95);
         Snapshot {

@@ -365,9 +365,9 @@ impl AppState {
     }
 
     /// Return a cloned config snapshot for use in responses/broadcasts.
-    pub async fn config_snapshot(&self) -> config::ClientConfigSnapshot {
+    pub async fn config_snapshot(&self) -> config::UiConfigEnvelope {
         let cfg = self.config.read().await;
-        config::ClientConfigSnapshot::from_versioned(&cfg)
+        config::UiConfigEnvelope::from_versioned(&cfg)
     }
 
     /// Persist the provided versioned config to disk.

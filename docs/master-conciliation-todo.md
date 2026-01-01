@@ -3,10 +3,10 @@
 This list captures the blocking gaps between the three codebases and the specs so we can converge on a single set of contracts. Grouped by surface area; check off as each side is reconciled.
 
 ## REST/HTTP alignment
-- [ ] Fix event state routes: smsgate2 posts `/events/{id}/state`; syncserver exposes `/api/v1/events/:id/{claim|verify|reject}` only. Add the state endpoint or update UI calls.
-- [ ] Device admin routes: UI uses `PATCH /devices/{id}` and `/devices/{id}/{action}`; syncserver expects `POST /api/v1/devices/:id/rename|disable|enable` (no rotate-token). Align paths/actions.
-- [ ] Config REST shape: UI expects `{version,data}` with ETag; syncserver returns `ClientConfigSnapshot` without `data`. Agree on canonical shape and adjust both REST and WS.
-- [ ] CONTACT_UPDATE shape: UI expects `{ number, contactName }`; server sends `{ contact_id, numbers[], name, updated_at }`. Align payload for WS.
+- [x] Fix event state routes: smsgate2 posts `/events/{id}/state`; syncserver exposes `/api/v1/events/:id/{claim|verify|reject}` only. Add the state endpoint or update UI calls.
+- [x] Device admin routes: UI uses `PATCH /devices/{id}` and `/devices/{id}/{action}`; syncserver expects `POST /api/v1/devices/:id/rename|disable|enable` (no rotate-token). Align paths/actions.
+- [x] Config REST shape: UI expects `{version,data}` with ETag; syncserver returns `ClientConfigSnapshot` without `data`. Agree on canonical shape and adjust both REST and WS.
+- [x] CONTACT_UPDATE shape: UI expects `{ number, contactName }`; server sends `{ contact_id, numbers[], name, updated_at }`. Align payload for WS.
 - [x] Decide direction: either add UI-facing routes on syncserver or repoint smsgate2 to `/api/v1/*` (UI/admin aliases added).
 - [x] Add events list endpoint (paged, with filters) or update UI to use WS paging only.
 - [x] Add contacts endpoints (list/toggle/export/conflicts) on server or remove from UI until backed.
@@ -17,8 +17,8 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [x] Add stub `/api/v1/audit`, `/api/v1/login-events`, `/api/v1/contacts/*` endpoints to satisfy UI contract.
 - [x] Add `/api/v1/device/config` and `/api/v1/device/sims` for device clients; `/api/v1/device/contacts` accepts uploads with persistence.
 - [x] Persist and expose contact uploads in a store (disk-backed).
-- [ ] Device admin compatibility: implement `/api/v1/devices/:id/rotate-token` (UI calls `/devices/{id}/rotate-token`) and ensure PATCH `/devices/:id` aliases work.
-- [ ] Event state compatibility: keep `/api/v1/events/:id/state` aligned with UI and add DELETE or undo if needed.
+- [x] Device admin compatibility: implement `/api/v1/devices/:id/rotate-token` (UI calls `/devices/{id}/rotate-token`) and ensure PATCH `/devices/:id` aliases work.
+- [x] Event state compatibility: keep `/api/v1/events/:id/state` aligned with UI and add DELETE or undo if needed.
 
 ## WebSocket protocol
 - [x] Use header `Authorization: Bearer <session>` for WS auth (server accepts header and query token for browser compatibility).
@@ -27,7 +27,7 @@ This list captures the blocking gaps between the three codebases and the specs s
 - [x] Add metrics snapshot (p50/p95 ingest latency) to WS snapshot; UI can consume.
 - [x] Implement SUBSCRIBE/PAGE contract parity: server accepts SUBSCRIBE (no-op) and PAGE {before,limit} aliases.
 - [x] Add CONFIG_UPDATE handling: server emits version/auth_modes/roles; UI tolerates extra fields.
-- [ ] CONTACT_UPDATE payload shape: align to UI expectation `{ number, contactName }` (currently `{ contact_id, numbers[], name, updated_at }`) or update client mapping.
+- [x] CONTACT_UPDATE payload shape: align to UI expectation `{ number, contactName }` (currently `{ contact_id, numbers[], name, updated_at }`) or update client mapping.
 
 ## Auth/session flows
 - [x] Reconcile login endpoints: UI calls `/auth/simple_signin` and `/auth/domain_signin`; server exposes aliases and UI now targets `/api/v1/auth/*`.

@@ -262,7 +262,7 @@ Primary (recommended):
 
 Fallback:
 - Periodic pull with ETag:
-  - `GET /api/v1/device/config` with `If-None-Match`
+  - `GET /api/v1/device/config` with `If-None-Match` (returns `{ version, auth_modes, roles, data { authModes, presence, retention, contacts, relay } }`)
 
 ### 7.3 Local overrides (when allowed)
 
@@ -677,4 +677,3 @@ Debug mode may be enabled by remote config and must be time-limited.
 - Pulls config from syncserver and applies updates live.
 - Shows server status + latency + queue depth in the UI.
 - Can export diagnostics without leaking secrets.
-

@@ -377,10 +377,15 @@ pub async fn unassign_number(
     State(state): State<AppState>,
     ctx: RequestContext,
     Path(e164): Path<String>,
-    Json(payload): Json<AssignNumberRequest>,
+    payload: Option<Json<AssignNumberRequest>>,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::NUMBERS_WRITE)?;
-    let updated = state.numbers.unassign(&e164, &payload.device_id)?;
+    let updated = if let Some(Json(body)) = payload {
+        state.numbers.unassign(&e164, &body.device_id)?
+    } else {
+        // Delete alias without payload removes all assignments.
+        state.numbers.unassign_all(&e164)?
+    };
     state
         .audit
         .log_action(
@@ -388,7 +393,7 @@ pub async fn unassign_number(
             "admin.number.unassign".into(),
             Some(e164.clone()),
             "success".into(),
-            serde_json::json!({ "device_id": payload.device_id }),
+            serde_json::json!({ "device_ids": updated.assigned_device_ids }),
             ctx.correlation_id,
             ctx.ip,
             ctx.user_agent,

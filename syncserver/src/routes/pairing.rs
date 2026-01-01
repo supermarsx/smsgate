@@ -35,7 +35,7 @@ pub struct PairingSessionStatusBody {
 pub struct PairingCompleteBody {
     pub device_id: String,
     pub device_token: String,
-    pub config: crate::config::ClientConfigSnapshot,
+    pub config: crate::config::UiConfigEnvelope,
 }
 
 /// POST /api/v1/pairing/session

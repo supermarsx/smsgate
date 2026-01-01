@@ -2,11 +2,7 @@
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 
-use crate::{
-    auth::{permissions, user::UserAuth},
-    error::AppError,
-    state::AppState,
-};
+use crate::{auth::user::UserAuth, error::AppError, state::AppState};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub struct ContactRecord {

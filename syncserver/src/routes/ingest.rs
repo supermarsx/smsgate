@@ -207,6 +207,8 @@ fn build_event(inbound: InboundEvent, now: DateTime<Utc>) -> SmsEvent {
         content: content.clone(),
         content_hash: hash_content(&content),
         parsed_code,
+        claimed_by: None,
+        claimed_at: None,
         state: EventState::New,
         source: inbound.source,
         device_received_at: inbound.device_received_at,

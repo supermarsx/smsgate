@@ -59,15 +59,77 @@ pub async fn update_event_state(
     Path(event_id): Path<String>,
     ctx: RequestContext,
     Json(body): Json<StateUpdateRequest>,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<axum::response::Response, AppError> {
     let target = body.state.clone();
     // Map to specific transition endpoints for permission enforcement.
-    match target {
-        EventState::Claimed => claim_event(UserAuth(user), State(state), Path(event_id), ctx).await,
-        EventState::Verified => verify_event(UserAuth(user), State(state), Path(event_id), ctx).await,
-        EventState::Rejected => reject_event(UserAuth(user), State(state), Path(event_id), ctx).await,
-        EventState::New => Err(AppError::Validation("cannot transition to new".into())),
+    let response: axum::response::Response = match target {
+        EventState::Claimed => {
+            claim_event(UserAuth(user), State(state), Path(event_id), ctx)
+                .await?
+                .into_response()
+        }
+        EventState::Verified => {
+            verify_event(UserAuth(user), State(state), Path(event_id), ctx)
+                .await?
+                .into_response()
+        }
+        EventState::Rejected => {
+            reject_event(UserAuth(user), State(state), Path(event_id), ctx)
+                .await?
+                .into_response()
+        }
+        EventState::New => return Err(AppError::Validation("cannot transition to new".into())),
+    };
+    Ok(response)
+}
+
+/// DELETE /api/v1/events/:event_id/state (undo to new)
+pub async fn reset_event_state(
+    UserAuth(user): UserAuth,
+    State(state): State<AppState>,
+    Path(event_id): Path<String>,
+    ctx: RequestContext,
+) -> Result<impl IntoResponse, AppError> {
+    // Allow the same permission as claim to undo.
+    require_permission(&user, permissions::EVENTS_CLAIM)?;
+    let existing = state
+        .hot_store
+        .get_event(&event_id)
+        .await
+        .ok_or_else(|| AppError::Validation("event not found".into()))?;
+    if existing.state == EventState::New {
+        return Ok((StatusCode::OK, Json(EventResponse::from(existing))));
     }
+    let mut updated = existing.clone();
+    updated.state = EventState::New;
+    updated.claimed_by = None;
+    updated.claimed_at = None;
+
+    let updated = state
+        .hot_store
+        .update_event(updated.clone())
+        .await
+        .ok_or_else(|| AppError::Validation("event not found".into()))?;
+
+    let _ = state.event_tx.send(ServerMessage::EventUpdate {
+        event: updated.clone(),
+    });
+
+    state
+        .audit
+        .log_action(
+            user.actor_label(),
+            "event.reset".into(),
+            Some(event_id.clone()),
+            "success".into(),
+            serde_json::json!({ "from": existing.state, "to": "new" }),
+            ctx.correlation_id,
+            ctx.ip,
+            ctx.user_agent,
+        )
+        .await;
+
+    Ok((StatusCode::OK, Json(EventResponse::from(updated))))
 }
 
 /// Common response payload for event mutations.

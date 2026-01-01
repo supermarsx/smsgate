@@ -310,8 +310,30 @@ export async function toggleDevice(
 }
 
 export type ConfigPayload = {
-  version: string;
-  data: Record<string, unknown>;
+  version: string | number;
+  auth_modes?: string[];
+  roles?: Array<{ name: string; precedence: number; permissions: string[] }>;
+  env?: string;
+  last_updated_at?: string;
+  data?: {
+    authModes?: { oauth?: boolean; simpleSignin?: boolean; domainSignin?: boolean };
+    presence?: {
+      snapshotSize?: number;
+      pingMs?: number;
+      pageSize?: number;
+      maxConnections?: number;
+      maxStaleMs?: number;
+      degradedMs?: number;
+      queueWarn?: number;
+      queueCrit?: number;
+    };
+    retention?: Record<string, unknown>;
+    roles?: { order?: string[]; labels?: Record<string, string> };
+    relay?: Record<string, unknown>;
+    contacts?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
 };
 
 /**

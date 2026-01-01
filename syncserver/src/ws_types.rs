@@ -63,6 +63,33 @@ pub struct ConfigUpdate {
     pub version: u64,
     pub auth_modes: Vec<String>,
     pub roles: Vec<RoleSnapshot>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub env: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_updated_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<crate::config::UiConfigData>,
+}
+
+impl From<crate::config::UiConfigEnvelope> for ConfigUpdate {
+    fn from(env: crate::config::UiConfigEnvelope) -> Self {
+        Self {
+            version: env.version,
+            auth_modes: env.auth_modes.clone(),
+            roles: env
+                .roles
+                .iter()
+                .map(|r| RoleSnapshot {
+                    name: r.name.clone(),
+                    precedence: r.precedence,
+                    permissions: r.permissions.clone(),
+                })
+                .collect(),
+            env: Some(env.env),
+            last_updated_at: Some(env.last_updated_at),
+            data: Some(env.data),
+        }
+    }
 }
 
 /// Role descriptor exposed to clients.
@@ -82,10 +109,10 @@ pub struct SimUpdate {
 
 /// Contact update payload (minimal placeholder).
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ContactUpdate {
-    pub contact_id: String,
-    pub name: Option<String>,
-    pub numbers: Vec<String>,
+    pub number: String,
+    pub contact_name: String,
     pub updated_at: DateTime<Utc>,
 }
 

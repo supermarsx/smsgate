@@ -1,6 +1,11 @@
 //! Device-facing endpoints (config fetch, SIM updates).
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    extract::State,
+    http::{HeaderValue, StatusCode},
+    response::IntoResponse,
+    Json,
+};
 use chrono::{TimeZone, Utc};
 
 use crate::{
@@ -16,7 +21,7 @@ pub async fn get_device_config(
     DeviceAuth(_device): DeviceAuth,
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<axum::response::Response, AppError> {
     let cfg = state.config.read().await;
     let etag = format!("\"{}\"", cfg.version);
     if let Some(if_none) = headers
@@ -24,15 +29,17 @@ pub async fn get_device_config(
         .and_then(|v| v.to_str().ok())
     {
         if if_none == etag {
-            return Ok((StatusCode::NOT_MODIFIED, ()));
+            return Ok(StatusCode::NOT_MODIFIED.into_response());
         }
     }
-    let snapshot = crate::config::ClientConfigSnapshot::from_versioned(&cfg);
-    Ok((
-        StatusCode::OK,
-        [(axum::http::header::ETAG, etag)],
-        Json(snapshot),
-    ))
+    let snapshot = crate::config::UiConfigEnvelope::from_versioned(&cfg);
+    let mut response = Json(snapshot).into_response();
+    response.headers_mut().insert(
+        axum::http::header::ETAG,
+        HeaderValue::from_str(&etag).unwrap_or_else(|_| HeaderValue::from_static("\"0\"")),
+    );
+    *response.status_mut() = StatusCode::OK;
+    Ok(response)
 }
 
 /// Payload for SIM inventory updates.
@@ -125,9 +132,8 @@ pub async fn update_contacts(
     for (number, name) in upserts {
         let _ = state.event_tx.send(ServerMessage::ContactUpdate(
             crate::ws_types::ContactUpdate {
-                contact_id: number.clone(),
-                name: Some(name),
-                numbers: vec![number.clone()],
+                number: number.clone(),
+                contact_name: name,
                 updated_at: Utc::now(),
             },
         ));

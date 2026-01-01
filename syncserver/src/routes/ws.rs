@@ -14,10 +14,9 @@ use tokio::time::timeout;
 
 use crate::{
     auth::{AuthContext, Principal},
-    metrics::Snapshot as MetricsSnapshot,
     presence::PresenceEntry,
     state::AppState,
-    ws_types::{ClientMessage, ConfigUpdate, PageDirection, PagePayload, RoleSnapshot, ServerMessage},
+    ws_types::{ClientMessage, ConfigUpdate, PageDirection, PagePayload, ServerMessage},
 };
 
 /// Upgrade HTTP requests to WebSocket and spawn session tasks.
@@ -292,26 +291,27 @@ fn auth_label(ctx: &AuthContext) -> String {
 }
 
 fn presence_snapshot(state: &AppState) -> Vec<crate::ws_types::PresenceUpdate> {
+    let sim_inventory = state.sim_inventory.clone();
     state
         .presence
         .all()
         .into_iter()
-        .map(|(device_id, entry, state)| map_presence(&device_id, entry, state))
+        .map(|(device_id, entry, presence_state)| {
+            map_presence(&device_id, entry, presence_state, sim_inventory.as_ref())
+        })
         .collect()
 }
 
 fn map_presence(
     device_id: &str,
     entry: PresenceEntry,
-    state: crate::domain::PresenceState,
+    presence_state: crate::domain::PresenceState,
+    sims: &crate::sim_inventory::SimInventoryStore,
 ) -> crate::ws_types::PresenceUpdate {
-    let sims = state
-        .sim_inventory
-        .get(device_id)
-        .unwrap_or_default();
+    let sims = sims.get(device_id).unwrap_or_default();
     crate::ws_types::PresenceUpdate {
         device_id: device_id.to_string(),
-        state,
+        state: presence_state,
         queue_depth: entry.queue_depth,
         last_heartbeat: entry.last_heartbeat,
         device_rtt_ms: entry.device_rtt_ms,
@@ -321,27 +321,8 @@ fn map_presence(
 
 async fn config_update(state: &AppState) -> ConfigUpdate {
     let cfg = state.config.read().await;
-    ConfigUpdate {
-        version: cfg.version,
-        auth_modes: cfg
-            .config
-            .auth
-            .modes
-            .iter()
-            .map(crate::config::mode_label)
-            .collect(),
-        roles: cfg
-            .config
-            .rbac
-            .roles
-            .iter()
-            .map(|r| RoleSnapshot {
-                name: r.name.clone(),
-                precedence: r.precedence,
-                permissions: r.permissions.clone(),
-            })
-            .collect(),
-    }
+    let envelope = crate::config::UiConfigEnvelope::from_versioned(&cfg);
+    ConfigUpdate::from(envelope)
 }
 
 fn token_from_query(uri: &axum::http::Uri) -> Option<String> {
