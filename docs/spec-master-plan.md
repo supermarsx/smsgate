@@ -251,13 +251,16 @@ Non‑persisted events expire in Redis after 24–72h.
 #### Stream
 - GET `/api/v1/ws` (WebSocket)
   - Auto-subscribe based on assigned numbers
-  - Pushes: `SNAPSHOT`, `EVENT_NEW`, `EVENT_UPDATE`, `PRESENCE_UPDATE`, `METRICS_UPDATE`
+  - Pushes: `SNAPSHOT`, `EVENT_NEW`, `EVENT_UPDATE`, `PAGE`, `PRESENCE_UPDATE`, `SIM_UPDATE`, `CONTACT_UPDATE { number, contactName, updated_at }`, `CONFIG_UPDATE`, `METRICS_UPDATE`, `DEGRADED`
 
 #### Management
 - GET `/api/v1/events` (backfill)
-- POST `/api/v1/events/{id}/claim|verify|reject`
+- POST `/api/v1/events/{id}/claim|verify|reject` or `POST /api/v1/events/{id}/state {state}`
+- DELETE `/api/v1/events/{id}/state` (undo -> new)
 - CRUD `/api/v1/users|numbers|devices`
+- Device actions: `PATCH /api/v1/devices/{id}` (rename), `POST /api/v1/devices/{id}/{enable|disable|rotate-token}`, diagnostics endpoint
 - GET `/api/v1/login-events`
+- Config: `GET /api/v1/config` (ETag) / `PATCH /api/v1/config` using envelope `{version, auth_modes, roles, data{authModes,presence,retention,contacts,relay}}`
 
 ### 1.16 WebSocket Protocol (v1)
 
@@ -419,4 +422,3 @@ Always visible in app:
 - Perpetual sync prevents message loss.
 - Redis-first storage keeps DB clean.
 - Login events + audit trail implemented.
-
