@@ -3,7 +3,7 @@
 ##
 # Builder image: compile syncserver in release mode
 ##
-FROM rust:nightly-bullseye AS builder
+FROM rust:nightly AS builder
 
 WORKDIR /app
 

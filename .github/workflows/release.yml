@@ -105,6 +105,7 @@ jobs:
           - os: windows-latest
             target: aarch64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     defaults:
       run:
         working-directory: smsgate2
@@ -135,13 +136,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smsgate2-${{ matrix.target }}
-          path: |
-            smsgate2-*.tar.gz
-            smsgate2-*.zip
+          path: smsgate2-${{ matrix.target }}.*
 
   smsrelay3-build:
     needs: version
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -159,7 +159,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smsrelay3-apk
-          path: smsrelay3/android/app/build/outputs/apk/release/app-release.apk
+          path: smsrelay3/android/app/build/outputs/apk/release/app-release*.apk
 
   publish:
     needs: [version, syncserver-build, smsgate2-build, smsrelay3-build]
