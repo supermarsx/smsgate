@@ -3,7 +3,7 @@
 ##
 # Builder image: compile syncserver in release mode
 ##
-FROM rust:nightly AS builder
+FROM rust:stable AS builder
 
 WORKDIR /app
 
