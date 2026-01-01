@@ -40,6 +40,10 @@ fn loads_config_from_file_and_env_overrides() {
     env::set_var("SYNC_HOTSTORE", "memory");
     env::set_var("SYNC_DB_ADAPTER", "sqlite");
     env::set_var("SYNC_DB_PATH", "data/test.db");
+    // Required when oauth mode is enabled in the fixture
+    env::set_var("SYNC_OAUTH_ISSUER", "https://issuer.example/");
+    env::set_var("SYNC_OAUTH_AUDIENCE", "sync-audience");
+    env::set_var("SYNC_OAUTH_HMAC_SECRET", "secretkey");
 
     let cfg = AppConfig::load().expect("config loaded");
 
@@ -75,4 +79,7 @@ fn loads_config_from_file_and_env_overrides() {
     env::remove_var("SYNC_HOTSTORE");
     env::remove_var("SYNC_DB_ADAPTER");
     env::remove_var("SYNC_DB_PATH");
+    env::remove_var("SYNC_OAUTH_ISSUER");
+    env::remove_var("SYNC_OAUTH_AUDIENCE");
+    env::remove_var("SYNC_OAUTH_HMAC_SECRET");
 }
