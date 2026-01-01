@@ -1,4 +1,4 @@
-name: Android CI
+name: smsrelay3 CI
 
 on:
   push:

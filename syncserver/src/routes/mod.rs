@@ -108,7 +108,6 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/events/:event_id/state",
             axum::routing::delete(events::reset_event_state),
         )
-        .route("/api/v1/events", get(events::list_events))
         .route("/api/v1/ingest", axum::routing::post(ingest::ingest))
         .route(
             "/api/v1/presence/heartbeat",
