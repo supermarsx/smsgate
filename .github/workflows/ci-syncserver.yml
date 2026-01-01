@@ -11,6 +11,10 @@ on:
       - "syncserver/**"
       - ".github/workflows/ci-syncserver.yml"
 
+concurrency:
+  group: ci-syncserver-${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
