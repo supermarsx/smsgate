@@ -54,7 +54,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: [lint, format, test]
+    needs: [lint, test]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
