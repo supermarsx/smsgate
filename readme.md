@@ -1,14 +1,14 @@
 # smsgate2 / syncserver / smsrelay3
 
-[![smsgate2 CI](https://github.com/supermarsx/smsgate/actions/workflows/ci.yml/badge.svg)](https://github.com/supermarsx/smsgate/actions/workflows/ci.yml)
-[![syncserver CI](https://github.com/supermarsx/smsgate/actions/workflows/ci-syncserver.yml/badge.svg)](https://github.com/supermarsx/smsgate/actions/workflows/ci-syncserver.yml)
-[![smsrelay3 CI](https://github.com/supermarsx/smsgate/actions/workflows/android-ci.yml/badge.svg)](https://github.com/supermarsx/smsgate/actions/workflows/android-ci.yml)
-[![Release Stack](https://github.com/supermarsx/smsgate/actions/workflows/release.yml/badge.svg)](https://github.com/supermarsx/smsgate/actions/workflows/release.yml)
-[![GitHub stars](https://img.shields.io/github/stars/supermarsx/smsgate?style=social)](https://github.com/supermarsx/smsgate/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/supermarsx/smsgate?style=social)](https://github.com/supermarsx/smsgate/network/members)
-[![GitHub watchers](https://img.shields.io/github/watchers/supermarsx/smsgate?style=social)](https://github.com/supermarsx/smsgate/watchers)
-[![GitHub issues](https://img.shields.io/github/issues/supermarsx/smsgate)](https://github.com/supermarsx/smsgate/issues)
-[![License](https://img.shields.io/github/license/supermarsx/smsgate)](license.md)
+[![smsgate2 CI](https://github.com/supermarsx/smsgate/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/supermarsx/smsgate/actions/workflows/ci.yml)
+[![syncserver CI](https://github.com/supermarsx/smsgate/actions/workflows/ci-syncserver.yml/badge.svg?style=flat-square)](https://github.com/supermarsx/smsgate/actions/workflows/ci-syncserver.yml)
+[![smsrelay3 CI](https://github.com/supermarsx/smsgate/actions/workflows/android-ci.yml/badge.svg?style=flat-square)](https://github.com/supermarsx/smsgate/actions/workflows/android-ci.yml)
+[![Release Stack](https://github.com/supermarsx/smsgate/actions/workflows/release.yml/badge.svg?style=flat-square)](https://github.com/supermarsx/smsgate/actions/workflows/release.yml)
+[![GitHub stars](https://img.shields.io/github/stars/supermarsx/smsgate?style=flat-square)](https://github.com/supermarsx/smsgate/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/supermarsx/smsgate?style=flat-square)](https://github.com/supermarsx/smsgate/network/members)
+[![GitHub watchers](https://img.shields.io/github/watchers/supermarsx/smsgate?style=flat-square)](https://github.com/supermarsx/smsgate/watchers)
+[![GitHub issues](https://img.shields.io/github/issues/supermarsx/smsgate?style=flat-square)](https://github.com/supermarsx/smsgate/issues)
+[![License](https://img.shields.io/github/license/supermarsx/smsgate?style=flat-square)](license.md)
 
 This monorepo contains the **new three-part stack** for realtime SMS verification streaming:
 
