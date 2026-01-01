@@ -116,9 +116,10 @@ class DiagnosticsFragment : Fragment() {
             val content = DiagnosticsExport.buildDiagnosticsJson(requireContext())
             val success = DiagnosticsExport.writeToUri(requireContext(), uri, content)
             requireActivity().runOnUiThread {
+                val message = if (success) getString(R.string.toast_export_diagnostics_done) else getString(R.string.toast_export_diagnostics_failed)
                 android.widget.Toast.makeText(
                     requireContext(),
-                    if (success) getString(R.string.toast_export_diagnostics_done) else getString(R.string.toast_export_diagnostics_failed),
+                    message,
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             }
