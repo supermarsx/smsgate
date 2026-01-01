@@ -40,7 +40,10 @@ pub async fn toggle_contacts(
     State(_state): State<AppState>,
     Json(_body): Json<ToggleRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    Ok((StatusCode::OK, Json(serde_json::json!({ "enabled": _body.enabled }))))
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({ "enabled": _body.enabled })),
+    ))
 }
 
 /// POST /api/v1/contacts/conflicts/:id/resolve

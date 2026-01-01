@@ -73,14 +73,15 @@ pub async fn update_sims(
     let sims: Vec<SimSnapshot> = body.sims.into_iter().map(|s| map_sim(s, now)).collect();
     let (updated, changed) = state.sim_inventory.upsert(&device_id, sims);
     if changed {
-        let _ = state
-            .event_tx
-            .send(ServerMessage::SimUpdate(SimUpdate {
-                device_id: device_id.clone(),
-                sims: updated.clone(),
-            }));
+        let _ = state.event_tx.send(ServerMessage::SimUpdate(SimUpdate {
+            device_id: device_id.clone(),
+            sims: updated.clone(),
+        }));
     }
-    Ok((StatusCode::OK, Json(serde_json::json!({ "updated": updated.len() }))))
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({ "updated": updated.len() })),
+    ))
 }
 
 /// Contact sync payload from device.

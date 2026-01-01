@@ -1,7 +1,7 @@
 //! Configuration exposure and mutation endpoints for smsgate2 and operators.
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use axum::http::HeaderValue;
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use chrono::Utc;
 
 use crate::{

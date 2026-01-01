@@ -107,6 +107,14 @@ function normalizeMessage(raw: any): ServerToClient | null {
         }
       };
     }
+    case "CONTACT_UPDATE":
+      return {
+        type: "CONTACT_UPDATE",
+        payload: {
+          number: data?.number ?? data?.contact_id ?? data?.numbers?.[0] ?? "",
+          contactName: data?.contactName ?? data?.name ?? data?.contact_name ?? ""
+        }
+      };
     case "DEGRADED":
       return { type: "ERROR", payload: data?.reason ?? "degraded" };
     case "ERROR":
@@ -200,14 +208,10 @@ export class WsClient {
     if (this.visibilityPaused) return;
     if (this.ws) this.ws.close();
     const url = new URL(wsUrl());
-    // Prefer header-based auth by mirroring server expectation; keep query token for compatibility.
+    // Prefer query param for browser WebSocket compatibility; headers are not available in browser WS.
     url.searchParams.set("token", this.session.accessToken);
     if (this.state.cursor) url.searchParams.set("resumeAfter", this.state.cursor);
-    this.ws = new WebSocket(url.toString(), [], {
-      headers: {
-        Authorization: `Bearer ${this.session.accessToken}`
-      }
-    } as any);
+    this.ws = new WebSocket(url.toString());
 
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
@@ -341,11 +345,21 @@ export class WsClient {
       case "SIM_UPDATE":
         // Map sim updates into presence store if available
         if (msg.payload?.deviceId) {
-          const existing = this.state.presence[msg.payload.deviceId] ?? { deviceId: msg.payload.deviceId, state: "online" };
+          const existing = this.state.presence[msg.payload.deviceId] ?? {
+            deviceId: msg.payload.deviceId,
+            state: "online"
+          };
           this.emit({
             presence: {
               ...this.state.presence,
-              [msg.payload.deviceId]: { ...existing, simSlots: msg.payload.sims?.map((s: any) => ({ slotId: s.slot_index ?? s.slotId ?? 0, iccid: s.iccid, msisdn: s.msisdn })) }
+              [msg.payload.deviceId]: {
+                ...existing,
+                simSlots: msg.payload.sims?.map((s: any) => ({
+                  slotId: s.slot_index ?? s.slotId ?? 0,
+                  iccid: s.iccid,
+                  msisdn: s.msisdn
+                }))
+              }
             }
           });
         }

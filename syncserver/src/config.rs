@@ -1309,8 +1309,8 @@ impl ClientConfigSnapshot {
                     name: role.name.clone(),
                     precedence: role.precedence,
                     permissions: role.permissions.clone(),
-            })
-            .collect(),
+                })
+                .collect(),
         }
     }
 }

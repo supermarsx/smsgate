@@ -157,20 +157,18 @@ export async function changePassword(payload: {
 export async function loginSimple(
   username: string,
   password: string,
-  mfaCode?: string
+  _mfaCode?: string
 ): Promise<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }> {
   try {
-    const res = await apiFetch<{
-      session_token: string;
-      user_id: string;
-      role: string;
-      expires_at: string;
-    }>("/api/v1/auth/simple_signin", {
+    const res = await apiFetch<any>("/api/v1/auth/simple_signin", {
       method: "POST",
       body: JSON.stringify({ username, password })
     });
-    const session = toSession(res, "simple_signin");
-    saveSession(session, true);
+    if (res.requiresPasswordChange) {
+      return { requiresPasswordChange: true, passwordChangeToken: res.passwordChangeToken };
+    }
+    const session = normalizeSession(res, "simple_signin");
+    if (session) saveSession(session, true);
     return { session };
   } catch (err) {
     return { error: (err as Error).message };
@@ -185,20 +183,18 @@ export async function loginDomain(
   username: string,
   password: string,
   domain?: string,
-  mfaCode?: string
+  _mfaCode?: string
 ): Promise<SignInResult & { requiresPasswordChange?: boolean; passwordChangeToken?: string }> {
   try {
-    const res = await apiFetch<{
-      session_token: string;
-      user_id: string;
-      role: string;
-      expires_at: string;
-    }>("/api/v1/auth/domain_signin", {
+    const res = await apiFetch<any>("/api/v1/auth/domain_signin", {
       method: "POST",
       body: JSON.stringify({ username, password, domain })
     });
-    const session = toSession(res, "domain_signin");
-    saveSession(session, true);
+    if (res.requiresPasswordChange) {
+      return { requiresPasswordChange: true, passwordChangeToken: res.passwordChangeToken };
+    }
+    const session = normalizeSession(res, "domain_signin");
+    if (session) saveSession(session, true);
     return { session };
   } catch (err) {
     return { error: (err as Error).message };
@@ -211,18 +207,13 @@ export async function loginDomain(
  */
 export async function refreshSession(refreshToken: string): Promise<Session | null> {
   try {
-    const data = await apiFetch<{
-      session_token: string;
-      user_id: string;
-      role: string;
-      expires_at: string;
-    }>("/api/v1/auth/refresh", {
+    const data = await apiFetch<any>("/api/v1/auth/refresh", {
       method: "POST",
       body: JSON.stringify({ session_token: refreshToken })
     });
-    const session = toSession(data, "simple_signin");
-    saveSession(session, true);
-    return session;
+    const session = normalizeSession(data, "simple_signin");
+    if (session) saveSession(session, true);
+    return session ?? null;
   } catch {
     clearSession();
     return null;
@@ -246,19 +237,23 @@ export async function logout(): Promise<void> {
   clearSession();
 }
 
-function toSession(res: { session_token: string; user_id: string; role: string; expires_at: string }, mode: SessionUser["authMode"]): Session {
-  return {
-    accessToken: res.session_token,
-    refreshToken: res.session_token,
-    expiresAt: Date.parse(res.expires_at),
-    user: {
-      id: res.user_id,
-      name: res.user_id,
-      email: res.user_id,
-      role: res.role,
-      authMode: mode
-    }
-  };
+function normalizeSession(res: any, mode: SessionUser["authMode"]): Session | undefined {
+  if (res?.session) return res.session as Session;
+  if (res?.session_token && res?.user_id && res?.role && res?.expires_at) {
+    return {
+      accessToken: res.session_token,
+      refreshToken: res.refresh_token ?? res.session_token,
+      expiresAt: Date.parse(res.expires_at),
+      user: {
+        id: res.user_id,
+        name: res.user_id,
+        email: res.user_id,
+        role: res.role,
+        authMode: mode
+      }
+    };
+  }
+  return undefined;
 }
 
 /**

@@ -73,7 +73,10 @@ export type ServerToClient =
   | { type: "EVENT_PAGE"; payload: Event[] }
   | { type: "PRESENCE_UPDATE"; payload: PresenceUpdate }
   | { type: "METRICS_UPDATE"; payload: MetricsUpdate }
-  | { type: "SIM_UPDATE"; payload: { deviceId: string; sims: Array<{ slot_index?: number; iccid?: string; msisdn?: string }> } }
+  | {
+      type: "SIM_UPDATE";
+      payload: { deviceId: string; sims: Array<{ slot_index?: number; iccid?: string; msisdn?: string }> };
+    }
   | { type: "CONTACT_UPDATE"; payload: { number: string; contactName: string } }
   | { type: "CONFIG_UPDATE"; payload: ConfigUpdate }
   | { type: "ERROR"; payload: string };

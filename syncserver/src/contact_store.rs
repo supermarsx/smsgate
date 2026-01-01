@@ -62,7 +62,8 @@ impl ContactStore {
             return;
         }
         if let Ok(raw) = fs::read_to_string(&self.path) {
-            if let Ok(map) = serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&raw)
+            if let Ok(map) =
+                serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&raw)
             {
                 for (k, v) in map {
                     if let Some(name) = v.as_str() {
@@ -81,12 +82,16 @@ impl ContactStore {
         let map: serde_json::Map<String, serde_json::Value> = self
             .entries
             .iter()
-            .map(|entry| (entry.key().clone(), serde_json::Value::String(entry.value().clone())))
+            .map(|entry| {
+                (
+                    entry.key().clone(),
+                    serde_json::Value::String(entry.value().clone()),
+                )
+            })
             .collect();
-        let serialized =
-            serde_json::to_string_pretty(&map).map_err(|err| format!("serialize contacts: {err}"))?;
-        fs::write(&self.path, serialized)
-            .map_err(|err| format!("write contacts file: {err}"))?;
+        let serialized = serde_json::to_string_pretty(&map)
+            .map_err(|err| format!("serialize contacts: {err}"))?;
+        fs::write(&self.path, serialized).map_err(|err| format!("write contacts file: {err}"))?;
         Ok(())
     }
 }

@@ -49,7 +49,10 @@ pub async fn list_events(
     } else {
         state.hot_store.latest(limit).await
     };
-    Ok((StatusCode::OK, Json(serde_json::json!({ "events": events }))))
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({ "events": events })),
+    ))
 }
 
 /// POST /api/v1/events/:event_id/state (compat with smsgate2)
@@ -63,21 +66,15 @@ pub async fn update_event_state(
     let target = body.state.clone();
     // Map to specific transition endpoints for permission enforcement.
     let response: axum::response::Response = match target {
-        EventState::Claimed => {
-            claim_event(UserAuth(user), State(state), Path(event_id), ctx)
-                .await?
-                .into_response()
-        }
-        EventState::Verified => {
-            verify_event(UserAuth(user), State(state), Path(event_id), ctx)
-                .await?
-                .into_response()
-        }
-        EventState::Rejected => {
-            reject_event(UserAuth(user), State(state), Path(event_id), ctx)
-                .await?
-                .into_response()
-        }
+        EventState::Claimed => claim_event(UserAuth(user), State(state), Path(event_id), ctx)
+            .await?
+            .into_response(),
+        EventState::Verified => verify_event(UserAuth(user), State(state), Path(event_id), ctx)
+            .await?
+            .into_response(),
+        EventState::Rejected => reject_event(UserAuth(user), State(state), Path(event_id), ctx)
+            .await?
+            .into_response(),
         EventState::New => return Err(AppError::Validation("cannot transition to new".into())),
     };
     Ok(response)

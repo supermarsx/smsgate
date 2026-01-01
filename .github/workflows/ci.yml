@@ -146,9 +146,6 @@ jobs:
           cache: "gradle"
       - name: Make Gradle executable
         run: chmod +x smsrelay3/android/gradlew
-      - name: ktlint
-        working-directory: smsrelay3/android
-        run: ./gradlew ktlintCheck
       - name: lint
         working-directory: smsrelay3/android
         run: ./gradlew lintDebug

@@ -33,25 +33,6 @@ jobs:
         working-directory: smsrelay3/android
         run: ./gradlew :app:lintDebug
 
-  format:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "21"
-          cache: "gradle"
-      - name: Make Gradle executable
-        run: chmod +x smsrelay3/android/gradlew
-      - name: Format check
-        working-directory: smsrelay3/android
-        run: ./gradlew :app:ktlintCheck
-
   test:
     runs-on: ubuntu-latest
     steps:

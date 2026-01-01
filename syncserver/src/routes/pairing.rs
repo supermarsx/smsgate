@@ -1,6 +1,11 @@
 //! Pairing endpoints for issuing device credentials.
 
-use axum::{extract::{State, Path}, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{

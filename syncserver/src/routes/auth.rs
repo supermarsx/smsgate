@@ -301,7 +301,9 @@ pub async fn refresh_session(
         .ok_or_else(|| AppError::Validation("invalid session".into()))?;
     // Reissue a new session for the same principal and revoke the old one.
     state.session_store.revoke(&payload.session_token);
-    let session = state.session_store.create_session(existing.principal.clone());
+    let session = state
+        .session_store
+        .create_session(existing.principal.clone());
     Ok((
         StatusCode::OK,
         Json(LoginResponse {

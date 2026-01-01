@@ -163,7 +163,9 @@ pub async fn disable_device(
     payload: Option<Json<DisableDeviceRequest>>,
 ) -> Result<impl IntoResponse, AppError> {
     require_permission(&user, permissions::DEVICES_DISABLE)?;
-    let body = payload.map(|Json(p)| p).unwrap_or(DisableDeviceRequest { reason: None });
+    let body = payload
+        .map(|Json(p)| p)
+        .unwrap_or(DisableDeviceRequest { reason: None });
     let updated = state
         .device_auth
         .set_enabled(&device_id, false, body.reason)
@@ -234,9 +236,7 @@ pub async fn rotate_token(
     require_permission(&user, permissions::DEVICES_ROTATE_TOKEN)?;
     let raw_token = Uuid::new_v4().to_string();
     let updated = state.device_auth.set_token(&device_id, &raw_token);
-    let rotated_at = updated
-        .last_token_rotated_at
-        .unwrap_or_else(Utc::now);
+    let rotated_at = updated.last_token_rotated_at.unwrap_or_else(Utc::now);
     tracing::info!(
         target: "sim",
         actor = %user.actor_label(),

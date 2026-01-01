@@ -60,7 +60,7 @@ export function ProtectedShell({ children }: Props) {
     return status.lastError;
   }, [status.lastError, t]);
 
-  const routeLimits = appConfig.limits?.routes ?? {};
+  const routeLimits = useMemo(() => appConfig.limits?.routes ?? {}, []);
   const debugAllowed = appConfig.limits?.debug?.ui ?? true;
   const logsAllowed = appConfig.limits?.debug?.logs ?? debugAllowed;
 
