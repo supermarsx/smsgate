@@ -30,8 +30,9 @@ pub async fn get_config(
     if !user.has_permission(permissions::CONFIG_READ) {
         return Err(AppError::Validation("forbidden".into()));
     }
-    let snapshot = state.config_snapshot().await;
-    let etag = format!("\"{}\"", snapshot.version);
+    let versioned = { state.config.read().await.clone() };
+    let client_snapshot = crate::config::ClientConfigSnapshot::from_versioned(&versioned);
+    let etag = format!("\"{}\"", client_snapshot.version);
     if let Some(if_none) = headers
         .get(axum::http::header::IF_NONE_MATCH)
         .and_then(|v| v.to_str().ok())
@@ -47,7 +48,7 @@ pub async fn get_config(
     );
     let etag_header =
         HeaderValue::from_str(&etag).unwrap_or_else(|_| HeaderValue::from_static("\"0\""));
-    let mut response = Json(snapshot).into_response();
+    let mut response = Json(client_snapshot).into_response();
     response
         .headers_mut()
         .insert(axum::http::header::ETAG, etag_header);
@@ -84,6 +85,7 @@ pub async fn patch_config(
     state.persist_config(&updated).await?;
 
     let snapshot = UiConfigEnvelope::from_versioned(&updated);
+    let client_snapshot = crate::config::ClientConfigSnapshot::from_versioned(&updated);
     let _ = state.event_tx.send(ServerMessage::ConfigUpdate {
         config: snapshot.clone().into(),
     });
@@ -111,7 +113,7 @@ pub async fn patch_config(
     let etag = format!("\"{}\"", snapshot.version);
     let etag_header =
         HeaderValue::from_str(&etag).unwrap_or_else(|_| HeaderValue::from_static("\"0\""));
-    let mut response = Json(snapshot).into_response();
+    let mut response = Json(client_snapshot).into_response();
     response
         .headers_mut()
         .insert(axum::http::header::ETAG, etag_header);

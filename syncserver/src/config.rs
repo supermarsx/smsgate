@@ -1228,6 +1228,8 @@ pub struct UiContactsConfig {
 #[serde(rename_all = "camelCase")]
 pub struct UiConfigData {
     pub auth_modes: UiAuthModes,
+    #[serde(default)]
+    pub ingest: UiIngestConfig,
     pub presence: UiPresenceConfig,
     pub retention: UiRetentionConfig,
     #[serde(default)]
@@ -1270,11 +1272,23 @@ pub struct UiConfigPatch {
 #[serde(rename_all = "camelCase")]
 pub struct UiConfigDataPatch {
     pub auth_modes: Option<UiAuthModes>,
+    pub ingest: Option<UiIngestConfig>,
     pub presence: Option<UiPresenceConfig>,
     pub retention: Option<UiRetentionConfig>,
     pub roles: Option<UiRolesConfig>,
     pub relay: Option<serde_json::Value>,
     pub contacts: Option<UiContactsConfig>,
+}
+
+/// UI-facing ingest settings.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UiIngestConfig {
+    pub dedup_ttl_ms: u64,
+    pub hot_store_capacity: usize,
+    pub max_batch: usize,
+    pub persist_new: bool,
+    pub persist_states: Vec<String>,
 }
 
 impl ClientConfigSnapshot {
@@ -1339,6 +1353,13 @@ impl UiConfigEnvelope {
                     oauth: cfg.auth.modes.contains(&AuthMode::Oauth),
                     simple_signin: cfg.auth.modes.contains(&AuthMode::SimpleSignin),
                     domain_signin: cfg.auth.modes.contains(&AuthMode::DomainSignin),
+                },
+                ingest: UiIngestConfig {
+                    dedup_ttl_ms: cfg.ingest.dedup_ttl_ms,
+                    hot_store_capacity: cfg.ingest.hot_store_capacity,
+                    max_batch: cfg.ingest.max_batch,
+                    persist_new: cfg.ingest.persist_new,
+                    persist_states: cfg.ingest.persist_states.clone(),
                 },
                 presence: UiPresenceConfig {
                     snapshot_size: cfg.server.ws_snapshot_limit,
