@@ -1,3 +1,6 @@
+//! Redis-backed hot store implementation for paging and deduplication.
+//! Uses Redis lists for event rings and TTL keys for dedup markers.
+
 use std::time::Duration;
 
 use async_trait::async_trait;

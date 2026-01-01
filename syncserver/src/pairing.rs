@@ -1,3 +1,6 @@
+//! Pairing session lifecycle for issuing device credentials to smsrelay3.
+//! Provides ephemeral session creation, completion, and status checks.
+
 use chrono::{DateTime, Duration, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};

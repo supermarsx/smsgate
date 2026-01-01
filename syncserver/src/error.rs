@@ -1,3 +1,6 @@
+//! Common application error type for HTTP handlers and background tasks.
+//! Converts rich errors into JSON API responses with consistent shapes.
+
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},

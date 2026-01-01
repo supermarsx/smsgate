@@ -1,3 +1,6 @@
+//! Central application state wiring for syncserver.
+//! Holds configuration, stores, metrics, and broadcast channels injected into routes and workers.
+
 use crate::{
     audit::AuditService,
     auth::{rbac::RbacStore, session::SessionStore, users::UserStore, DeviceAuthStore},
