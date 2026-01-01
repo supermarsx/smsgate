@@ -51,7 +51,8 @@ fn peppered_hash_allows_authentication() {
 
 #[test]
 fn password_history_blocks_reuse() {
-    let cfg = AppConfig::default();
+    let mut cfg = AppConfig::default();
+    cfg.auth.bootstrap_admin_username = Some("admin".into());
     let roles: Vec<syncserver::auth::Role> = cfg
         .rbac
         .roles
@@ -75,7 +76,8 @@ fn password_history_blocks_reuse() {
 
 #[test]
 fn admin_min_length_enforced_on_reset() {
-    let cfg = AppConfig::default();
+    let mut cfg = AppConfig::default();
+    cfg.auth.bootstrap_admin_username = Some("admin".into());
     let roles: Vec<syncserver::auth::Role> = cfg
         .rbac
         .roles
