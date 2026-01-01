@@ -69,7 +69,7 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 /**
- * Persist a session to storage or clear it when null.
+ * Persist a session to storage or clear it when null (synchronous, no crypto).
  * @param session Session to save; null clears both storage scopes.
  * @param persistent When true use localStorage, else sessionStorage.
  * @returns void
@@ -85,7 +85,7 @@ export function saveSession(session: Session | null, persistent = true): void {
 }
 
 /**
- * Load a session from sessionStorage or localStorage.
+ * Load a session from sessionStorage or localStorage (synchronous).
  * @returns Session when present; null otherwise.
  */
 export function loadSession(): Session | null {
@@ -95,6 +95,7 @@ export function loadSession(): Session | null {
   try {
     return JSON.parse(raw) as Session;
   } catch {
+    clearSession();
     return null;
   }
 }

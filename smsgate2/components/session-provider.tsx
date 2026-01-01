@@ -28,9 +28,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const existing = loadSession();
-    setSession(existing);
-    setLoading(false);
+    Promise.resolve(loadSession()).then((existing) => {
+      setSession(existing);
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
