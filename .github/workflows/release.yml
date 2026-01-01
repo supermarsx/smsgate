@@ -136,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smsgate2-${{ matrix.target }}
-          path: smsgate2-${{ matrix.target }}.*
+          path: smsgate2/smsgate2-${{ matrix.target }}.*
 
   smsrelay3-build:
     needs: version
