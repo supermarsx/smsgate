@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  lint-test-build:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,14 +35,80 @@ jobs:
       - name: fmt
         working-directory: syncserver
         run: cargo fmt -- --check
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            syncserver/target
+          key: ${{ runner.os }}-syncserver-${{ hashFiles('syncserver/Cargo.lock') }}
       - name: clippy
         working-directory: syncserver
         run: cargo clippy --all-targets -- -D warnings
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            syncserver/target
+          key: ${{ runner.os }}-syncserver-${{ hashFiles('syncserver/Cargo.lock') }}
+      - name: check
+        working-directory: syncserver
+        run: cargo check --all-targets
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            syncserver/target
+          key: ${{ runner.os }}-syncserver-${{ hashFiles('syncserver/Cargo.lock') }}
       - name: test
         working-directory: syncserver
         run: cargo test --all-targets
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [format, lint, typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            syncserver/target
+          key: ${{ runner.os }}-syncserver-${{ hashFiles('syncserver/Cargo.lock') }}
       - name: build container
         run: docker build -f syncserver/Dockerfile syncserver -t syncserver:ci
+
+  package:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
       - name: vulnerability scan
         uses: aquasecurity/trivy-action@0.22.0
         with:
