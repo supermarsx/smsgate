@@ -103,15 +103,15 @@ jobs:
           key: ${{ runner.os }}-syncserver-${{ hashFiles('syncserver/Cargo.lock') }}
       - name: build container
         run: docker build -f syncserver/Dockerfile syncserver -t syncserver:ci
-
-  package:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
       - name: vulnerability scan
         uses: aquasecurity/trivy-action@0.22.0
         with:
           image-ref: syncserver:ci
           format: table
           exit-code: 0
+
+  package:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
