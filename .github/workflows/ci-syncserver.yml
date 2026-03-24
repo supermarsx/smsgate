@@ -104,7 +104,7 @@ jobs:
       - name: build container
         run: docker build -f syncserver/Dockerfile syncserver -t syncserver:ci
       - name: vulnerability scan
-        uses: aquasecurity/trivy-action@0.22.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: syncserver:ci
           format: table
